@@ -223,6 +223,13 @@
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
 
+        // Tenta obter a localização do passageiro silenciosamente para calcular o ETA
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                passengerPos = [pos.coords.latitude, pos.coords.longitude];
+            }, () => {}, { enableHighAccuracy: true });
+        }
+
         function playBeep() {
             if (!soundEnabled) return;
             try {
@@ -300,7 +307,7 @@
                 iniciarGeolocalizacao();
             } else {
                 if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-                alarmEnabled = false; alarmTriggered = false; passengerPos = null;
+                alarmEnabled = false; alarmTriggered = false;
                 alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
                 alarmBtn.classList.remove('active');
                 soundBtn.style.display = 'none';
@@ -349,7 +356,7 @@
                     tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Ônibus Quebrado</span>`;
                     infoEl.classList.add('alert-active');
                 } else {
-                    infoEl.classList.remove('alert-active');
+                    if (!alarmTriggered) infoEl.classList.remove('alert-active');
                     if (statusTransito === 'lento') {
                         tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
                         velMedicaKmh = 12;
@@ -359,7 +366,7 @@
                     }
                 }
 
-                // Ocultar contador de passageiros se for igual a 0
+                // Ocultar número de passageiros se for igual a 0
                 const totalPass = passageiros || 0;
                 let tagPassageiros = "";
 
@@ -372,7 +379,8 @@
 
                 let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}${tagPassageiros}`;
                 
-                if (passengerPos && alarmEnabled && !ocorrenciaManual) {
+                // Cálculo de ETA (Tempo e Horário Estimado de Chegada)
+                if (passengerPos && !ocorrenciaManual) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
                     if (tempoMin < 1) tempoMin = 1;
