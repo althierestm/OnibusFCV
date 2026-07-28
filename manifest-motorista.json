@@ -1,0 +1,22 @@
+{
+  "name": "GPS FCV Motorista",
+  "short_name": "GPS Motorista",
+  "description": "Transmissor de GPS para motoristas da linha FCV.",
+  "start_url": "./emissor.html",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#4caf50",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3448/3448339.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
