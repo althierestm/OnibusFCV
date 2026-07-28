@@ -76,9 +76,10 @@
             transition: all 0.2s ease;
         }
 
+        /* Botão do Alerta ajustado para a cor Azul FCV */
         .btn-alarm {
-            background-color: #ff9800;
-            color: #000;
+            background-color: #2196F3;
+            color: #ffffff;
         }
 
         .btn-alarm.active {
@@ -100,7 +101,7 @@
 
         .btn-install {
             display: none;
-            background-color: #2196F3;
+            background-color: #0088cc;
             color: white;
         }
 
@@ -361,7 +362,7 @@
                 infoEl.classList.remove('alert-active');
 
                 if (busPos) {
-                    infoEl.innerHTML = `🚌 Ônibus Linha 01 em Movimento`;
+                    infoEl.innerHTML = `🚌 Linha Plantão FCV em Movimento`;
                 }
             }
         });
@@ -407,7 +408,7 @@
                 busPos = [lat, lng];
 
                 if (!alarmTriggered) {
-                    let textoStatus = `🚌 Ônibus Linha 01 | Vel: ${velocidade || 0} km/h`;
+                    let textoStatus = `🚌 Linha Plantão FCV | Vel: ${velocidade || 0} km/h`;
                     if (passengerPos && alarmEnabled) {
                         const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
                         textoStatus += `<br>Distância até você: <b>${dist.toFixed(2)} km</b>`;
@@ -416,7 +417,7 @@
                 }
 
                 if (!busMarker) {
-                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Ônibus FCV</b>");
+                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Ônibus FCV - Plantão</b>");
                     map.setView(busPos, 15);
                 } else {
                     busMarker.setLatLng(busPos);
