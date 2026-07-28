@@ -5,14 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Onibus FCV Colaborador</title>
     
-    <!-- Configurações Web App (PWA) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
     
-    <!-- Ícone do App PWA e Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
@@ -28,16 +26,30 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.88);
+            background: rgba(0, 0, 0, 0.90);
             color: #fff;
             padding: 12px 20px;
-            border-radius: 25px;
-            font-size: 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            line-height: 1.5;
             box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             text-align: center;
             max-width: 90%;
             transition: background 0.3s ease;
         }
+
+        .badge-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .status-normal { background-color: #2e7d32; color: #fff; }
+        .status-lento { background-color: #f57c00; color: #fff; }
+        .status-parado { background-color: #c62828; color: #fff; }
 
         .alert-active {
             background: #d32f2f !important;
@@ -49,7 +61,6 @@
             to { transform: translateX(-50%) scale(1.03); }
         }
 
-        /* Controles Inferiores Centrais */
         .controls {
             position: absolute;
             bottom: 25px;
@@ -76,16 +87,8 @@
             transition: all 0.2s ease;
         }
 
-        /* Botão do Alerta ajustado para a cor Azul FCV */
-        .btn-alarm {
-            background-color: #2196F3;
-            color: #ffffff;
-        }
-
-        .btn-alarm.active {
-            background-color: #f44336;
-            color: #fff;
-        }
+        .btn-alarm { background-color: #2196F3; color: #ffffff; }
+        .btn-alarm.active { background-color: #f44336; color: #fff; }
 
         .btn-sound {
             background-color: #333333;
@@ -94,18 +97,10 @@
             border: 1px solid #555;
         }
 
-        .btn-sound.muted {
-            background-color: #555555;
-            color: #ffc107;
-        }
+        .btn-sound.muted { background-color: #555555; color: #ffc107; }
 
-        .btn-install {
-            display: none;
-            background-color: #0088cc;
-            color: white;
-        }
+        .btn-install { display: none; background-color: #0088cc; color: white; }
 
-        /* Card de Instruções para iOS (iPhone) */
         .ios-install-box {
             display: none;
             background: rgba(30, 30, 30, 0.95);
@@ -121,7 +116,6 @@
             box-sizing: border-box;
         }
 
-        /* Botões Flutuantes no Canto Direito */
         .right-nav-buttons {
             position: absolute;
             right: 15px;
@@ -145,40 +139,30 @@
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            transition: transform 0.2s ease, background 0.2s ease;
+            transition: transform 0.2s ease;
         }
 
-        .btn-floating:active {
-            transform: scale(0.92);
-            background: #f0f0f0;
-        }
+        .btn-floating:active { transform: scale(0.92); }
     </style>
 
-    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
     <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
 
-    <!-- Botões Rápidos no Canto Direito -->
     <div class="right-nav-buttons">
         <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
         <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
     </div>
 
-    <!-- Controles Inferiores -->
     <div class="controls">
         <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
         <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
-        
-        <!-- Botão para Android -->
         <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
         
-        <!-- Mensagem de Orientação para iPhone/iOS -->
         <div id="iosInstallBox" class="ios-install-box">
             📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
         </div>
@@ -187,7 +171,6 @@
     <div id="map"></div>
 
     <script>
-        // Configurações do Firebase rotasfcv
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -201,14 +184,14 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Inicializa o mapa
         const map = L.map('map').setView([-20.91, -42.50], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
+        // Servidor de Mapas Otimizado (CARTO)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO',
+            maxZoom: 19
         }).addTo(map);
 
-        // Ícone Personalizado do Ônibus FCV
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
             iconSize: [60, 60],
@@ -216,184 +199,113 @@
             popupAnchor: [0, -30]
         });
 
-        let busMarker = null;
-        let passengerMarker = null;
-        let passengerCircle = null;
-        let passengerPos = null;
-        let busPos = null;
-        let watchId = null;
-        let alarmEnabled = false;
-        let soundEnabled = true;
-        let alarmTriggered = false;
+        let busMarker = null, passengerMarker = null, passengerCircle = null;
+        let passengerPos = null, busPos = null, watchId = null;
+        let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
 
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
-        const focusBusBtn = document.getElementById('focusBusBtn');
-        const focusUserBtn = document.getElementById('focusUserBtn');
 
-        // Sintetizador de áudio para o alerta
         function playBeep() {
             if (!soundEnabled) return;
-
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = "sine";
                 osc.frequency.setValueAtTime(880, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.6);
-            } catch (e) {
-                console.log("Erro ao tocar som:", e);
-            }
+            } catch (e) {}
         }
 
-        // Cálculo de distância de Haversine
         function calcularDistancia(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // Função para obter e atualizar a localização do passageiro no mapa
         function iniciarGeolocalizacao(centralizar = false) {
             if ("geolocation" in navigator) {
                 if (watchId === null) {
                     watchId = navigator.geolocation.watchPosition((position) => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        passengerPos = [lat, lng];
+                        passengerPos = [position.coords.latitude, position.coords.longitude];
 
                         if (!passengerMarker) {
                             passengerMarker = L.circleMarker(passengerPos, {
-                                radius: 8,
-                                fillColor: "#2196F3",
-                                color: "#ffffff",
-                                weight: 2,
-                                opacity: 1,
-                                fillOpacity: 0.9
+                                radius: 8, fillColor: "#2196F3", color: "#ffffff", weight: 2, fillOpacity: 0.9
                             }).addTo(map).bindPopup("<b>Sua Posição</b>");
 
                             passengerCircle = L.circle(passengerPos, {
-                                radius: 1000,
-                                color: '#4caf50',
-                                fillColor: '#4caf50',
-                                fillOpacity: 0.1,
-                                weight: 1.5
+                                radius: 1000, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.1, weight: 1.5
                             }).addTo(map);
                         } else {
                             passengerMarker.setLatLng(passengerPos);
                             passengerCircle.setLatLng(passengerPos);
                         }
 
-                        if (centralizar) {
-                            map.setView(passengerPos, 15);
-                        }
-
+                        if (centralizar) map.setView(passengerPos, 15);
                         checarProximidade();
-                    }, (err) => {
-                        alert("Permita o acesso à localização para visualizar sua posição no mapa.");
-                    }, { enableHighAccuracy: true });
+                    }, () => alert("Ative a localização do seu dispositivo."), { enableHighAccuracy: true });
                 } else if (passengerPos && centralizar) {
                     map.setView(passengerPos, 15);
                 }
             }
         }
 
-        // Botão de Centralizar no Ônibus
-        focusBusBtn.addEventListener('click', () => {
-            if (busPos) {
-                map.setView(busPos, 16);
-                if (busMarker) busMarker.openPopup();
-            } else {
-                alert("Aguardando sinal de GPS do ônibus...");
-            }
+        document.getElementById('focusBusBtn').addEventListener('click', () => {
+            if (busPos) { map.setView(busPos, 16); if (busMarker) busMarker.openPopup(); }
+            else { alert("Aguardando sinal de GPS do ônibus..."); }
         });
 
-        // Botão de Centralizar no Passageiro
-        focusUserBtn.addEventListener('click', () => {
-            if (passengerPos) {
-                map.setView(passengerPos, 16);
-                if (passengerMarker) passengerMarker.openPopup();
-            } else {
-                iniciarGeolocalizacao(true);
-            }
+        document.getElementById('focusUserBtn').addEventListener('click', () => {
+            if (passengerPos) { map.setView(passengerPos, 16); if (passengerMarker) passengerMarker.openPopup(); }
+            else { iniciarGeolocalizacao(true); }
         });
 
-        // Alternar Ativar / Desativar Alerta
         alarmBtn.addEventListener('click', () => {
             if (!alarmEnabled) {
                 alarmEnabled = true;
                 alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
                 alarmBtn.classList.add('active');
                 soundBtn.style.display = 'block';
-
                 iniciarGeolocalizacao();
             } else {
-                if (watchId !== null) {
-                    navigator.geolocation.clearWatch(watchId);
-                    watchId = null;
-                }
-                alarmEnabled = false;
-                alarmTriggered = false;
-                passengerPos = null;
-                
+                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+                alarmEnabled = false; alarmTriggered = false; passengerPos = null;
                 alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
                 alarmBtn.classList.remove('active');
                 soundBtn.style.display = 'none';
 
                 if (passengerMarker) map.removeLayer(passengerMarker);
                 if (passengerCircle) map.removeLayer(passengerCircle);
-                passengerMarker = null;
-                passengerCircle = null;
+                passengerMarker = null; passengerCircle = null;
                 infoEl.classList.remove('alert-active');
-
-                if (busPos) {
-                    infoEl.innerHTML = `🚌 Linha Plantão FCV em Movimento`;
-                }
             }
         });
 
-        // Alternar Mute do Som
         soundBtn.addEventListener('click', () => {
             soundEnabled = !soundEnabled;
-            if (soundEnabled) {
-                soundBtn.innerText = "🔊 Som: ATIVADO (Clique para mutar)";
-                soundBtn.classList.remove('muted');
-            } else {
-                soundBtn.innerText = "🔇 Som: DESATIVADO (Apenas sinal visual)";
-                soundBtn.classList.add('muted');
-            }
+            soundBtn.innerText = soundEnabled ? "🔊 Som: ATIVADO (Clique para mutar)" : "🔇 Som: DESATIVADO";
+            soundBtn.classList.toggle('muted', !soundEnabled);
         });
 
         function checarProximidade() {
             if (!alarmEnabled || !passengerPos || !busPos) return;
-
             const distKm = calcularDistancia(passengerPos[0], passengerPos[1], busPos[0], busPos[1]);
-            const distMetros = Math.round(distKm * 1000);
 
             if (distKm <= 1.0) {
-                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${distMetros} metros</b>`;
+                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(distKm * 1000)} metros</b>`;
                 infoEl.classList.add('alert-active');
-
-                if (!alarmTriggered) {
-                    playBeep();
-                    setTimeout(playBeep, 800);
-                    alarmTriggered = true;
-                }
+                if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
             } else {
                 infoEl.classList.remove('alert-active');
                 alarmTriggered = false;
@@ -404,20 +316,36 @@
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const { lat, lng, velocidade } = data;
+                const { lat, lng, velocidade, statusTransito } = data;
                 busPos = [lat, lng];
 
+                let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
+                let velMedicaKmh = 25; // Média urbana padrão
+
+                if (statusTransito === 'lento') {
+                    tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
+                    velMedicaKmh = 12;
+                } else if (statusTransito === 'parado') {
+                    tagStatus = `<span class="badge-status status-parado">🔴 Parado / Intervalo</span>`;
+                }
+
                 if (!alarmTriggered) {
-                    let textoStatus = `🚌 Linha Plantão FCV | Vel: ${velocidade || 0} km/h`;
+                    let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}`;
+                    
                     if (passengerPos && alarmEnabled) {
                         const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
-                        textoStatus += `<br>Distância até você: <b>${dist.toFixed(2)} km</b>`;
+                        
+                        // Cálculo do Tempo Estimado de Chegada (ETA)
+                        let tempoMin = Math.round((dist / velMedicaKmh) * 60);
+                        if (tempoMin < 1) tempoMin = 1;
+
+                        textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b>`;
                     }
                     infoEl.innerHTML = textoStatus;
                 }
 
                 if (!busMarker) {
-                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Ônibus FCV - Plantão</b>");
+                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão FCV</b>");
                     map.setView(busPos, 15);
                 } else {
                     busMarker.setLatLng(busPos);
@@ -429,38 +357,23 @@
             }
         });
 
-        // PWA Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-        // Detecção de Dispositivo e Instalação (Android vs iOS)
         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        const iosInstallBox = document.getElementById('iosInstallBox');
-        const installBtn = document.getElementById('installBtn');
+        
+        if (isIOS && !isStandalone) document.getElementById('iosInstallBox').style.display = 'block';
 
-        // Se estiver rodando no iOS e NÃO estiver instalado ainda
-        if (isIOS && !isStandalone) {
-            iosInstallBox.style.display = 'block';
-        }
-
-        // Instalação para Android/Chrome
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            if (!isStandalone) {
-                installBtn.style.display = 'block';
-            }
+            if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
         });
 
-        installBtn.addEventListener('click', () => {
-            installBtn.style.display = 'none';
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-            }
+        document.getElementById('installBtn').addEventListener('click', (e) => {
+            e.target.style.display = 'none';
+            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
         });
     </script>
 </body>
