@@ -21,7 +21,7 @@
             padding: 0; 
             height: 100%; 
             font-family: Arial, sans-serif; 
-            touch-action: manipulation; /* Bloqueia toque duplo para zoom no iOS */
+            touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
         }
@@ -32,17 +32,16 @@
             touch-action: manipulation;
         }
         
-        /* Barra de Informações com Blur estilo iOS (Glassmorphism) */
         .info-box {
             position: absolute;
             top: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(20, 20, 20, 0.65); /* Fundo escuro semi-transparente */
-            -webkit-backdrop-filter: blur(12px); /* Blur para Safari iOS */
-            backdrop-filter: blur(12px); /* Blur padrão */
-            border: 1px solid rgba(255, 255, 255, 0.12); /* Borda fina suave estilo iOS */
+            background: rgba(20, 20, 20, 0.65);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             color: #fff;
             padding: 12px 20px;
             border-radius: 20px;
@@ -174,7 +173,6 @@
 
         .btn-floating:active { transform: scale(0.92); }
 
-        /* RODAPÉ FCV */
         .footer {
             margin-top: 5px;
             display: flex;
@@ -230,7 +228,6 @@
             📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
         </div>
 
-        <!-- RODAPÉ -->
         <div class="footer">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
             <div class="footer-credit">by Althieres Dias</div>
@@ -240,7 +237,6 @@
     <div id="map"></div>
 
     <script>
-        // Bloqueio extra de duplo toque e gesto de zoom no iOS Safari
         document.addEventListener('dblclick', function(e) {
             e.preventDefault();
         }, { passive: false });
@@ -262,7 +258,6 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- SISTEMA DE PRESENÇA (PASSAGEIRO ONLINE) ---
         const sessionPassageiroId = db.ref('passageiros_online').push().key;
         const minhaConexaoRef = db.ref(`passageiros_online/${sessionPassageiroId}`);
 
@@ -282,6 +277,37 @@
             maxZoom: 19
         }).addTo(map);
 
+        // --- TRAÇADO DA ROTA DE PLANTÃO (LINHA AZUL) ---
+        const rotaPlantaoCoords = [
+            [-20.8931, -42.3662],
+            [-20.8992, -42.3651],
+            [-20.9085, -42.3638],
+            [-20.9152, -42.3621],
+            [-20.9210, -42.3610],
+            [-20.9265, -42.3601],
+            [-20.9312, -42.3592],
+            [-20.9358, -42.3580],
+            [-20.9390, -42.3572],
+            [-20.9335, -42.3655],
+            [-20.9230, -42.3688],
+            [-20.9185, -42.3705],
+            [-20.9122, -42.3732],
+            [-20.9165, -42.3640],
+            [-20.9102, -42.3595],
+            [-20.9045, -42.3562],
+            [-20.8998, -42.3540],
+            [-20.8955, -42.3610],
+            [-20.8931, -42.3662]
+        ];
+
+        const linhaRotaAzul = L.polyline(rotaPlantaoCoords, {
+            color: '#007AFF',
+            weight: 6,
+            opacity: 0.8,
+            lineCap: 'round',
+            lineJoin: 'round'
+        }).addTo(map);
+
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
             iconSize: [60, 60],
@@ -297,7 +323,6 @@
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
 
-        // Tenta obter a localização do passageiro silenciosamente para calcular o ETA
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((pos) => {
                 passengerPos = [pos.coords.latitude, pos.coords.longitude];
@@ -413,7 +438,6 @@
             }
         }
 
-        // Monitora o Firebase
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -440,7 +464,6 @@
                     }
                 }
 
-                // Ocultar número de passageiros se for igual a 0
                 const totalPass = passageiros || 0;
                 let tagPassageiros = "";
 
@@ -453,7 +476,6 @@
 
                 let textoStatus = `🚌 <b>Linha Plantão</b> | <span class="nobreak"><b>${velocidade || 0} km/h</b></span><br>${tagStatus}${tagPassageiros}`;
                 
-                // Cálculo de ETA (Tempo e Horário Estimado de Chegada)
                 if (passengerPos && !ocorrenciaManual) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
