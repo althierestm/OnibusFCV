@@ -14,7 +14,6 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
@@ -50,9 +49,10 @@
         .status-normal { background-color: #2e7d32; color: #fff; }
         .status-lento { background-color: #f57c00; color: #fff; }
         .status-parado { background-color: #c62828; color: #fff; }
+        .status-emergencia { background-color: #d32f2f; color: #fff; font-size: 12px; padding: 5px 10px; }
 
         .alert-active {
-            background: #d32f2f !important;
+            background: #b71c1c !important;
             animation: pulse 1s infinite alternate;
         }
 
@@ -90,13 +90,7 @@
         .btn-alarm { background-color: #2196F3; color: #ffffff; }
         .btn-alarm.active { background-color: #f44336; color: #fff; }
 
-        .btn-sound {
-            background-color: #333333;
-            color: #ffffff;
-            display: none;
-            border: 1px solid #555;
-        }
-
+        .btn-sound { background-color: #333333; color: #ffffff; display: none; border: 1px solid #555; }
         .btn-sound.muted { background-color: #555555; color: #ffc107; }
 
         .btn-install { display: none; background-color: #0088cc; color: white; }
@@ -186,7 +180,6 @@
 
         const map = L.map('map').setView([-20.91, -42.50], 13);
 
-        // Servidor de Mapas Otimizado (CARTO)
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CARTO',
             maxZoom: 19
@@ -316,33 +309,41 @@
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const { lat, lng, velocidade, statusTransito } = data;
+                const { lat, lng, velocidade, statusTransito, ocorrenciaManual } = data;
                 busPos = [lat, lng];
 
                 let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
-                let velMedicaKmh = 25; // Média urbana padrão
+                let velMedicaKmh = 25;
 
-                if (statusTransito === 'lento') {
-                    tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
-                    velMedicaKmh = 12;
-                } else if (statusTransito === 'parado') {
-                    tagStatus = `<span class="badge-status status-parado">🔴 Parado / Intervalo</span>`;
-                }
-
-                if (!alarmTriggered) {
-                    let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}`;
-                    
-                    if (passengerPos && alarmEnabled) {
-                        const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
-                        
-                        // Cálculo do Tempo Estimado de Chegada (ETA)
-                        let tempoMin = Math.round((dist / velMedicaKmh) * 60);
-                        if (tempoMin < 1) tempoMin = 1;
-
-                        textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b>`;
+                // Checa primeiro se há Ocorrência Manual
+                if (ocorrenciaManual === 'acidente') {
+                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente à Frente</span>`;
+                    infoEl.classList.add('alert-active');
+                } else if (ocorrenciaManual === 'quebrado') {
+                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Ônibus Quebrado</span>`;
+                    infoEl.classList.add('alert-active');
+                } else {
+                    infoEl.classList.remove('alert-active');
+                    if (statusTransito === 'lento') {
+                        tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
+                        velMedicaKmh = 12;
+                    } else if (statusTransito === 'parado') {
+                        tagStatus = `<span class="badge-status status-parado">🔴 Parado / Ponto</span>`;
+                        velMedicaKmh = 5;
                     }
-                    infoEl.innerHTML = textoStatus;
                 }
+
+                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}`;
+                
+                if (passengerPos && alarmEnabled && !ocorrenciaManual) {
+                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
+                    let tempoMin = Math.round((dist / velMedicaKmh) * 60);
+                    if (tempoMin < 1) tempoMin = 1;
+
+                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b>`;
+                }
+
+                infoEl.innerHTML = textoStatus;
 
                 if (!busMarker) {
                     busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão FCV</b>");
@@ -354,6 +355,7 @@
                 checarProximidade();
             } else {
                 infoEl.innerText = "Ônibus Offline";
+                infoEl.classList.remove('alert-active');
             }
         });
 
