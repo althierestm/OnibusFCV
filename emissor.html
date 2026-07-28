@@ -7,11 +7,11 @@
     
     <style>
         :root {
-            --bg-color: #121212;
-            --container-bg: #1e1e1e;
+            --bg-color: #000000; /* Super OLED Pure Black */
+            --container-bg: #0d0d0d;
             --text-color: #ffffff;
-            --box-bg: #2a2a2a;
-            --border-color: #444;
+            --box-bg: #161616;
+            --border-color: #262626;
         }
 
         body.light-mode {
@@ -40,7 +40,8 @@
             background-color: var(--container-bg);
             padding: 20px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
             box-sizing: border-box;
             text-align: center;
             position: relative;
@@ -72,12 +73,20 @@
             margin-bottom: 15px;
             font-size: 14px;
             line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+
+        .timer-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff9800;
+            margin-top: 5px;
         }
 
         .online-app-box {
-            background-color: #0d2b45;
-            border: 1px solid #1769aa;
-            color: #64b5f6;
+            background-color: #051923;
+            border: 1px solid #003554;
+            color: #00a6fb;
             padding: 10px;
             border-radius: 8px;
             margin-bottom: 15px;
@@ -97,14 +106,15 @@
             transition: all 0.2s ease;
         }
 
-        .btn-start { background-color: #4caf50; color: white; }
-        .btn-stop { background-color: #f44336; color: white; }
+        .btn-start { background-color: #2e7d32; color: white; }
+        .btn-stop { background-color: #c62828; color: white; }
 
         .counter-section {
             background: var(--box-bg);
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
+            border: 1px solid var(--border-color);
         }
 
         .counter-title { font-size: 14px; margin-bottom: 10px; opacity: 0.8; }
@@ -115,13 +125,13 @@
             height: 50px;
             font-size: 24px;
             border-radius: 50%;
-            border: none;
-            background: #444;
+            border: 1px solid var(--border-color);
+            background: #222;
             color: #fff;
             cursor: pointer;
         }
 
-        .count-display { font-size: 26px; font-weight: bold; color: #2196f3; }
+        .count-display { font-size: 26px; font-weight: bold; color: #00a6fb; }
 
         .incident-section { margin-top: 10px; }
         .incident-title { font-size: 13px; opacity: 0.8; margin-bottom: 8px; text-align: left; }
@@ -147,13 +157,14 @@
             border-radius: 10px;
             max-height: 180px;
             overflow-y: auto;
+            border: 1px solid var(--border-color);
         }
 
         .history-title {
             font-size: 13px;
             font-weight: bold;
             margin-bottom: 8px;
-            color: #2196f3;
+            color: #00a6fb;
         }
 
         .history-item {
@@ -161,6 +172,17 @@
             padding: 6px 0;
             border-bottom: 1px solid var(--border-color);
             line-height: 1.4;
+        }
+
+        .badge-live {
+            color: #4caf50;
+            font-weight: bold;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.4; }
         }
     </style>
 
@@ -172,7 +194,7 @@
     <div class="container">
         <div class="top-bar">
             <h2>🚌 Motorista</h2>
-            <button id="themeBtn" class="btn-theme">🌙 Escuro</button>
+            <button id="themeBtn" class="btn-theme">🖤 Super OLED</button>
         </div>
 
         <div class="status-box" id="statusText">
@@ -225,6 +247,9 @@
         let qtdPassageiros = 0;
         let ocorrenciaAtual = null;
         let viagemAtualId = null;
+        
+        let timerInterval = null;
+        let tempoInicioViagem = null;
 
         const toggleBtn = document.getElementById('toggleBtn');
         const statusText = document.getElementById('statusText');
@@ -237,20 +262,34 @@
         const themeBtn = document.getElementById('themeBtn');
         const historyListEl = document.getElementById('historyList');
 
-        // Alternador de Tema (Modo Escuro / Claro)
+        // Alternador de Tema (Super OLED / Claro)
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
-            themeBtn.innerText = isLight ? "☀️ Claro" : "🌙 Escuro";
+            themeBtn.innerText = isLight ? "☀️ Claro" : "🖤 Super OLED";
         });
 
-        // Monitora passageiros no app do passageiro
+        // Monitora passageiros online
         db.ref('passageiros_online').on('value', (snapshot) => {
             const totalOnline = snapshot.numChildren() || 0;
             onlinePassCountEl.innerText = totalOnline;
         });
 
-        // Carrega o Histórico de Viagens
+        function formatarTempo(segundos) {
+            const h = Math.floor(segundos / 3600).toString().padStart(2, '0');
+            const m = Math.floor((segundos % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(segundos % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function atualizarCronometroLocal() {
+            if (!tempoInicioViagem) return "00:00:00";
+            const agora = Date.now();
+            const decorridoSeg = Math.floor((agora - tempoInicioViagem) / 1000);
+            return formatarTempo(decorridoSeg);
+        }
+
+        // Carrega o Histórico de Viagens com Cronômetro Dinâmico
         db.ref('historico_viagens').limitToLast(10).on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -262,13 +301,26 @@
             keys.forEach(key => {
                 const item = data[key];
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                const fim = item.fim ? new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Em andamento';
-                html += `
-                    <div class="history-item">
-                        <b>🏁 Viagem ${inicio} - ${fim}</b><br>
-                        👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
-                    </div>
-                `;
+                
+                if (item.fim) {
+                    const fim = new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const duracaoSeg = Math.floor((item.fim - item.inicio) / 1000);
+                    const duracaoStr = formatarTempo(duracaoSeg);
+                    html += `
+                        <div class="history-item">
+                            <b>🏁 Viagem ${inicio} - ${fim}</b> (${duracaoStr})<br>
+                            👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
+                        </div>
+                    `;
+                } else {
+                    const tempoAtualStr = atualizarCronometroLocal();
+                    html += `
+                        <div class="history-item">
+                            <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
+                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b> | 👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
+                        </div>
+                    `;
+                }
             });
             historyListEl.innerHTML = html;
         });
@@ -288,7 +340,7 @@
             }
         });
 
-        // Ocorrências com confirmação
+        // Ocorrências
         btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
         btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken, "Deseja relatar Ônibus com Defeito?"));
 
@@ -297,9 +349,7 @@
                 ocorrenciaAtual = null;
                 botao.classList.remove('active');
             } else {
-                const confirmou = confirm(mensagemConfirmacao);
-                if (!confirmou) return;
-
+                if (!confirm(mensagemConfirmacao)) return;
                 ocorrenciaAtual = tipo;
                 btnAccident.classList.remove('active');
                 btnBroken.classList.remove('active');
@@ -309,22 +359,31 @@
         }
 
         toggleBtn.addEventListener('click', () => {
-            if (!isTransmitting) {
-                iniciarTransmissao();
-            } else {
-                pararTransmissao();
-            }
+            if (!isTransmitting) iniciarTransmissao();
+            else pararTransmissao();
         });
 
         function iniciarTransmissao() {
             if ("geolocation" in navigator) {
-                // Inicia registro no histórico
+                tempoInicioViagem = Date.now();
+                
                 const novaViagemRef = db.ref('historico_viagens').push();
                 viagemAtualId = novaViagemRef.key;
                 novaViagemRef.set({
                     inicio: firebase.database.ServerValue.TIMESTAMP,
-                    passageirosInicial: qtdPassageiros
+                    passageirosInicial: qtdPassageiros,
+                    passageirosFinal: qtdPassageiros
                 });
+
+                // Inicia o Cronômetro
+                timerInterval = setInterval(() => {
+                    const tempoStr = atualizarCronometroLocal();
+                    const cronoEl = document.getElementById('liveTimer');
+                    const histCronoEl = document.getElementById('histCronometro');
+                    
+                    if (cronoEl) cronoEl.innerText = tempoStr;
+                    if (histCronoEl) histCronoEl.innerText = tempoStr;
+                }, 1000);
 
                 watchId = navigator.geolocation.watchPosition((pos) => {
                     const lat = pos.coords.latitude;
@@ -345,7 +404,11 @@
                         ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                     });
 
-                    statusText.innerHTML = `Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>Velocidade: <b>${speedKmh} km/h</b>`;
+                    statusText.innerHTML = `
+                        Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
+                        Velocidade: <b>${speedKmh} km/h</b>
+                        <div class="timer-display">⏱️ <span id="liveTimer">${atualizarCronometroLocal()}</span></div>
+                    `;
                 }, (err) => {
                     alert("Erro ao obter localização: " + err.message);
                 }, { enableHighAccuracy: true });
@@ -365,7 +428,11 @@
                 watchId = null;
             }
 
-            // Finaliza registro no histórico
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
             if (viagemAtualId) {
                 db.ref(`historico_viagens/${viagemAtualId}`).update({
                     fim: firebase.database.ServerValue.TIMESTAMP,
@@ -376,6 +443,8 @@
 
             db.ref('onibus/linha_01').remove();
             isTransmitting = false;
+            tempoInicioViagem = null;
+
             statusText.innerHTML = `Status: <b style="color: #f44336;">OFFLINE</b>`;
             toggleBtn.innerText = "▶ Iniciar Transmissão";
             toggleBtn.classList.remove('btn-stop');
