@@ -5,40 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rotas FCV - Acompanhe seu Ônibus</title>
     
-    <!-- Leaflet CSS (Mapa Gratuito) -->
+    <!-- Configurações Web App (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rotas FCV">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448339.png">
+
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
         #map { height: 100vh; width: 100%; }
         .info-box {
             position: absolute;
-            top: 10px;
+            top: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: #fff;
             padding: 10px 20px;
             border-radius: 20px;
             font-size: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+        .install-btn {
+            display: none;
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
         }
     </style>
 
     <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
     <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
+    <button id="installBtn" class="install-btn">📲 Instalar App no Celular</button>
     <div id="map"></div>
 
     <script>
-        // Suas configurações do Firebase rotasfcv
+        // Suas configurações do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -46,16 +72,14 @@
             projectId: "rotasfcv",
             storageBucket: "rotasfcv.firebasestorage.app",
             messagingSenderId: "235141426187",
-            appId: "1:123456789:web:2092de8f43081bb2a4eb0e"
+            appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Inicializa o mapa centralizado no Brasil
         const map = L.map('map').setView([-20.91, -42.50], 13);
 
-        // Adiciona as imagens do mapa via OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
@@ -63,10 +87,8 @@
         let busMarker = null;
         let centralizou = false;
 
-        // Ouve o Firebase em tempo real
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
-            
             if (data) {
                 const { lat, lng, velocidade } = data;
                 const pos = [lat, lng];
@@ -75,20 +97,42 @@
                     `🚌 Ônibus Linha 01 | Velocidade: ${velocidade || 0} km/h`;
 
                 if (!busMarker) {
-                    // Cria o marcador na primeira localização recebida
                     busMarker = L.marker(pos).addTo(map).bindPopup("<b>Ônibus em Movimento</b>");
                 } else {
-                    // Atualiza a posição do marcador no mapa suavemente
                     busMarker.setLatLng(pos);
                 }
 
-                // Centraliza o mapa no ônibus na primeira vez
                 if (!centralizou) {
                     map.setView(pos, 15);
                     centralizou = true;
                 }
             } else {
                 document.getElementById('info').innerText = "Ônibus Offline";
+            }
+        });
+
+        // Registro do Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        // Lógica do Botão de Instalação no Celular
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'block';
+        });
+
+        installBtn.addEventListener('click', () => {
+            installBtn.style.display = 'none';
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                });
             }
         });
     </script>
