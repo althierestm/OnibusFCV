@@ -255,8 +255,12 @@
         }
 
         document.getElementById('focusBusBtn').addEventListener('click', () => {
-            if (busPos) { map.setView(busPos, 16); if (busMarker) busMarker.openPopup(); }
-            else { alert("Aguardando sinal de GPS do ônibus..."); }
+            if (busPos && busMarker) { 
+                map.setView(busPos, 16); 
+                busMarker.openPopup(); 
+            } else { 
+                alert("O ônibus está offline no momento."); 
+            }
         });
 
         document.getElementById('focusUserBtn').addEventListener('click', () => {
@@ -354,8 +358,16 @@
 
                 checarProximidade();
             } else {
+                // QUANDO O ÔNIBUS FICAR OFFLINE:
                 infoEl.innerText = "Ônibus Offline";
                 infoEl.classList.remove('alert-active');
+                
+                // Remove o pino do ônibus do mapa se ele existir
+                if (busMarker) {
+                    map.removeLayer(busMarker);
+                    busMarker = null;
+                }
+                busPos = null;
             }
         });
 
