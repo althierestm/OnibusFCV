@@ -167,7 +167,7 @@
         const btnBroken = document.getElementById('btnBroken');
         const onlinePassCountEl = document.getElementById('onlinePassCount');
 
-        // --- CONTADOR DE PASSAGEIROS ONLINE NO APP ---
+        // Monitora passageiros no app do passageiro
         db.ref('passageiros_online').on('value', (snapshot) => {
             const totalOnline = snapshot.numChildren() || 0;
             onlinePassCountEl.innerText = totalOnline;
@@ -188,15 +188,20 @@
             }
         });
 
-        // Botões de Ocorrências
-        btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident));
-        btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken));
+        // Eventos dos Botões de Ocorrência com Confirmação
+        btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
+        btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken, "Deseja relatar Ônibus com Defeito?"));
 
-        function toggleOcorrencia(tipo, botao) {
+        function toggleOcorrencia(tipo, botao, mensagemConfirmacao) {
+            // Se já estiver ativo, desativa diretamente sem pedir confirmação
             if (ocorrenciaAtual === tipo) {
                 ocorrenciaAtual = null;
                 botao.classList.remove('active');
             } else {
+                // Pergunta de confirmação antes de ativar
+                const confirmou = confirm(mensagemConfirmacao);
+                if (!confirmou) return; // Se clicar em cancelar, interrompe aqui
+
                 ocorrenciaAtual = tipo;
                 btnAccident.classList.remove('active');
                 btnBroken.classList.remove('active');
