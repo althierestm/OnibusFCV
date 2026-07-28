@@ -346,14 +346,18 @@
                     }
                 }
 
-                // Tag de Passageiros
+                // Lógica para Ocultar Passageiros se for 0
                 const totalPass = passageiros || 0;
-                let lotacaoTxt = "🟢 Livre";
-                if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
-                else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
-                const tagPassageiros = `<span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
+                let tagPassageiros = "";
 
-                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus} ${tagPassageiros}`;
+                if (totalPass > 0) {
+                    let lotacaoTxt = "🟢 Livre";
+                    if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
+                    else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
+                    tagPassageiros = ` <span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
+                }
+
+                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}${tagPassageiros}`;
                 
                 if (passengerPos && alarmEnabled && !ocorrenciaManual) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
