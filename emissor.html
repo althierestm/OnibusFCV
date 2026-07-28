@@ -7,7 +7,7 @@
     
     <!-- Suporte a WebApp (PWA) -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#0077b6">
 
     <style>
         :root {
@@ -17,6 +17,8 @@
             --box-bg: #161616;
             --border-color: #262626;
             --accent-color: #00a6fb;
+            --fcv-blue: #005691;
+            --fcv-blue-dark: #003a63;
         }
 
         body.light-mode {
@@ -43,6 +45,139 @@
             user-select: none;
         }
 
+        /* --- TELA DE LOGIN (OVERLAY AZUL FCV) --- */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #003a63 0%, #0077b6 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+
+        .login-header {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .login-logo {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+        }
+
+        .login-title {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 25px 20px;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .login-input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .login-input-group label {
+            display: block;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.25);
+            color: #ffffff;
+            font-size: 15px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .login-input:focus {
+            border-color: #00a6fb;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #00a6fb;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0, 166, 251, 0.4);
+            transition: transform 0.1s ease, background 0.2s ease;
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+            background: #0084ca;
+        }
+
+        .login-error {
+            color: #ff5252;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 12px;
+            text-align: center;
+            display: none;
+            background: rgba(255, 0, 0, 0.15);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .login-footer {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .login-footer-logo {
+            max-width: 130px;
+            height: auto;
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        /* --- PAINEL PRINCIPAL --- */
         .container {
             width: 100%;
             max-width: 400px;
@@ -275,6 +410,34 @@
 </head>
 <body>
 
+    <!-- OVERLAY TELA DE LOGIN -->
+    <div id="loginOverlay">
+        <div class="login-header">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
+            <div class="login-title">Painel do Motorista</div>
+        </div>
+
+        <form class="login-card" id="loginForm" onsubmit="return false;">
+            <div class="login-input-group">
+                <label for="usernameInput">Usuário</label>
+                <input type="text" id="usernameInput" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
+            </div>
+            
+            <div class="login-input-group">
+                <label for="passwordInput">Senha</label>
+                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
+            <div id="loginError" class="login-error">Usuário ou senha incorretos!</div>
+        </form>
+
+        <div class="login-footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella - Pela Vida" class="login-footer-logo">
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
     <div class="container">
         <div class="top-bar">
             <h2>🚌 Motorista</h2>
@@ -328,6 +491,34 @@
     </div>
 
     <script>
+        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+
+        // Verifica se o motorista já se autenticou na mesma sessão do navegador
+        if (sessionStorage.getItem('fcv_motorista_autenticado') === 'true') {
+            loginOverlay.style.display = 'none';
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const usuarioDigitado = usernameInput.value.trim();
+            const senhaDigitada = passwordInput.value.trim();
+
+            if (usuarioDigitado === "motorista" && senhaDigitada === "@FCVMotorista") {
+                loginError.style.display = 'none';
+                sessionStorage.setItem('fcv_motorista_autenticado', 'true');
+                loginOverlay.style.display = 'none';
+            } else {
+                loginError.style.display = 'block';
+                passwordInput.value = '';
+            }
+        });
+        // ------------------------------------
+
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
