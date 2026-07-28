@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transmissor GPS - Ônibus</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 400px;
+            margin: 40px auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            background-color: #ff9800;
+            color: #000;
+        }
+        .online { background-color: #4caf50; color: #fff; }
+        .offline { background-color: #f44336; color: #fff; }
+        .info { font-size: 14px; color: #aaa; margin: 5px 0; }
+    </style>
+
+    <!-- Bibliotecas do Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div class="card">
+        <h2>🚌 GPS em Transmissão</h2>
+        <div id="status" class="status-badge">Aguardando GPS...</div>
+        
+        <p class="info" id="coords">Lat: -- | Lng: --</p>
+        <p class="info" id="speed">Velocidade: 0 km/h</p>
+        <p class="info" id="time">Último envio: --</p>
+    </div>
+
+    <script>
+        // Suas configurações do Firebase rotasfcv
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
+            authDomain: "rotasfcv.firebaseapp.com",
+            databaseURL: "https://rotasfcv-default-rtdb.firebaseio.com",
+            projectId: "rotasfcv",
+            storageBucket: "rotasfcv.firebasestorage.app",
+            messagingSenderId: "235141426187",
+            appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
+        };
+
+        // Inicializa o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Identificador da linha ou do ônibus
+        const linhaId = "linha_01"; 
+
+        const statusEl = document.getElementById("status");
+        const coordsEl = document.getElementById("coords");
+        const speedEl = document.getElementById("speed");
+        const timeEl = document.getElementById("time");
+
+        if ("geolocation" in navigator) {
+            // Monitora a posição do celular em tempo real
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const speed = position.coords.speed ? (position.coords.speed * 3.6).toFixed(1) : 0; 
+                    const now = new Date().toLocaleTimeString();
+
+                    // 1. Envia os dados para o Realtime Database
+                    db.ref('onibus/' + linhaId).set({
+                        lat: lat,
+                        lng: lng,
+                        velocidade: speed,
+                        ultimaAtualizacao: Date.now()
+                    });
+
+                    // 2. Atualiza a tela do celular
+                    statusEl.innerText = "TRANSMITINDO AO VIVO";
+                    statusEl.className = "status-badge online";
+                    coordsEl.innerText = `Lat: ${lat.toFixed(5)} | Lng: ${lng.toFixed(5)}`;
+                    speedEl.innerText = `Velocidade: ${speed} km/h`;
+                    timeEl.innerText = `Último envio: ${now}`;
+                },
+                (error) => {
+                    statusEl.innerText = "Erro no GPS";
+                    statusEl.className = "status-badge offline";
+                    alert("Erro ao obter GPS: " + error.message + ". Verifique se deu permissão de localização.");
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 0,
+                    timeout: 10000
+                }
+            );
+        } else {
+            statusEl.innerText = "GPS Não Suportado";
+            statusEl.className = "status-badge offline";
+        }
+    </script>
+</body>
+</html>
