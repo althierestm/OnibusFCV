@@ -45,6 +45,20 @@
             user-select: none;
         }
 
+        /* --- BADGE BETA CIRCULADO --- */
+        .beta-badge {
+            background-color: #ff9800;
+            color: #000000;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: inline-block;
+            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.4);
+        }
+
         /* --- TELA DE LOGIN (OVERLAY AZUL FCV) --- */
         #loginOverlay {
             position: fixed;
@@ -65,6 +79,7 @@
         .login-header {
             margin-top: 30px;
             text-align: center;
+            position: relative;
         }
 
         .login-logo {
@@ -80,6 +95,10 @@
             font-weight: bold;
             margin: 0;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .login-card {
@@ -198,7 +217,13 @@
             margin-bottom: 15px;
         }
 
-        h2 { margin: 0; color: #4caf50; font-size: 20px; }
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h2 { margin: 0; color: #4caf50; font-size: 18px; }
 
         .btn-theme {
             background: none;
@@ -207,7 +232,7 @@
             padding: 5px 10px;
             border-radius: 20px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -414,7 +439,9 @@
     <div id="loginOverlay">
         <div class="login-header">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
-            <div class="login-title">Painel do Motorista</div>
+            <div class="login-title">
+                <span class="beta-badge">BETA</span> Motorista
+            </div>
         </div>
 
         <form class="login-card" id="loginForm" onsubmit="return false;">
@@ -440,7 +467,11 @@
     <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
     <div class="container">
         <div class="top-bar">
-            <h2>🚌 Motorista</h2>
+            <div class="top-bar-left">
+                <!-- SELO BETA NO CANTO ESQUERDO -->
+                <span class="beta-badge">BETA</span>
+                <h2>🚌 Motorista</h2>
+            </div>
             <button id="themeBtn" class="btn-theme">
                 <span>💡</span>
                 <span id="themeText">Super OLED</span>
@@ -491,7 +522,7 @@
     </div>
 
     <script>
-        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
+        // --- LÓGICA DE VALIDAÇÃO DE LOGIN (ATUALIZADA) ---
         const loginOverlay = document.getElementById('loginOverlay');
         const loginForm = document.getElementById('loginForm');
         const usernameInput = document.getElementById('usernameInput');
@@ -508,7 +539,8 @@
             const usuarioDigitado = usernameInput.value.trim();
             const senhaDigitada = passwordInput.value.trim();
 
-            if (usuarioDigitado === "motorista" && senhaDigitada === "@FCVMotorista") {
+            // Novas credenciais: usuario: admin | senha: motorista
+            if (usuarioDigitado === "admin" && senhaDigitada === "motorista") {
                 loginError.style.display = 'none';
                 sessionStorage.setItem('fcv_motorista_autenticado', 'true');
                 loginOverlay.style.display = 'none';
