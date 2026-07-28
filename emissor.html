@@ -3,160 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motorista - Onibus FCV</title>
-    <link rel="manifest" href="manifest-motorista.json">
+    <title>Painel do Motorista - FCV</title>
+    
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #121212;
             color: #ffffff;
+            margin: 0;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
             text-align: center;
-            transition: background 0.3s;
         }
 
-        body.eco-mode {
-            background-color: #000000;
+        h2 { margin-top: 0; color: #4caf50; font-size: 20px; }
+
+        .status-box {
+            background-color: #2a2a2a;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
-        body.eco-mode .card {
-            background: #080808;
-            border: 1px solid #222;
-        }
-
-        .card {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            width: 100%;
-            max-width: 340px;
-            box-sizing: border-box;
-        }
-
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .header-top h2 { margin: 0; font-size: 18px; }
-
-        .btn-eco {
-            background: #333;
-            color: #fff;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .status {
-            font-size: 15px;
-            font-weight: bold;
-            margin: 10px 0;
+        .online-app-box {
+            background-color: #0d2b45;
+            border: 1px solid #1769aa;
+            color: #64b5f6;
             padding: 10px;
-            border-radius: 12px;
-            background: #333;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: bold;
         }
-
-        .active { background: #2196F3; color: #fff; }
 
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             border: none;
-            border-radius: 12px;
-            font-size: 15px;
+            border-radius: 10px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
         }
 
-        .btn-start { background-color: #2196F3; color: white; }
+        .btn-start { background-color: #4caf50; color: white; }
         .btn-stop { background-color: #f44336; color: white; display: none; }
 
-        .panel-box {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 12px;
+        .counter-section {
             background: #2a2a2a;
-            border-radius: 12px;
-            font-size: 13px;
-        }
-
-        .badge-auto {
-            padding: 8px;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-
-        .st-normal { background-color: #2e7d32; color: #fff; }
-        .st-lento { background-color: #f57c00; color: #fff; }
-        .st-parado { background-color: #c62828; color: #fff; }
-        .st-alerta { background-color: #d32f2f; color: #fff; animation: pulse 1s infinite alternate; }
-
-        /* Estilo Contador Passageiros */
-        .passengers-counter {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #181818;
-            padding: 8px 12px;
+            padding: 15px;
             border-radius: 10px;
-            margin-top: 5px;
+            margin-bottom: 20px;
         }
 
+        .counter-title { font-size: 14px; margin-bottom: 10px; color: #ccc; }
+        .counter-controls { display: flex; justify-content: space-between; align-items: center; }
+        
         .btn-count {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
             border-radius: 50%;
             border: none;
-            font-size: 20px;
-            font-weight: bold;
+            background: #444;
             color: #fff;
             cursor: pointer;
         }
 
-        .btn-add { background: #2e7d32; }
-        .btn-sub { background: #c62828; }
+        .count-display { font-size: 26px; font-weight: bold; color: #2196f3; }
 
-        .emergency-container {
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .btn-emergency {
+        .incident-section { margin-top: 10px; }
+        .incident-title { font-size: 13px; color: #aaa; margin-bottom: 8px; text-align: left; }
+        
+        .btn-incident {
+            background-color: #333;
+            color: #fff;
             padding: 10px;
-            border-radius: 10px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            color: #fff;
-            font-size: 12px;
+            font-size: 13px;
+            border: 1px solid #444;
         }
 
-        .btn-acidente { background-color: #d84315; }
-        .btn-quebrado { background-color: #b71c1c; }
-        .btn-reset { background-color: #555555; display: none; }
-
-        .info { font-size: 11px; color: #aaa; margin-top: 10px; line-height: 1.4; }
-        .stats-trip { font-size: 12px; color: #4caf50; font-weight: bold; margin-top: 5px; }
+        .btn-incident.active {
+            background-color: #ff9800;
+            color: #000;
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -164,45 +110,33 @@
 </head>
 <body>
 
-    <div class="card">
-        <div class="header-top">
-            <h2>🚌 Motorista - FCV</h2>
-            <button id="ecoBtn" class="btn-eco">🌙 Modo Eco</button>
-        </div>
-        
-        <div id="status" class="status">GPS Desconectado</div>
-        
-        <button id="startBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
-        <button id="stopBtn" class="btn btn-stop">⏹ Parar Transmissão</button>
+    <div class="container">
+        <h2>🚌 Transmissor do Motorista</h2>
 
-        <!-- Status Automático & Histórico da Viagem -->
-        <div id="autoStatusBox" class="panel-box">
-            <span><b>Trânsito (Automático):</b></span>
-            <div id="autoStatusBadge" class="badge-auto st-normal">🟢 Rota Normal</div>
-            
-            <div class="stats-trip" id="tripStats">⏱ Tempo: 00:00 | ⚡ Média: 0 km/h</div>
+        <div class="status-box" id="statusText">
+            Status: <b style="color: #f44336;">OFFLINE</b>
         </div>
 
-        <!-- Controle de Contador de Passageiros -->
-        <div id="passengersBox" class="panel-box">
-            <span><b>Passageiros a bordo:</b></span>
-            <div class="passengers-counter">
-                <button id="btnSubPass" class="btn-count btn-sub">-</button>
-                <span id="passCountText" style="font-size: 18px; font-weight: bold;">0</span>
-                <button id="btnAddPass" class="btn-count btn-add">+</button>
+        <div class="online-app-box">
+            📱 Passageiros com o App Aberto: <span id="onlinePassCount">0</span>
+        </div>
+
+        <button id="toggleBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
+
+        <div class="counter-section">
+            <div class="counter-title">👥 Passageiros no Ônibus</div>
+            <div class="counter-controls">
+                <button class="btn-count" id="btnMinus">-</button>
+                <span class="count-display" id="passCount">0</span>
+                <button class="btn-count" id="btnPlus">+</button>
             </div>
-            <span id="lotacaoBadge" style="font-size: 11px; color: #888;">Lotação: Livre 🟢</span>
         </div>
 
-        <!-- Botões de Ocorrências com Confirmação -->
-        <div id="emergencyContainer" class="emergency-container">
-            <span style="font-size: 11px; color: #ccc;"><b>Reportar Ocorrência Manual:</b></span>
-            <button id="btnAcidente" class="btn-emergency btn-acidente">⚠️ Acidente à Frente</button>
-            <button id="btnQuebrado" class="btn-emergency btn-quebrado">🔧 Ônibus Quebrado</button>
-            <button id="btnResetEmergency" class="btn-emergency btn-reset">✅ Normalizar Rota</button>
+        <div class="incident-section">
+            <div class="incident-title">Relatar Ocorrência:</div>
+            <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
+            <button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button>
         </div>
-
-        <div class="info" id="details">Otimizado: monitorando GPS e passageiros.</div>
     </div>
 
     <script>
@@ -219,249 +153,120 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        let isTransmitting = false;
         let watchId = null;
-        let ultimaLat = null, ultimaLng = null;
-        let ultimoTempoEnvio = 0;
-        let tempoParadoInicio = null;
-        
-        let statusTransito = "normal";
-        let ocorrenciaManual = null;
         let qtdPassageiros = 0;
+        let ocorrenciaAtual = null;
 
-        // Dados do Histórico de Viagem
-        let tempoInicioViagem = null;
-        let somaVelocidades = 0;
-        let leiturasVelocidade = 0;
-        let timerCronometro = null;
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusText = document.getElementById('statusText');
+        const passCountEl = document.getElementById('passCount');
+        const btnPlus = document.getElementById('btnPlus');
+        const btnMinus = document.getElementById('btnMinus');
+        const btnAccident = document.getElementById('btnAccident');
+        const btnBroken = document.getElementById('btnBroken');
+        const onlinePassCountEl = document.getElementById('onlinePassCount');
 
-        const DISTANCIA_MINIMA_METROS = 100;
-        const TEMPO_MAXIMO_PARADO_MS = 120000;
-
-        const statusEl = document.getElementById('status');
-        const detailsEl = document.getElementById('details');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const autoStatusBox = document.getElementById('autoStatusBox');
-        const autoStatusBadge = document.getElementById('autoStatusBadge');
-        const passengersBox = document.getElementById('passengersBox');
-        const emergencyContainer = document.getElementById('emergencyContainer');
-        const tripStatsEl = document.getElementById('tripStats');
-
-        const btnAcidente = document.getElementById('btnAcidente');
-        const btnQuebrado = document.getElementById('btnQuebrado');
-        const btnResetEmergency = document.getElementById('btnResetEmergency');
-
-        // Alternar Modo Eco
-        document.getElementById('ecoBtn').addEventListener('click', () => {
-            document.body.classList.toggle('eco-mode');
+        // --- CONTADOR DE PASSAGEIROS ONLINE NO APP ---
+        db.ref('passageiros_online').on('value', (snapshot) => {
+            const totalOnline = snapshot.numChildren() || 0;
+            onlinePassCountEl.innerText = totalOnline;
         });
 
-        // Lógica Passageiros
-        const passCountText = document.getElementById('passCountText');
-        const lotacaoBadge = document.getElementById('lotacaoBadge');
-
-        function atualizarLotacaoText() {
-            passCountText.innerText = qtdPassageiros;
-            let statusLot = "Livre 🟢";
-            if (qtdPassageiros > 15 && qtdPassageiros <= 30) statusLot = "Normal 🟡";
-            else if (qtdPassageiros > 30) statusLot = "Lotado 🔴";
-            
-            lotacaoBadge.innerText = `Lotação: ${statusLot}`;
-        }
-
-        document.getElementById('btnAddPass').addEventListener('click', () => {
+        // Controles do Contador do Ônibus
+        btnPlus.addEventListener('click', () => {
             qtdPassageiros++;
-            atualizarLotacaoText();
-            if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
+            passCountEl.innerText = qtdPassageiros;
+            atualizarDadosFirebase();
         });
 
-        document.getElementById('btnSubPass').addEventListener('click', () => {
+        btnMinus.addEventListener('click', () => {
             if (qtdPassageiros > 0) {
                 qtdPassageiros--;
-                atualizarLotacaoText();
-                if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
+                passCountEl.innerText = qtdPassageiros;
+                atualizarDadosFirebase();
             }
         });
 
-        // Ocorrências com Confirmação
-        btnAcidente.addEventListener('click', () => {
-            if (confirm("⚠️ Tem certeza que deseja notificar sobre ACIDENTE À FRENTE?")) {
-                ocorrenciaManual = "acidente";
-                atualizarInterfaceOcorrencia();
-                if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
-            }
-        });
+        // Botões de Ocorrências
+        btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident));
+        btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken));
 
-        btnQuebrado.addEventListener('click', () => {
-            if (confirm("🔧 Tem certeza que deseja notificar sobre ÔNIBUS QUEBRADO?")) {
-                ocorrenciaManual = "quebrado";
-                atualizarInterfaceOcorrencia();
-                if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
-            }
-        });
-
-        btnResetEmergency.addEventListener('click', () => {
-            ocorrenciaManual = null;
-            atualizarInterfaceOcorrencia();
-            if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
-        });
-
-        function atualizarInterfaceOcorrencia() {
-            if (ocorrenciaManual === "acidente") {
-                autoStatusBadge.className = "badge-auto st-alerta";
-                autoStatusBadge.innerText = "⚠️ Alerta: Acidente à Frente";
-                btnResetEmergency.style.display = 'block';
-            } else if (ocorrenciaManual === "quebrado") {
-                autoStatusBadge.className = "badge-auto st-alerta";
-                autoStatusBadge.innerText = "🔧 Alerta: Ônibus Quebrado";
-                btnResetEmergency.style.display = 'block';
+        function toggleOcorrencia(tipo, botao) {
+            if (ocorrenciaAtual === tipo) {
+                ocorrenciaAtual = null;
+                botao.classList.remove('active');
             } else {
-                btnResetEmergency.style.display = 'none';
-                atualizarBadgeStatusAuto();
+                ocorrenciaAtual = tipo;
+                btnAccident.classList.remove('active');
+                btnBroken.classList.remove('active');
+                botao.classList.add('active');
             }
+            atualizarDadosFirebase();
         }
 
-        function atualizarBadgeStatusAuto() {
-            if (ocorrenciaManual) return;
-
-            if (statusTransito === "normal") {
-                autoStatusBadge.className = "badge-auto st-normal";
-                autoStatusBadge.innerText = "🟢 Rota Normal";
-            } else if (statusTransito === "lento") {
-                autoStatusBadge.className = "badge-auto st-lento";
-                autoStatusBadge.innerText = "🟡 Trânsito Lento";
-            } else if (statusTransito === "parado") {
-                autoStatusBadge.className = "badge-auto st-parado";
-                autoStatusBadge.innerText = "🔴 Parado / Ponto";
-            }
-        }
-
-        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        function atualizarCronometro() {
-            if (!tempoInicioViagem) return;
-            const decorridoSeg = Math.floor((Date.now() - tempoInicioViagem) / 1000);
-            const min = String(Math.floor(decorridoSeg / 60)).padStart(2, '0');
-            const seg = String(decorridoSeg % 60).padStart(2, '0');
-            
-            const mediaVel = leiturasVelocidade > 0 ? Math.round(somaVelocidades / leiturasVelocidade) : 0;
-            tripStatsEl.innerText = `⏱ Tempo: ${min}:${seg} | ⚡ Média: ${mediaVel} km/h`;
-        }
-
-        function enviarParaFirebase(lat, lng, velocidade) {
-            ultimaLat = lat;
-            ultimaLng = lng;
-            ultimoTempoEnvio = Date.now();
-
-            db.ref('onibus/linha_01').set({
-                lat: lat,
-                lng: lng,
-                velocidade: velocidade,
-                statusTransito: statusTransito,
-                ocorrenciaManual: ocorrenciaManual,
-                passageiros: qtdPassageiros,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
-            }).then(() => {
-                const hora = new Date().toLocaleTimeString();
-                detailsEl.innerHTML = `Último envio às <b>${hora}</b> | Vel: <b>${velocidade} km/h</b>`;
-            });
-        }
-
-        function processarEEnviarPosicao(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const velocidade = Math.round((position.coords.speed || 0) * 3.6);
-            const agora = Date.now();
-
-            // Média de velocidade
-            somaVelocidades += velocidade;
-            leiturasVelocidade++;
-
-            // Lógica de Trânsito
-            if (velocidade <= 2) {
-                if (!tempoParadoInicio) tempoParadoInicio = agora;
-                if (agora - tempoParadoInicio >= TEMPO_MAXIMO_PARADO_MS) {
-                    statusTransito = "parado";
-                } else {
-                    statusTransito = "lento";
-                }
-            } else if (velocidade > 2 && velocidade <= 15) {
-                tempoParadoInicio = null;
-                statusTransito = "lento";
+        toggleBtn.addEventListener('click', () => {
+            if (!isTransmitting) {
+                iniciarTransmissao();
             } else {
-                tempoParadoInicio = null;
-                statusTransito = "normal";
+                pararTransmissao();
             }
+        });
 
-            atualizarBadgeStatusAuto();
-
-            if (ultimaLat === null || ultimaLng === null) {
-                enviarParaFirebase(lat, lng, velocidade);
-            } else {
-                const distanciaAndada = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng);
-                const tempoDecorrido = agora - ultimoTempoEnvio;
-
-                if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= 20000 || ocorrenciaManual !== null) {
-                    enviarParaFirebase(lat, lng, velocidade);
-                }
-            }
-        }
-
-        startBtn.addEventListener('click', () => {
+        function iniciarTransmissao() {
             if ("geolocation" in navigator) {
-                tempoInicioViagem = Date.now();
-                somaVelocidades = 0;
-                leiturasVelocidade = 0;
-                timerCronometro = setInterval(atualizarCronometro, 1000);
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
 
-                watchId = navigator.geolocation.watchPosition((position) => {
-                    statusEl.innerText = "📡 Transmitindo GPS...";
-                    statusEl.classList.add('active');
-                    startBtn.style.display = 'none';
-                    stopBtn.style.display = 'block';
-                    autoStatusBox.style.display = 'flex';
-                    passengersBox.style.display = 'flex';
-                    emergencyContainer.style.display = 'flex';
+                    let statusTransito = "normal";
+                    if (speedKmh < 5) statusTransito = "parado";
+                    else if (speedKmh < 18) statusTransito = "lento";
 
-                    processarEEnviarPosicao(position);
+                    db.ref('onibus/linha_01').set({
+                        lat: lat,
+                        lng: lng,
+                        velocidade: speedKmh,
+                        statusTransito: statusTransito,
+                        ocorrenciaManual: ocorrenciaAtual,
+                        passageiros: qtdPassageiros,
+                        ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
+                    });
+
+                    statusText.innerHTML = `Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>Velocidade: <b>${speedKmh} km/h</b>`;
                 }, (err) => {
-                    alert("Erro no GPS: " + err.message);
+                    alert("Erro ao obter localização: " + err.message);
                 }, { enableHighAccuracy: true });
-            }
-        });
 
-        stopBtn.addEventListener('click', () => {
+                isTransmitting = true;
+                toggleBtn.innerText = "⏹ Parar Transmissão";
+                toggleBtn.style.backgroundColor = "#f44336";
+            } else {
+                alert("Geolocalização não é suportada neste navegador.");
+            }
+        }
+
+        function pararTransmissao() {
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
-            if (timerCronometro) clearInterval(timerCronometro);
-
             db.ref('onibus/linha_01').remove();
+            isTransmitting = false;
+            statusText.innerHTML = `Status: <b style="color: #f44336;">OFFLINE</b>`;
+            toggleBtn.innerText = "▶ Iniciar Transmissão";
+            toggleBtn.style.backgroundColor = "#4caf50";
+        }
 
-            statusEl.innerText = "GPS Desconectado";
-            statusEl.classList.remove('active');
-            startBtn.style.display = 'block';
-            stopBtn.style.display = 'none';
-            autoStatusBox.style.display = 'none';
-            passengersBox.style.display = 'none';
-            emergencyContainer.style.display = 'none';
-            detailsEl.innerText = "Transmissão pausada.";
-
-            ultimaLat = null;
-            ultimaLng = null;
-            tempoParadoInicio = null;
-            ocorrenciaManual = null;
-            tempoInicioViagem = null;
-        });
+        function atualizarDadosFirebase() {
+            if (isTransmitting) {
+                db.ref('onibus/linha_01').update({
+                    passageiros: qtdPassageiros,
+                    ocorrenciaManual: ocorrenciaAtual
+                });
+            }
+        }
     </script>
 </body>
 </html>
