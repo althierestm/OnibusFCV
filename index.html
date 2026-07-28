@@ -270,7 +270,8 @@
             }
         });
 
-        const map = L.map('map', { doubleClickZoom: false }).setView([-20.91, -42.50], 13);
+        // Inicializa focado em Muriaé/FCV
+        const map = L.map('map', { doubleClickZoom: false }).setView([-20.915, -42.365], 13);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CARTO',
@@ -280,12 +281,12 @@
         // ÍCONE DOS PONTOS DE PARADA (LOGO FCV)
         const fcvPointIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png',
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
-            popupAnchor: [0, -13]
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+            popupAnchor: [0, -14]
         });
 
-        // LISTA DOS PONTOS COM NOME E COORDENADAS
+        // LISTA DOS PONTOS CORRIGIDA
         const pontosDaRota = [
             { nome: "1º PONTO - UNIVERSITÁRIO", desc: "Fundação Cristiano Varella", coords: [-20.8931, -42.3662] },
             { nome: "2º PONTO - BR-116", desc: "Concessionária Man Caminhões - Antiga Ford", coords: [-20.8992, -42.3651] },
@@ -300,7 +301,7 @@
             { nome: "11º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente ao nº 55", coords: [-20.9250, -42.3680] },
             { nome: "12º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Pauliene", coords: [-20.9230, -42.3688] },
             { nome: "13º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Dilfar, nº 777", coords: [-20.9210, -42.3695] },
-            { label: "14º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Patolab", coords: [-20.9195, -42.3700] },
+            { nome: "14º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Patolab", coords: [-20.9195, -42.3700] },
             { nome: "15º PONTO - PREFEITO HÉLIO ARAÚJO", desc: "Rua Santa Rita, nº 90 - Próximo à Auto Escola Via Brasil", coords: [-20.9185, -42.3705] },
             { nome: "16º PONTO - PREFEITO HÉLIO ARAÚJO", desc: "Rua José Augusto de Abreu - Em frente ao antigo Colégio CCEM", coords: [-20.9150, -42.3718] },
             { nome: "17º PONTO - SAFIRA", desc: "Rua Silvério Campos - Confecções Veggi", coords: [-20.9122, -42.3732] },
@@ -315,23 +316,22 @@
             { nome: "26º PONTO - UNIVERSITÁRIO", desc: "Fundação Cristiano Varella", coords: [-20.8931, -42.3662] }
         ];
 
-        // ADICIONA CADA PONTO COM A LOGO DA FCV NO MAPA
-        pontosDaRota.forEach(ponto => {
-            const titulo = ponto.nome || ponto.label;
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .addTo(map)
-                .bindPopup(`<b>${titulo}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`);
-        });
-
         // DESENHA A LINHA AZUL CONTINUA UNINDO OS PONTOS
         const rotaPlantaoCoords = pontosDaRota.map(p => p.coords);
         const linhaRotaAzul = L.polyline(rotaPlantaoCoords, {
             color: '#007AFF',
-            weight: 6,
-            opacity: 0.8,
+            weight: 5,
+            opacity: 0.85,
             lineCap: 'round',
             lineJoin: 'round'
         }).addTo(map);
+
+        // ADICIONA CADA PONTO COM A LOGO DA FCV NO MAPA
+        pontosDaRota.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .addTo(map)
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`);
+        });
 
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
@@ -517,7 +517,6 @@
 
                 if (!busMarker) {
                     busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão</b>");
-                    map.setView(busPos, 15);
                 } else {
                     busMarker.setLatLng(busPos);
                 }
