@@ -18,36 +18,73 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
         #map { height: 100vh; width: 100%; }
+        
         .info-box {
             position: absolute;
             top: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.88);
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 20px;
+            padding: 12px 20px;
+            border-radius: 25px;
             font-size: 14px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             text-align: center;
+            max-width: 90%;
+            transition: background 0.3s ease;
         }
-        .install-btn {
-            display: none;
+
+        .alert-active {
+            background: #d32f2f !important;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: translateX(-50%) scale(1); }
+            to { transform: translateX(-50%) scale(1.03); }
+        }
+
+        .controls {
             position: absolute;
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background-color: #2196F3;
-            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            width: 90%;
+            max-width: 320px;
+        }
+
+        .btn {
+            width: 100%;
             border: none;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border-radius: 25px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             cursor: pointer;
+        }
+
+        .btn-alarm {
+            background-color: #ff9800;
+            color: #000;
+        }
+
+        .btn-alarm.active {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .btn-install {
+            display: none;
+            background-color: #2196F3;
+            color: white;
         }
     </style>
 
@@ -60,11 +97,16 @@
 <body>
 
     <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
-    <button id="installBtn" class="install-btn">📲 Instalar App no Celular</button>
+
+    <div class="controls">
+        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
+        <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
+    </div>
+
     <div id="map"></div>
 
     <script>
-        // Suas configurações do Firebase
+        // Configurações do Firebase rotasfcv
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -78,6 +120,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // Inicializa o mapa
         const map = L.map('map').setView([-20.91, -42.50], 13);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -85,38 +128,163 @@
         }).addTo(map);
 
         let busMarker = null;
-        let centralizou = false;
+        let passengerMarker = null;
+        let passengerCircle = null;
+        let passengerPos = null;
+        let busPos = null;
+        let alarmEnabled = false;
+        let alarmTriggered = false;
 
+        const infoEl = document.getElementById('info');
+        const alarmBtn = document.getElementById('alarmBtn');
+
+        // Synth para gerar o som de alerta sonoro sem precisar carregar arquivo de áudio
+        function playBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Tom A5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6); // Toca por 0.6 segundos
+            } catch (e) {
+                console.log("Erro ao tocar áudio:", e);
+            }
+        }
+
+        // Função de Haversine para calcular distância em Km entre duas coordenadas
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Raio da Terra em Km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // Distância em Km
+        }
+
+        // Ativar/Desativar o monitoramento de proximidade do passageiro
+        alarmBtn.addEventListener('click', () => {
+            if (!alarmEnabled) {
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.watchPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        passengerPos = [lat, lng];
+
+                        // Desenha/Atualiza o marcador do passageiro
+                        if (!passengerMarker) {
+                            passengerMarker = L.circleMarker(passengerPos, {
+                                radius: 8,
+                                fillColor: "#2196F3",
+                                color: "#ffffff",
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.9
+                            }).addTo(map).bindPopup("<b>Sua Posição</b>");
+
+                            // Círculo de 1 km (1000 metros)
+                            passengerCircle = L.circle(passengerPos, {
+                                radius: 1000,
+                                color: '#4caf50',
+                                fillColor: '#4caf50',
+                                fillOpacity: 0.1,
+                                weight: 1.5
+                            }).addTo(map);
+                        } else {
+                            passengerMarker.setLatLng(passengerPos);
+                            passengerCircle.setLatLng(passengerPos);
+                        }
+
+                        alarmEnabled = true;
+                        alarmBtn.innerText = "✅ Alerta de 1 km Ativado";
+                        alarmBtn.classList.add('active');
+                        
+                        checarProximidade();
+                    }, (err) => {
+                        alert("Permita o acesso à sua localização para ativar o alarme de aproximação.");
+                    }, { enableHighAccuracy: true });
+                }
+            } else {
+                alarmEnabled = false;
+                alarmTriggered = false;
+                alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
+                alarmBtn.classList.remove('active');
+                if (passengerMarker) map.removeLayer(passengerMarker);
+                if (passengerCircle) map.removeLayer(passengerCircle);
+                passengerMarker = null;
+                passengerCircle = null;
+                infoEl.classList.remove('alert-active');
+            }
+        });
+
+        function checarProximidade() {
+            if (!alarmEnabled || !passengerPos || !busPos) return;
+
+            const distKm = calcularDistancia(passengerPos[0], passengerPos[1], busPos[0], busPos[1]);
+            const distMetros = Math.round(distKm * 1000);
+
+            if (distKm <= 1.0) { // Menos de 1 km
+                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${distMetros} metros</b>`;
+                infoEl.classList.add('alert-active');
+
+                // Toca o bipe sonoro se ainda não tiver disparado
+                if (!alarmTriggered) {
+                    playBeep();
+                    // Dispara um segundo bipe após 0.8s para chamar atenção
+                    setTimeout(playBeep, 800);
+                    alarmTriggered = true;
+                }
+            } else {
+                infoEl.classList.remove('alert-active');
+                alarmTriggered = false; // Reseta o disparo se o ônibus se afastar
+            }
+        }
+
+        // Monitora o ônibus via Firebase
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 const { lat, lng, velocidade } = data;
-                const pos = [lat, lng];
+                busPos = [lat, lng];
 
-                document.getElementById('info').innerText = 
-                    `🚌 Ônibus Linha 01 | Velocidade: ${velocidade || 0} km/h`;
+                if (!alarmTriggered) {
+                    let textoStatus = `🚌 Ônibus Linha 01 | Vel: ${velocidade || 0} km/h`;
+                    if (passengerPos) {
+                        const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
+                        textoStatus += `<br>Distância até você: <b>${dist.toFixed(2)} km</b>`;
+                    }
+                    infoEl.innerHTML = textoStatus;
+                }
 
                 if (!busMarker) {
-                    busMarker = L.marker(pos).addTo(map).bindPopup("<b>Ônibus em Movimento</b>");
+                    busMarker = L.marker(busPos).addTo(map).bindPopup("<b>Ônibus em Movimento</b>");
+                    map.setView(busPos, 15);
                 } else {
-                    busMarker.setLatLng(pos);
+                    busMarker.setLatLng(busPos);
                 }
 
-                if (!centralizou) {
-                    map.setView(pos, 15);
-                    centralizou = true;
-                }
+                checarProximidade();
             } else {
-                document.getElementById('info').innerText = "Ônibus Offline";
+                infoEl.innerText = "Ônibus Offline";
             }
         });
 
-        // Registro do Service Worker para PWA
+        // Registro do PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
-        // Lógica do Botão de Instalação no Celular
+        // Lógica do botão de instalação do app
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
@@ -130,9 +298,7 @@
             installBtn.style.display = 'none';
             if (deferredPrompt) {
                 deferredPrompt.prompt();
-                deferredPrompt.userChoice.then(() => {
-                    deferredPrompt = null;
-                });
+                deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
             }
         });
     </script>
