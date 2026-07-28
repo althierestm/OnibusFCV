@@ -270,7 +270,7 @@
             }
         });
 
-        // Inicializa o mapa centralizado na rota em Muriaé
+        // Inicializa o mapa centralizado em Muriaé
         const map = L.map('map', { doubleClickZoom: false }).setView([-21.128, -42.370], 14);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -286,7 +286,7 @@
             popupAnchor: [0, -14]
         });
 
-        // LISTA DOS PONTOS COM AS COORDENADAS CORRETAS
+        // LISTA DOS PONTOS COM AS COORDENADAS EXATAS
         const pontosDaRota = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -310,21 +310,10 @@
             { nome: "Ponto 20", desc: "Barra - Em frente à Pão Chic", coords: [-21.128060, -42.381262] },
             { nome: "Ponto 21", desc: "Av. Dante Bruno", coords: [-21.130188, -42.393765] },
             { nome: "Ponto 22", desc: "Praça do Dornelas - Em frente à We Training", coords: [-21.130458, -42.393329] },
-            { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] },
-            { nome: "Ponto Final", desc: "Retorno ao Ponto 1 (Início)", coords: [-21.111615, -42.383600] }
+            { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
         ];
 
-        // DESENHA A LINHA AZUL CONTINUA UNINDO OS PONTOS
-        const rotaPlantaoCoords = pontosDaRota.map(p => p.coords);
-        const linhaRotaAzul = L.polyline(rotaPlantaoCoords, {
-            color: '#007AFF',
-            weight: 5,
-            opacity: 0.85,
-            lineCap: 'round',
-            lineJoin: 'round'
-        }).addTo(map);
-
-        // ADICIONA OS BONEQUINHOS (LOGO FCV) NOS PONTOS
+        // ADICIONA APENAS OS PONTOS NO MAPA (SEM LINHA AZUL)
         pontosDaRota.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .addTo(map)
