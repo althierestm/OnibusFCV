@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transmissor GPS - Ônibus</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,9 +37,9 @@
         .online { background-color: #4caf50; color: #fff; }
         .offline { background-color: #f44336; color: #fff; }
         .info { font-size: 14px; color: #aaa; margin: 5px 0; }
+        .wakelock-status { font-size: 12px; color: #4caf50; margin-top: 15px; }
     </style>
 
-    <!-- Bibliotecas do Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -48,10 +52,10 @@
         <p class="info" id="coords">Lat: -- | Lng: --</p>
         <p class="info" id="speed">Velocidade: 0 km/h</p>
         <p class="info" id="time">Último envio: --</p>
+        <p class="wakelock-status" id="wakeStatus">⚡ Impelindo tela de apagar...</p>
     </div>
 
     <script>
-        // Suas configurações do Firebase rotasfcv
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -62,11 +66,9 @@
             appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
         };
 
-        // Inicializa o Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Identificador da linha ou do ônibus
         const linhaId = "linha_01"; 
 
         const statusEl = document.getElementById("status");
@@ -74,8 +76,21 @@
         const speedEl = document.getElementById("speed");
         const timeEl = document.getElementById("time");
 
+        // Manter Tela Ligada (Wake Lock API)
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    document.getElementById('wakeStatus').innerText = "💡 Tela travada em modo ACESO para garantir transmissão continua.";
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        requestWakeLock();
+
         if ("geolocation" in navigator) {
-            // Monitora a posição do celular em tempo real
             navigator.geolocation.watchPosition(
                 (position) => {
                     const lat = position.coords.latitude;
@@ -83,7 +98,6 @@
                     const speed = position.coords.speed ? (position.coords.speed * 3.6).toFixed(1) : 0; 
                     const now = new Date().toLocaleTimeString();
 
-                    // 1. Envia os dados para o Realtime Database
                     db.ref('onibus/' + linhaId).set({
                         lat: lat,
                         lng: lng,
@@ -91,7 +105,6 @@
                         ultimaAtualizacao: Date.now()
                     });
 
-                    // 2. Atualiza a tela do celular
                     statusEl.innerText = "TRANSMITINDO AO VIVO";
                     statusEl.className = "status-badge online";
                     coordsEl.innerText = `Lat: ${lat.toFixed(5)} | Lng: ${lng.toFixed(5)}`;
@@ -101,7 +114,6 @@
                 (error) => {
                     statusEl.innerText = "Erro no GPS";
                     statusEl.className = "status-badge offline";
-                    alert("Erro ao obter GPS: " + error.message + ". Verifique se deu permissão de localização.");
                 },
                 {
                     enableHighAccuracy: true,
@@ -109,9 +121,10 @@
                     timeout: 10000
                 }
             );
-        } else {
-            statusEl.innerText = "GPS Não Suportado";
-            statusEl.className = "status-badge offline";
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
         }
     </script>
 </body>
