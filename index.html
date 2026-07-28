@@ -31,48 +31,14 @@
             width: 100%; 
             touch-action: manipulation;
         }
-        
-        .route-selector-container {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1001;
-            width: 90%;
-            max-width: 380px;
-        }
-
-        .route-select {
-            width: 100%;
-            padding: 10px 15px;
-            border-radius: 20px;
-            background: rgba(20, 20, 20, 0.85);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            font-size: 14px;
-            font-weight: bold;
-            outline: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-            cursor: pointer;
-            text-align: center;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .route-select option {
-            background: #222;
-            color: #fff;
-        }
 
         .info-box {
             position: absolute;
-            top: 65px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(20, 20, 20, 0.65);
+            background: rgba(20, 20, 20, 0.75);
             -webkit-backdrop-filter: blur(12px);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -98,17 +64,6 @@
             font-size: 11px;
             font-weight: bold;
             margin-top: 3px;
-        }
-
-        .badge-pass {
-            display: inline-block;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-size: 11px;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            margin-left: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .status-normal { background-color: rgba(46, 125, 50, 0.85); color: #fff; }
@@ -207,6 +162,51 @@
 
         .btn-floating:active { transform: scale(0.92); }
 
+        /* Modal/Card de Seleção de Rotas */
+        .route-modal {
+            display: none;
+            position: absolute;
+            bottom: 120px;
+            right: 75px;
+            z-index: 1001;
+            background: rgba(20, 20, 20, 0.92);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            width: 210px;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .route-modal.active {
+            display: flex;
+        }
+
+        .route-option {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border: 1px solid transparent;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .route-option:active, .route-option.selected {
+            background: #2196F3;
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
         .footer {
             margin-top: 5px;
             display: flex;
@@ -244,19 +244,20 @@
 </head>
 <body>
 
-    <div class="route-selector-container">
-        <select id="routeFilter" class="route-select">
-            <option value="todas">🚌 Exibir Todas as Rotas</option>
-            <option value="plantao">📍 Rota de Plantão</option>
-            <option value="rota_01">🚌 Rota 01 (GSH-5A89)</option>
-            <option value="rota_02">🚌 Rota 02 (GFH-8D02)</option>
-            <option value="rota_03">🚌 Rota 03 (GFH-8D01)</option>
-        </select>
-    </div>
-
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
+    <!-- Modal de Rotas -->
+    <div class="route-modal" id="routeModal">
+        <button class="route-option selected" data-value="todas">🚌 Exibir Todas</button>
+        <button class="route-option" data-value="plantao">📍 Rota de Plantão</button>
+        <button class="route-option" data-value="rota_01">🚌 Rota 01 (GSH-5A89)</button>
+        <button class="route-option" data-value="rota_02">🚌 Rota 02 (GFH-8D02)</button>
+        <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
+    </div>
+
+    <!-- Botões Flutuantes da Direita -->
     <div class="right-nav-buttons">
+        <button id="toggleRouteBtn" class="btn-floating" title="Selecionar Rota">🗺️</button>
         <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
         <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
     </div>
@@ -319,7 +320,6 @@
             popupAnchor: [0, -14]
         });
 
-        // Pontos de parada EXCLUSIVOS da Rota de Plantão
         const pontosPlantao = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -346,7 +346,6 @@
             { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
         ];
 
-        // Camada isolada para os pontos de plantão (NÃO é adicionada ao mapa na inicialização)
         const pontosPlantaoGroup = L.layerGroup();
 
         pontosPlantao.forEach(ponto => {
@@ -372,11 +371,32 @@
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
-        const routeFilter = document.getElementById('routeFilter');
+        const toggleRouteBtn = document.getElementById('toggleRouteBtn');
+        const routeModal = document.getElementById('routeModal');
+        const routeOptions = document.querySelectorAll('.route-option');
 
-        routeFilter.addEventListener('change', (e) => {
-            selectedRouteKey = e.target.value;
-            atualizarExibicaoGeral();
+        // Alternar abertura do menu de rotas
+        toggleRouteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            routeModal.classList.toggle('active');
+        });
+
+        // Fechar o menu ao clicar fora dele
+        document.addEventListener('click', (e) => {
+            if (!routeModal.contains(e.target) && e.target !== toggleRouteBtn) {
+                routeModal.classList.remove('active');
+            }
+        });
+
+        // Evento de seleção de rota no modal
+        routeOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                routeOptions.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedRouteKey = opt.getAttribute('data-value');
+                routeModal.classList.remove('active');
+                atualizarExibicaoGeral();
+            });
         });
 
         if ("geolocation" in navigator) {
@@ -506,7 +526,6 @@
         }
 
         function atualizarExibicaoGeral() {
-            // EXIBE OS PONTOS SOMENTE QUANDO A ROTA DE PLANTÃO ESTIVER SELECIONADA
             if (selectedRouteKey === 'plantao') {
                 if (!map.hasLayer(pontosPlantaoGroup)) {
                     map.addLayer(pontosPlantaoGroup);
