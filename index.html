@@ -32,9 +32,41 @@
             touch-action: manipulation;
         }
         
-        .info-box {
+        .route-selector-container {
             position: absolute;
             top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+            width: 90%;
+            max-width: 380px;
+        }
+
+        .route-select {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            background: rgba(20, 20, 20, 0.85);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .route-select option {
+            background: #222;
+            color: #fff;
+        }
+
+        .info-box {
+            position: absolute;
+            top: 65px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
@@ -49,13 +81,13 @@
             line-height: 1.5;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
             text-align: center;
-            max-width: 90%;
+            width: 85%;
+            max-width: 380px;
             transition: all 0.3s ease;
+            box-sizing: border-box;
         }
 
-        .nobreak {
-            white-space: nowrap;
-        }
+        .nobreak { white-space: nowrap; }
 
         .badge-status {
             display: inline-block;
@@ -190,9 +222,7 @@
             transition: opacity 0.3s ease;
         }
 
-        .footer-logo:hover {
-            opacity: 1;
-        }
+        .footer-logo:hover { opacity: 1; }
 
         .footer-credit {
             font-size: 8px;
@@ -212,7 +242,17 @@
 </head>
 <body>
 
-    <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
+    <div class="route-selector-container">
+        <select id="routeFilter" class="route-select">
+            <option value="todas">🚌 Exibir Todas as Rotas</option>
+            <option value="plantao">📍 Rota de Plantão</option>
+            <option value="rota_01">🚌 Rota 01 (GSH-5A89)</option>
+            <option value="rota_02">🚌 Rota 02 (GFH-8D02)</option>
+            <option value="rota_03">🚌 Rota 03 (GFH-8D01)</option>
+        </select>
+    </div>
+
+    <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
     <div class="right-nav-buttons">
         <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
@@ -237,13 +277,8 @@
     <div id="map"></div>
 
     <script>
-        document.addEventListener('dblclick', function(e) {
-            e.preventDefault();
-        }, { passive: false });
-
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
@@ -264,13 +299,10 @@
         db.ref('.info/connected').on('value', (snapshot) => {
             if (snapshot.val() === true) {
                 minhaConexaoRef.onDisconnect().remove();
-                minhaConexaoRef.set({
-                    ativoEm: firebase.database.ServerValue.TIMESTAMP
-                });
+                minhaConexaoRef.set({ ativoEm: firebase.database.ServerValue.TIMESTAMP });
             }
         });
 
-        // Inicializa o mapa centralizado em Muriaé
         const map = L.map('map', { doubleClickZoom: false }).setView([-21.128, -42.370], 14);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -278,7 +310,6 @@
             maxZoom: 19
         }).addTo(map);
 
-        // ÍCONE DOS PONTOS DE PARADA (LOGO FCV)
         const fcvPointIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png',
             iconSize: [28, 28],
@@ -286,7 +317,6 @@
             popupAnchor: [0, -14]
         });
 
-        // LISTA DOS PONTOS COM AS COORDENADAS EXATAS
         const pontosDaRota = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -313,7 +343,6 @@
             { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
         ];
 
-        // ADICIONA APENAS OS PONTOS NO MAPA (SEM LINHA AZUL)
         pontosDaRota.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .addTo(map)
@@ -327,13 +356,23 @@
             popupAnchor: [0, -30]
         });
 
-        let busMarker = null, passengerMarker = null, passengerCircle = null;
-        let passengerPos = null, busPos = null, watchId = null;
+        // ESTRUTURA PARA GERENCIAR MÚLTIPLOS ÔNIBUS
+        let busData = {};
+        let busMarkers = {};
+        let passengerMarker = null, passengerCircle = null;
+        let passengerPos = null, watchId = null;
         let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
+        let selectedRouteKey = 'todas';
 
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
+        const routeFilter = document.getElementById('routeFilter');
+
+        routeFilter.addEventListener('change', (e) => {
+            selectedRouteKey = e.target.value;
+            atualizarExibicaoGeral();
+        });
 
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((pos) => {
@@ -396,11 +435,14 @@
         }
 
         document.getElementById('focusBusBtn').addEventListener('click', () => {
-            if (busPos && busMarker) { 
-                map.setView(busPos, 16); 
-                busMarker.openPopup(); 
-            } else { 
-                alert("O ônibus está offline no momento."); 
+            const keysAtivas = Object.keys(busData).filter(k => busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
+            if (keysAtivas.length > 0) {
+                const targetKey = keysAtivas[0];
+                const targetBus = busData[targetKey];
+                map.setView([targetBus.lat, targetBus.lng], 16);
+                if (busMarkers[targetKey]) busMarkers[targetKey].openPopup();
+            } else {
+                alert("Nenhum ônibus em circulação para a rota selecionada.");
             }
         });
 
@@ -437,11 +479,18 @@
         });
 
         function checarProximidade() {
-            if (!alarmEnabled || !passengerPos || !busPos) return;
-            const distKm = calcularDistancia(passengerPos[0], passengerPos[1], busPos[0], busPos[1]);
+            if (!alarmEnabled || !passengerPos) return;
+            
+            let menorDistancia = Infinity;
+            Object.keys(busData).forEach(key => {
+                if (busData[key].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
+                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], busData[key].lat, busData[key].lng);
+                    if (dist < menorDistancia) menorDistancia = dist;
+                }
+            });
 
-            if (distKm <= 1.0) {
-                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(distKm * 1000)} metros</b>`;
+            if (menorDistancia <= 1.0) {
+                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(menorDistancia * 1000)} metros</b>`;
                 infoEl.classList.add('alert-active');
                 if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
             } else {
@@ -450,46 +499,59 @@
             }
         }
 
-        db.ref('onibus/linha_01').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                const { lat, lng, velocidade, statusTransito, ocorrenciaManual, passageiros } = data;
-                busPos = [lat, lng];
+        // ATUALIZA OS MARCADORES E O CARD INFORMATIVO
+        function atualizarExibicaoGeral() {
+            let onibusEmCirculacao = 0;
 
+            Object.keys(busData).forEach(key => {
+                const bus = busData[key];
+                const deveserExibido = bus.ativo && (selectedRouteKey === 'todas' || selectedRouteKey === key);
+
+                if (deveserExibido) {
+                    onibusEmCirculacao++;
+                    if (!busMarkers[key]) {
+                        busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
+                            .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
+                    } else {
+                        busMarkers[key].setLatLng([bus.lat, bus.lng]);
+                        if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
+                    }
+                } else {
+                    if (busMarkers[key] && map.hasLayer(busMarkers[key])) {
+                        map.removeLayer(busMarkers[key]);
+                    }
+                }
+            });
+
+            if (onibusEmCirculacao === 0) {
+                infoEl.innerHTML = selectedRouteKey === 'todas' 
+                    ? "Nenhum ônibus em rota no momento." 
+                    : "Esta rota está Offline no momento.";
+                infoEl.classList.remove('alert-active');
+                return;
+            }
+
+            if (selectedRouteKey !== 'todas' && busData[selectedRouteKey] && busData[selectedRouteKey].ativo) {
+                const bus = busData[selectedRouteKey];
                 let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
                 let velMedicaKmh = 25;
 
-                if (ocorrenciaManual === 'acidente') {
-                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente à Frente</span>`;
-                    infoEl.classList.add('alert-active');
-                } else if (ocorrenciaManual === 'quebrado') {
-                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Ônibus Quebrado</span>`;
-                    infoEl.classList.add('alert-active');
-                } else {
-                    if (!alarmTriggered) infoEl.classList.remove('alert-active');
-                    if (statusTransito === 'lento') {
-                        tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
-                        velMedicaKmh = 12;
-                    } else if (statusTransito === 'parado') {
-                        tagStatus = `<span class="badge-status status-parado">🔴 Parado</span>`;
-                        velMedicaKmh = 5;
-                    }
+                if (bus.ocorrenciaManual === 'acidente') {
+                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente</span>`;
+                } else if (bus.ocorrenciaManual === 'quebrado') {
+                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Quebrado</span>`;
+                } else if (bus.statusTransito === 'lento') {
+                    tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
+                    velMedicaKmh = 12;
+                } else if (bus.statusTransito === 'parado') {
+                    tagStatus = `<span class="badge-status status-parado">🔴 Parado</span>`;
+                    velMedicaKmh = 5;
                 }
 
-                const totalPass = passageiros || 0;
-                let tagPassageiros = "";
+                let texto = `🚌 <b>${bus.nome}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
 
-                if (totalPass > 0) {
-                    let lotacaoTxt = "🟢 Livre";
-                    if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
-                    else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
-                    tagPassageiros = ` <span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
-                }
-
-                let textoStatus = `🚌 <b>Linha Plantão</b> | <span class="nobreak"><b>${velocidade || 0} km/h</b></span><br>${tagStatus}${tagPassageiros}`;
-                
-                if (passengerPos && !ocorrenciaManual) {
-                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
+                if (passengerPos && !bus.ocorrenciaManual) {
+                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
                     if (tempoMin < 1) tempoMin = 1;
 
@@ -497,27 +559,26 @@
                     agora.setMinutes(agora.getMinutes() + tempoMin);
                     const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (às ${horaChegadaStr})`;
+                    texto += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (${horaChegadaStr})`;
                 }
 
-                infoEl.innerHTML = textoStatus;
-
-                if (!busMarker) {
-                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão</b>");
-                } else {
-                    busMarker.setLatLng(busPos);
-                }
-
-                checarProximidade();
+                infoEl.innerHTML = texto;
             } else {
-                infoEl.innerText = "Ônibus Offline";
-                infoEl.classList.remove('alert-active');
-                
-                if (busMarker) {
-                    map.removeLayer(busMarker);
-                    busMarker = null;
-                }
-                busPos = null;
+                infoEl.innerHTML = `🚌 <b>${onibusEmCirculacao} ônibus</b> em circulação no momento.`;
+            }
+
+            checarProximidade();
+        }
+
+        // ESCUTA TODAS AS ROTAS DO BANCO DE DADOS
+        db.ref('onibus').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                busData = data;
+                atualizarExibicaoGeral();
+            } else {
+                busData = {};
+                atualizarExibicaoGeral();
             }
         });
 
