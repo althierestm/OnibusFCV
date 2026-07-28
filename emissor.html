@@ -506,11 +506,11 @@
         </div>
 
         <div class="history-section">
-            <div class="history-title">📜 Viagens de Hoje</div>
+            <div class="history-title">📜 Viagens de Hoje (Últimas 5)</div>
             <div id="todayHistoryList">Carregando viagens do dia...</div>
 
             <details class="history-details" id="oldHistoryDetails" style="display: none;">
-                <summary>📁 Ver histórico de dias anteriores (<span id="oldHistoryCount">0</span>)</summary>
+                <summary>📁 Ver mais viagens e histórico (<span id="oldHistoryCount">0</span>)</summary>
                 <div class="history-expanded-list" id="oldHistoryList"></div>
             </details>
         </div>
@@ -522,7 +522,7 @@
     </div>
 
     <script>
-        // --- LÓGICA DE VALIDAÇÃO DE LOGIN (ATUALIZADA) ---
+        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
         const loginOverlay = document.getElementById('loginOverlay');
         const loginForm = document.getElementById('loginForm');
         const usernameInput = document.getElementById('usernameInput');
@@ -539,7 +539,6 @@
             const usuarioDigitado = usernameInput.value.trim();
             const senhaDigitada = passwordInput.value.trim();
 
-            // Novas credenciais: usuario: admin | senha: motorista
             if (usuarioDigitado === "admin" && senhaDigitada === "motorista") {
                 loginError.style.display = 'none';
                 sessionStorage.setItem('fcv_motorista_autenticado', 'true');
@@ -704,6 +703,7 @@
             });
         }
 
+        // --- EXIBIÇÃO DE HISTÓRICO (LIMITADO A 5 DE HOJE + SANFONA) ---
         db.ref('historico_viagens').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -715,8 +715,9 @@
             limparHistoricoAntigo(data);
 
             let htmlHoje = "";
-            let htmlAnteriores = "";
-            let qtdAnteriores = 0;
+            let htmlEscondidos = "";
+            let contadorHoje = 0;
+            let contadorEscondidos = 0;
 
             const keys = Object.keys(data).reverse();
 
@@ -727,40 +728,49 @@
                 const eHoje = ehHoje(item.inicio);
                 const nomeRota = item.rotaNome || "Rota Não Especificada";
 
+                let itemHtml = "";
+
                 if (!item.fim) {
                     const tempoAtualStr = atualizarCronometroLocal();
-                    const itemHtml = `
+                    itemHtml = `
                         <div class="history-item">
                             <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
                             ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
                         </div>
                     `;
-                    if (eHoje) htmlHoje += itemHtml;
-                    else htmlAnteriores += itemHtml;
                 } else {
                     const fim = new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     const duracaoSeg = Math.floor((item.fim - item.inicio) / 1000);
                     const duracaoStr = formatarTempo(duracaoSeg);
-                    const itemHtml = `
+                    itemHtml = `
                         <div class="history-item">
                             <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
                         </div>
                     `;
+                }
 
-                    if (eHoje) {
+                if (eHoje) {
+                    contadorHoje++;
+                    // Apenas as primeiras 5 viagens de hoje aparecem diretamente na lista
+                    if (contadorHoje <= 5) {
                         htmlHoje += itemHtml;
                     } else {
-                        htmlAnteriores += itemHtml;
-                        qtdAnteriores++;
+                        // Do 6º em diante de hoje vai para a sanfona
+                        htmlEscondidos += itemHtml;
+                        contadorEscondidos++;
                     }
+                } else {
+                    // Viagens de dias anteriores vão para a sanfona
+                    htmlEscondidos += itemHtml;
+                    contadorEscondidos++;
                 }
             });
 
             todayHistoryListEl.innerHTML = htmlHoje || "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
 
-            if (qtdAnteriores > 0) {
-                oldHistoryListEl.innerHTML = htmlAnteriores;
-                oldHistoryCount.innerText = qtdAnteriores;
+            if (contadorEscondidos > 0) {
+                oldHistoryListEl.innerHTML = htmlEscondidos;
+                oldHistoryCount.innerText = contadorEscondidos;
                 oldHistoryDetails.style.display = "block";
             } else {
                 oldHistoryDetails.style.display = "none";
