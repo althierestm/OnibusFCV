@@ -3,73 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS FCV Motorista</title>
-
-    <!-- Aponta para o Manifest do Motorista -->
-    <link rel="manifest" href="manifest-motorista.json">
-    <meta name="theme-color" content="#4caf50">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GPS Motorista">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448339.png">
-
+    <title>Motorista - Onibus FCV</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
             background-color: #121212;
             color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
-        }
-        .card {
-            background-color: #1e1e1e;
-            border-radius: 16px;
-            padding: 24px;
-            max-width: 400px;
-            margin: 20px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 20px;
-            background-color: #ff9800;
-            color: #000;
-        }
-        .online { background-color: #4caf50; color: #fff; }
-        .offline { background-color: #f44336; color: #fff; }
-        .info { font-size: 15px; color: #ccc; margin: 8px 0; }
-        
-        .wake-box {
-            margin-top: 20px;
-            padding: 12px;
-            background-color: #2a2a2a;
-            border-radius: 8px;
-            border: 1px solid #333;
-            font-size: 13px;
-            color: #4caf50;
+            text-align: center;
         }
 
-        .btn-install {
-            display: none;
+        .card {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 90%;
+            width: 320px;
+        }
+
+        .status {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 10px;
+            background: #333;
+        }
+
+        .active {
+            background: #2e7d32;
+            color: #fff;
+        }
+
+        .btn {
             width: 100%;
-            background-color: #4caf50;
-            color: white;
+            padding: 15px;
             border: none;
-            padding: 14px;
             border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
-            margin-top: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(76, 175, 80, 0.4);
+            transition: 0.2s;
         }
-        .btn-install:active {
-            transform: scale(0.98);
+
+        .btn-start {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .btn-stop {
+            background-color: #f44336;
+            color: white;
+            display: none;
+        }
+
+        .info {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 15px;
+            line-height: 1.4;
         }
     </style>
 
@@ -80,24 +78,19 @@
 <body>
 
     <div class="card">
-        <h2>🚌 GPS FCV Motorista</h2>
-        <div id="status" class="status-badge">Aguardando GPS...</div>
+        <h2>🚌 Painel do Motorista</h2>
+        <div id="status" class="status">GPS Desconectado</div>
         
-        <p class="info" id="coords">Lat: -- | Lng: --</p>
-        <p class="info" id="speed">Velocidade: 0 km/h</p>
-        <p class="info" id="time">Último envio: --</p>
+        <button id="startBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
+        <button id="stopBtn" class="btn btn-stop">⏹ Parar Transmissão</button>
 
-        <div class="wake-box" id="wakeStatus">
-            💡 Mantendo tela 100% acesa durante o percurso...
+        <div class="info" id="details">
+            Transmissão otimizada: atualiza a cada 100 metros percorridos ou 2 minutos parado.
         </div>
-
-        <button id="installBtn" class="btn-install">
-            📲 Adicionar "GPS FCV Motorista" à Tela Inicial
-        </button>
     </div>
 
     <script>
-        // Configuração do Firebase
+        // Configurações do Firebase rotasfcv
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -110,93 +103,108 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const linhaId = "linha_01"; 
 
-        const statusEl = document.getElementById("status");
-        const coordsEl = document.getElementById("coords");
-        const speedEl = document.getElementById("speed");
-        const timeEl = document.getElementById("time");
+        let watchId = null;
+        let ultimaLat = null;
+        let ultimaLng = null;
+        let ultimoTempoEnvio = 0;
 
-        // 1. RECURSO: MANTER A TELA 100% LIGADA (Screen Wake Lock API)
-        let wakeLock = null;
-        async function keepScreenOn() {
-            try {
-                if ('wakeLock' in navigator) {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    document.getElementById('wakeStatus').innerText = "💡 Tela BLOQUEADA PARA NÃO APAGAR durante a rota.";
+        // Configurações de Otimização de Dados
+        const DISTANCIA_MINIMA_METROS = 100; // Envia a cada 100 metros
+        const TEMPO_MAXIMO_PARADO_MS = 120000; // Ou 2 minutos se ficar parado
+
+        const statusEl = document.getElementById('status');
+        const detailsEl = document.getElementById('details');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+
+        // Cálculo de distância em metros
+        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function processarEEnviarPosicao(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const velocidade = Math.round((position.coords.speed || 0) * 3.6); // km/h
+            const agora = Date.now();
+
+            let deveEnviar = false;
+
+            if (ultimaLat === null || ultimaLng === null) {
+                deveEnviar = true;
+            } else {
+                const distanciaAndada = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng);
+                const tempoDecorrido = agora - ultimoTempoEnvio;
+
+                if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= TEMPO_MAXIMO_PARADO_MS) {
+                    deveEnviar = true;
                 }
-            } catch (err) {
-                document.getElementById('wakeStatus').innerText = "⚠️ Mantenha o celular conectado ao carregador no painel.";
             }
-        }
-        
-        // Reativa a trava da tela se o motorista alternar entre apps e voltar
-        document.addEventListener('visibilitychange', () => {
-            if (wakeLock !== null && document.visibilityState === 'visible') {
-                keepScreenOn();
-            }
-        });
 
-        keepScreenOn();
+            if (deveEnviar) {
+                ultimaLat = lat;
+                ultimaLng = lng;
+                ultimoTempoEnvio = agora;
 
-        // 2. TRANSMISSÃO DO GPS EM TEMPO REAL
-        if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const speed = position.coords.speed ? (position.coords.speed * 3.6).toFixed(1) : 0; 
-                    const now = new Date().toLocaleTimeString();
-
-                    db.ref('onibus/' + linhaId).set({
-                        lat: lat,
-                        lng: lng,
-                        velocidade: speed,
-                        ultimaAtualizacao: Date.now()
-                    });
-
-                    statusEl.innerText = "TRANSMITINDO AO VIVO";
-                    statusEl.className = "status-badge online";
-                    coordsEl.innerText = `Lat: ${lat.toFixed(5)} | Lng: ${lng.toFixed(5)}`;
-                    speedEl.innerText = `Velocidade: ${speed} km/h`;
-                    timeEl.innerText = `Último envio: ${now}`;
-                },
-                (error) => {
-                    statusEl.innerText = "Erro no GPS";
-                    statusEl.className = "status-badge offline";
-                    alert("Erro no GPS: " + error.message + ". Ative a localização no celular.");
-                },
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 10000
-                }
-            );
-        }
-
-        // 3. REGISTRO DO SERVICE WORKER
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        // 4. LÓGICA DO BOTÃO PARA INSTALAR COMO APP "GPS FCV MOTORISTA"
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'block';
-        });
-
-        installBtn.addEventListener('click', () => {
-            installBtn.style.display = 'none';
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
+                db.ref('onibus/linha_01').set({
+                    lat: lat,
+                    lng: lng,
+                    velocidade: velocidade,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                }).then(() => {
+                    const hora = new Date().toLocaleTimeString();
+                    detailsEl.innerHTML = `Último envio às <b>${hora}</b><br>Velocidade: <b>${velocidade} km/h</b>`;
+                }).catch((err) => {
+                    console.error("Erro ao enviar:", err);
                 });
             }
+        }
+
+        startBtn.addEventListener('click', () => {
+            if ("geolocation" in navigator) {
+                watchId = navigator.geolocation.watchPosition((position) => {
+                    statusEl.innerText = "📡 Transmitindo GPS...";
+                    statusEl.classList.add('active');
+                    startBtn.style.display = 'none';
+                    stopBtn.style.display = 'block';
+
+                    processarEEnviarPosicao(position);
+                }, (err) => {
+                    alert("Erro ao obter localização do GPS: " + err.message);
+                }, {
+                    enableHighAccuracy: true
+                });
+            } else {
+                alert("Geolocalização não é suportada neste navegador.");
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            // Marca o ônibus como Offline no Firebase
+            db.ref('onibus/linha_01').remove();
+
+            statusEl.innerText = "GPS Desconectado";
+            statusEl.classList.remove('active');
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
+            detailsEl.innerText = "Transmissão pausada.";
+
+            ultimaLat = null;
+            ultimaLng = null;
         });
     </script>
 </body>
