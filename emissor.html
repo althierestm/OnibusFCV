@@ -346,6 +346,9 @@
         let timerInterval = null;
         let tempoInicioViagem = null;
         let lastSignalTimeout = null; // Controle de inatividade (5 minutos)
+        
+        // Variavel do Bloqueio de Tela
+        let wakeLock = null;
 
         const toggleBtn = document.getElementById('toggleBtn');
         const statusText = document.getElementById('statusText');
@@ -359,6 +362,37 @@
         const oldHistoryListEl = document.getElementById('oldHistoryList');
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
+
+        // --- LÓGICA DE MANTER A TELA ACESA (SCREEN WAKE LOCK) ---
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('Tela configurada para permanecer ligada.');
+
+                    wakeLock.addEventListener('release', () => {
+                        console.log('Bloqueio de tela liberado.');
+                    });
+                }
+            } catch (err) {
+                console.error(`Erro ao ativar Wake Lock: ${err.name}, ${err.message}`);
+            }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+
+        // Reativa a tela acesa se o motorista alternar de aplicativo e voltar
+        document.addEventListener('visibilitychange', async () => {
+            if (isTransmitting && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+        // --------------------------------------------------------
 
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
@@ -522,6 +556,12 @@
                 routeSelect.disabled = true;
                 tempoInicioViagem = Date.now();
 
+                // Ativa o bloqueio para manter a tela acesa
+                requestWakeLock();
+
+                // Configura desativação automática no Firebase se o app/navegador fechar repentinamente
+                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
+
                 const novaViagemRef = db.ref('historico_viagens').push();
                 viagemAtualId = novaViagemRef.key;
                 novaViagemRef.set({
@@ -542,7 +582,7 @@
                 resetarInatividadeTimer();
 
                 watchId = navigator.geolocation.watchPosition((pos) => {
-                    resetarInatividadeTimer(); // Renova a tolerância de 5 minutos a cada coordenada enviada
+                    resetarInatividadeTimer();
 
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
@@ -584,6 +624,9 @@
         }
 
         function pararTransmissao() {
+            // Libera a tela para desligar normalmente quando a rota for finalizada
+            releaseWakeLock();
+
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
@@ -607,6 +650,9 @@
             }
 
             if (currentRouteKey) {
+                // Remove a instrução onDisconnect pois foi desligado manualmente
+                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().cancel();
+                
                 db.ref(`onibus/${currentRouteKey}`).update({
                     ativo: false
                 });
