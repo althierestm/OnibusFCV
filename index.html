@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rotas FCV - Acompanhe seu Ônibus</title>
+    <title>Onibus FCV Colaborador</title>
     
     <!-- Configurações Web App (PWA) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Rotas FCV">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png">
+    <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
+    
+    <!-- Ícone do App PWA e Favicon no Navegador -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -181,12 +184,12 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // Ícone Personalizado do Ônibus FCV (Ligeiramente Maior)
+        // Ícone Personalizado do Ônibus FCV no Mapa
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
-            iconSize: [60, 60],       // Aumentado levemente para maior destaque
-            iconAnchor: [30, 30],     // Ponto de ancoragem centralizado no novo tamanho
-            popupAnchor: [0, -30]     // Ajustado local do balão de informação
+            iconSize: [60, 60],
+            iconAnchor: [30, 30],
+            popupAnchor: [0, -30]
         });
 
         let busMarker = null;
