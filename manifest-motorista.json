@@ -1,211 +1,23 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Motorista - Onibus FCV</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-
-        .card {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 90%;
-            width: 320px;
-        }
-
-        .status {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 20px 0;
-            padding: 10px;
-            border-radius: 10px;
-            background: #333;
-        }
-
-        .active {
-            background: #2e7d32;
-            color: #fff;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-start {
-            background-color: #2196F3;
-            color: white;
-        }
-
-        .btn-stop {
-            background-color: #f44336;
-            color: white;
-            display: none;
-        }
-
-        .info {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 15px;
-            line-height: 1.4;
-        }
-    </style>
-
-    <!-- Firebase SDK (v8) -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-</head>
-<body>
-
-    <div class="card">
-        <h2>🚌 Painel do Motorista</h2>
-        <div id="status" class="status">GPS Desconectado</div>
-        
-        <button id="startBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
-        <button id="stopBtn" class="btn btn-stop">⏹ Parar Transmissão</button>
-
-        <div class="info" id="details">
-            Transmissão otimizada: atualiza a cada 100 metros percorridos ou 2 minutos parado.
-        </div>
-    </div>
-
-    <script>
-        // Configurações do Firebase rotasfcv
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
-            authDomain: "rotasfcv.firebaseapp.com",
-            databaseURL: "https://rotasfcv-default-rtdb.firebaseio.com",
-            projectId: "rotasfcv",
-            storageBucket: "rotasfcv.firebasestorage.app",
-            messagingSenderId: "235141426187",
-            appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let watchId = null;
-        let ultimaLat = null;
-        let ultimaLng = null;
-        let ultimoTempoEnvio = 0;
-
-        // Configurações de Otimização de Dados
-        const DISTANCIA_MINIMA_METROS = 100; // Envia a cada 100 metros
-        const TEMPO_MAXIMO_PARADO_MS = 120000; // Ou 2 minutos se ficar parado
-
-        const statusEl = document.getElementById('status');
-        const detailsEl = document.getElementById('details');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-
-        // Cálculo de distância em metros
-        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        function processarEEnviarPosicao(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            const velocidade = Math.round((position.coords.speed || 0) * 3.6); // km/h
-            const agora = Date.now();
-
-            let deveEnviar = false;
-
-            if (ultimaLat === null || ultimaLng === null) {
-                deveEnviar = true;
-            } else {
-                const distanciaAndada = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng);
-                const tempoDecorrido = agora - ultimoTempoEnvio;
-
-                if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= TEMPO_MAXIMO_PARADO_MS) {
-                    deveEnviar = true;
-                }
-            }
-
-            if (deveEnviar) {
-                ultimaLat = lat;
-                ultimaLng = lng;
-                ultimoTempoEnvio = agora;
-
-                db.ref('onibus/linha_01').set({
-                    lat: lat,
-                    lng: lng,
-                    velocidade: velocidade,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    const hora = new Date().toLocaleTimeString();
-                    detailsEl.innerHTML = `Último envio às <b>${hora}</b><br>Velocidade: <b>${velocidade} km/h</b>`;
-                }).catch((err) => {
-                    console.error("Erro ao enviar:", err);
-                });
-            }
-        }
-
-        startBtn.addEventListener('click', () => {
-            if ("geolocation" in navigator) {
-                watchId = navigator.geolocation.watchPosition((position) => {
-                    statusEl.innerText = "📡 Transmitindo GPS...";
-                    statusEl.classList.add('active');
-                    startBtn.style.display = 'none';
-                    stopBtn.style.display = 'block';
-
-                    processarEEnviarPosicao(position);
-                }, (err) => {
-                    alert("Erro ao obter localização do GPS: " + err.message);
-                }, {
-                    enableHighAccuracy: true
-                });
-            } else {
-                alert("Geolocalização não é suportada neste navegador.");
-            }
-        });
-
-        stopBtn.addEventListener('click', () => {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-
-            // Marca o ônibus como Offline no Firebase
-            db.ref('onibus/linha_01').remove();
-
-            statusEl.innerText = "GPS Desconectado";
-            statusEl.classList.remove('active');
-            startBtn.style.display = 'block';
-            stopBtn.style.display = 'none';
-            detailsEl.innerText = "Transmissão pausada.";
-
-            ultimaLat = null;
-            ultimaLng = null;
-        });
-    </script>
-</body>
-</html>
+{
+  "short_name": "Motorista FCV",
+  "name": "Onibus FCV Motorista",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "./emissor.html",
+  "background_color": "#121212",
+  "theme_color": "#121212",
+  "display": "standalone",
+  "orientation": "portrait"
+}
