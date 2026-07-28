@@ -3,192 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rotas FCV - Acompanhamento ao Vivo</title>
+    <title>Onibus FCV Colaborador</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#121212">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
+    
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
-        :root {
-            --bg-color: #000000;
-            --container-bg: #0d0d0d;
-            --text-color: #ffffff;
-            --box-bg: #161616;
-            --border-color: #262626;
-            --accent-color: #00a6fb;
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            font-family: Arial, sans-serif; 
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
-        body.light-mode {
-            --bg-color: #f4f6f9;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --box-bg: #eef2f5;
-            --border-color: #cccccc;
-            --accent-color: #0077b6;
+        #map { 
+            height: 100vh; 
+            width: 100%; 
+            touch-action: manipulation;
         }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        /* CABEÇALHO */
-        .header {
-            background-color: var(--container-bg);
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
+        
+        .info-box {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 1000;
-        }
-
-        .header h1 {
-            font-size: 18px;
-            margin: 0;
-            color: #4caf50;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-theme {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 5px 10px;
+            background: rgba(20, 20, 20, 0.65);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 12px 20px;
             border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        /* SELETOR DE ROTAS */
-        .route-picker {
-            background-color: var(--container-bg);
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border-color);
-            z-index: 1000;
-        }
-
-        .route-picker select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: var(--box-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            font-weight: bold;
-            outline: none;
-        }
-
-        /* MAPA */
-        #map {
-            flex: 1;
-            width: 100%;
-            z-index: 1;
-        }
-
-        /* BARRA DE STATUS INFERIOR */
-        .status-card {
-            background-color: var(--container-bg);
-            padding: 15px;
-            border-top: 1px solid var(--border-color);
             font-size: 13px;
             line-height: 1.5;
-            z-index: 1000;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
+            max-width: 90%;
+            transition: all 0.3s ease;
         }
 
-        .status-badge {
+        .nobreak {
+            white-space: nowrap;
+        }
+
+        .badge-status {
             display: inline-block;
             padding: 3px 8px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: bold;
+            margin-top: 3px;
         }
 
-        .status-online { background-color: #2e7d32; color: #fff; }
-        .status-offline { background-color: #c62828; color: #fff; }
+        .badge-pass {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            margin-left: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-        .alert-box {
-            background-color: #ff9800;
-            color: #000;
-            padding: 8px;
-            border-radius: 6px;
+        .status-normal { background-color: rgba(46, 125, 50, 0.85); color: #fff; }
+        .status-lento { background-color: rgba(245, 124, 0, 0.85); color: #fff; }
+        .status-parado { background-color: rgba(198, 40, 40, 0.85); color: #fff; }
+        .status-emergencia { background-color: rgba(211, 47, 47, 0.9); color: #fff; font-size: 12px; padding: 5px 10px; }
+
+        .alert-active {
+            background: rgba(183, 28, 28, 0.85) !important;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            from { transform: translateX(-50%) scale(1); }
+            to { transform: translateX(-50%) scale(1.03); }
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+            width: 90%;
+            max-width: 340px;
+        }
+
+        .btn {
+            width: 100%;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 14px;
             font-weight: bold;
-            margin-top: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-alarm { background-color: #2196F3; color: #ffffff; }
+        .btn-alarm.active { background-color: #f44336; color: #fff; }
+
+        .btn-sound { background-color: #333333; color: #ffffff; display: none; border: 1px solid #555; }
+        .btn-sound.muted { background-color: #555555; color: #ffc107; }
+
+        .btn-install { display: none; background-color: #0088cc; color: white; }
+
+        .ios-install-box {
             display: none;
-        }
-
-        /* RODAPÉ */
-        .footer {
-            background-color: var(--container-bg);
-            padding: 8px;
+            background: rgba(30, 30, 30, 0.75);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 13px;
+            line-height: 1.4;
             text-align: center;
-            border-top: 1px solid var(--border-color);
-            font-size: 10px;
-            opacity: 0.6;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* ÍCONES CUSTOMIZADOS NO MAPA */
-        .bus-marker-icon {
-            text-align: center;
-            font-size: 24px;
+        .right-nav-buttons {
+            position: absolute;
+            right: 15px;
+            bottom: 120px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .stop-marker-icon {
-            background-color: #00a6fb;
-            border: 2px solid white;
+        .btn-floating {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            width: 12px !important;
-            height: 12px !important;
+            border: none;
+            background: #ffffff;
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            transition: transform 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .btn-floating:active { transform: scale(0.92); }
+
+        .footer {
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer-logo {
+            max-width: 85px;
+            height: auto;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            opacity: 1;
+        }
+
+        .footer-credit {
+            font-size: 8px;
+            color: #ffffff;
+            opacity: 0.5;
+            margin-top: 2px;
+            text-transform: none;
+            text-align: center;
+            letter-spacing: 0.3px;
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
         }
     </style>
 
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
-    <div class="header">
-        <h1>🚌 Rotas FCV</h1>
-        <button id="themeBtn" class="btn-theme">💡 Super OLED</button>
+    <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
+
+    <div class="right-nav-buttons">
+        <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
+        <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
     </div>
 
-    <div class="route-picker">
-        <select id="routeSelect">
-            <option value="plantao">📍 Rota de Plantão</option>
-            <option value="rota_01">🚌 Rota 01 (GSH-5A89)</option>
-            <option value="rota_02">🚌 Rota 02 (GFH-8D02)</option>
-            <option value="rota_03">🚌 Rota 03 (GFH-8D01)</option>
-        </select>
+    <div class="controls">
+        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
+        <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
+        <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
+        
+        <div id="iosInstallBox" class="ios-install-box">
+            📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
+        </div>
+
+        <div class="footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
+            <div class="footer-credit">by Althieres Dias</div>
+        </div>
     </div>
 
     <div id="map"></div>
 
-    <div class="status-card" id="statusCard">
-        <div><b>Veículo:</b> <span id="infoNome">Carregando...</span></div>
-        <div><b>Status:</b> <span id="infoStatus" class="status-badge status-offline">OFFLINE</span></div>
-        <div><b>Velocidade:</b> <span id="infoVelocidade">0 km/h</span></div>
-        <div class="alert-box" id="alertBox"></div>
-    </div>
-
-    <div class="footer">
-        Desenvolvido por Althieres Dias
-    </div>
-
     <script>
-        // Configuração do Firebase
+        document.addEventListener('dblclick', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -202,131 +258,287 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // Lista de pontos EXCLUSIVA da Rota de Plantão
-        const pontosPlantao = [
-            { nome: "Ponto 1 - Centro", lat: -21.2333, lng: -42.3667 },
-            { nome: "Ponto 2 - Praça", lat: -21.2350, lng: -42.3680 }
-        ];
+        const sessionPassageiroId = db.ref('passageiros_online').push().key;
+        const minhaConexaoRef = db.ref(`passageiros_online/${sessionPassageiroId}`);
 
-        // Inicialização do Mapa
-        const map = L.map('map').setView([-21.2333, -42.3667], 14);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        // Camadas do Mapa
-        const camadaOnibus = L.layerGroup().addTo(map);
-        const camadaPontos = L.layerGroup().addTo(map);
-
-        let marcadorOnibus = null;
-        let rotaSelecionada = "plantao";
-
-        // Elementos da Interface
-        const routeSelect = document.getElementById('routeSelect');
-        const infoNome = document.getElementById('infoNome');
-        const infoStatus = document.getElementById('infoStatus');
-        const infoVelocidade = document.getElementById('infoVelocidade');
-        const alertBox = document.getElementById('alertBox');
-        const themeBtn = document.getElementById('themeBtn');
-
-        // Alternador de Tema
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            themeBtn.innerText = isLight ? "💡 Modo Claro" : "💡 Super OLED";
+        db.ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                minhaConexaoRef.onDisconnect().remove();
+                minhaConexaoRef.set({
+                    ativoEm: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
         });
 
-        // REGISTRO SILENCIOSO DE PASSAGEIRO ONLINE (Funciona no motorista, invisível aqui)
-        const passageiroRef = db.ref('passageiros_online').push();
-        passageiroRef.set(true);
-        passageiroRef.onDisconnect().remove();
+        // Inicializa o mapa centralizado em Muriaé
+        const map = L.map('map', { doubleClickZoom: false }).setView([-21.128, -42.370], 14);
 
-        // DESENHAR PONTOS NO MAPA (APENAS NA ROTA DE PLANTÃO)
-        function atualizarPontosNoMapa() {
-            camadaPontos.clearLayers();
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap © CARTO',
+            maxZoom: 19
+        }).addTo(map);
 
-            if (rotaSelecionada === 'plantao') {
-                pontosPlantao.forEach(ponto => {
-                    const iconePonto = L.divIcon({
-                        className: 'stop-marker-icon',
-                        iconSize: [12, 12]
-                    });
+        // ÍCONE DOS PONTOS DE PARADA (LOGO FCV)
+        const fcvPointIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png',
+            iconSize: [28, 28],
+            iconAnchor: [14, 14],
+            popupAnchor: [0, -14]
+        });
 
-                    L.marker([ponto.lat, ponto.lng], { icon: iconePonto })
-                        .bindPopup(`<b>${ponto.nome}</b>`)
-                        .addTo(camadaPontos);
-                });
+        // LISTA DOS PONTOS COM AS COORDENADAS EXATAS
+        const pontosDaRota = [
+            { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
+            { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
+            { nome: "Ponto 3", desc: "Trevo Chevrolet", coords: [-21.124339, -42.381411] },
+            { nome: "Ponto 4", desc: "Viaduto Bahamas", coords: [-21.126903, -42.369898] },
+            { nome: "Ponto 5", desc: "Vitrines", coords: [-21.128478, -42.364518] },
+            { nome: "Ponto 6", desc: "Mamão Car", coords: [-21.128883, -42.358430] },
+            { nome: "Ponto 7", desc: "Porto", coords: [-21.126512, -42.354167] },
+            { nome: "Ponto 8", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129501, -42.357890] },
+            { nome: "Ponto 9", desc: "Centro - Juscelino Kubitscheck", coords: [-21.130203, -42.361406] },
+            { nome: "Ponto 10", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129459, -42.364093] },
+            { nome: "Ponto 11", desc: "Centro - Em frente à PatoLab", coords: [-21.129295, -42.366361] },
+            { nome: "Ponto 12", desc: "Armação - Em frente ao Supermercado Armação", coords: [-21.131572, -42.369898] },
+            { nome: "Ponto 13", desc: "Rua Santa Rita", coords: [-21.132698, -42.370226] },
+            { nome: "Ponto 14", desc: "Em frente ao antigo CEM", coords: [-21.135450, -42.371829] },
+            { nome: "Ponto 15", desc: "Safira - Em frente à Veggi", coords: [-21.136084, -42.373685] },
+            { nome: "Ponto 16", desc: "Safira - Em frente à Escola Mun. Sebastião Laviola", coords: [-21.132534, -42.377801] },
+            { nome: "Ponto 17", desc: "Rua Tiradentes - Em frente ao Mercado Bazinho", coords: [-21.130625, -42.376847] },
+            { nome: "Ponto 18", desc: "Barra - Em frente à ANB Academia", coords: [-21.128571, -42.376218] },
+            { nome: "Ponto 19", desc: "Barra - Em frente ao IF Sudeste", coords: [-21.127701, -42.378948] },
+            { nome: "Ponto 20", desc: "Barra - Em frente à Pão Chic", coords: [-21.128060, -42.381262] },
+            { nome: "Ponto 21", desc: "Av. Dante Bruno", coords: [-21.130188, -42.393765] },
+            { nome: "Ponto 22", desc: "Praça do Dornelas - Em frente à We Training", coords: [-21.130458, -42.393329] },
+            { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
+        ];
+
+        // ADICIONA APENAS OS PONTOS NO MAPA (SEM LINHA AZUL)
+        pontosDaRota.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .addTo(map)
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`);
+        });
+
+        const busIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
+            iconSize: [60, 60],
+            iconAnchor: [30, 30],
+            popupAnchor: [0, -30]
+        });
+
+        let busMarker = null, passengerMarker = null, passengerCircle = null;
+        let passengerPos = null, busPos = null, watchId = null;
+        let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
+
+        const infoEl = document.getElementById('info');
+        const alarmBtn = document.getElementById('alarmBtn');
+        const soundBtn = document.getElementById('soundBtn');
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                passengerPos = [pos.coords.latitude, pos.coords.longitude];
+            }, () => {}, { enableHighAccuracy: true });
+        }
+
+        function playBeep() {
+            if (!soundEnabled) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            } catch (e) {}
+        }
+
+        function calcularDistancia(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function iniciarGeolocalizacao(centralizar = false) {
+            if ("geolocation" in navigator) {
+                if (watchId === null) {
+                    watchId = navigator.geolocation.watchPosition((position) => {
+                        passengerPos = [position.coords.latitude, position.coords.longitude];
+
+                        if (!passengerMarker) {
+                            passengerMarker = L.circleMarker(passengerPos, {
+                                radius: 8, fillColor: "#2196F3", color: "#ffffff", weight: 2, fillOpacity: 0.9
+                            }).addTo(map).bindPopup("<b>Sua Posição</b>");
+
+                            passengerCircle = L.circle(passengerPos, {
+                                radius: 1000, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.1, weight: 1.5
+                            }).addTo(map);
+                        } else {
+                            passengerMarker.setLatLng(passengerPos);
+                            passengerCircle.setLatLng(passengerPos);
+                        }
+
+                        if (centralizar) map.setView(passengerPos, 15);
+                        checarProximidade();
+                    }, () => alert("Ative a localização do seu dispositivo."), { enableHighAccuracy: true });
+                } else if (passengerPos && centralizar) {
+                    map.setView(passengerPos, 15);
+                }
             }
         }
 
-        // MONITORAMENTO EM TEMPO REAL COM EXPIRAÇÃO DE 5 MINUTOS
-        function escutarRota() {
-            db.ref(`onibus/${rotaSelecionada}`).on('value', (snapshot) => {
-                const dados = snapshot.val();
-                const agora = Date.now();
-                const limiteInatividade = 5 * 60 * 1000; // 5 minutos
-
-                if (!dados || !dados.ativo || (agora - (dados.ultimaAtualizacao || 0) > limiteInatividade)) {
-                    infoNome.innerText = routeSelect.options[routeSelect.selectedIndex].text;
-                    infoStatus.innerText = "OFFLINE";
-                    infoStatus.className = "status-badge status-offline";
-                    infoVelocidade.innerText = "0 km/h";
-                    alertBox.style.display = "none";
-
-                    camadaOnibus.clearLayers();
-                    marcadorOnibus = null;
-                    return;
-                }
-
-                infoNome.innerText = `${dados.nome} (${dados.placa || 'Sem placa'})`;
-                infoStatus.innerText = "EM CIRCULAÇÃO";
-                infoStatus.className = "status-badge status-online";
-                infoVelocidade.innerText = `${dados.velocidade || 0} km/h`;
-
-                if (dados.ocorrenciaManual === 'acidente') {
-                    alertBox.innerText = "⚠️ Atenção: Trânsito ou acidente relatado à frente!";
-                    alertBox.style.display = "block";
-                } else if (dados.ocorrenciaManual === 'quebrado') {
-                    alertBox.innerText = "🔧 Atenção: Veículo com problemas técnicos!";
-                    alertBox.style.display = "block";
-                } else {
-                    alertBox.style.display = "none";
-                }
-
-                const latLng = [dados.lat, dados.lng];
-
-                if (!marcadorOnibus) {
-                    const busIcon = L.divIcon({
-                        html: '🚌',
-                        className: 'bus-marker-icon',
-                        iconSize: [30, 30]
-                    });
-
-                    marcadorOnibus = L.marker(latLng, { icon: busIcon }).addTo(camadaOnibus);
-                    map.setView(latLng, 15);
-                } else {
-                    marcadorOnibus.setLatLng(latLng);
-                }
-            });
-        }
-
-        // ALTERAÇÃO DE ROTA
-        routeSelect.addEventListener('change', (e) => {
-            db.ref(`onibus/${rotaSelecionada}`).off();
-            
-            rotaSelecionada = e.target.value;
-            camadaOnibus.clearLayers();
-            marcadorOnibus = null;
-
-            atualizarPontosNoMapa();
-            escutarRota();
+        document.getElementById('focusBusBtn').addEventListener('click', () => {
+            if (busPos && busMarker) { 
+                map.setView(busPos, 16); 
+                busMarker.openPopup(); 
+            } else { 
+                alert("O ônibus está offline no momento."); 
+            }
         });
 
-        // INICIALIZAÇÃO
-        atualizarPontosNoMapa();
-        escutarRota();
+        document.getElementById('focusUserBtn').addEventListener('click', () => {
+            if (passengerPos) { map.setView(passengerPos, 16); if (passengerMarker) passengerMarker.openPopup(); }
+            else { iniciarGeolocalizacao(true); }
+        });
+
+        alarmBtn.addEventListener('click', () => {
+            if (!alarmEnabled) {
+                alarmEnabled = true;
+                alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
+                alarmBtn.classList.add('active');
+                soundBtn.style.display = 'block';
+                iniciarGeolocalizacao();
+            } else {
+                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+                alarmEnabled = false; alarmTriggered = false;
+                alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
+                alarmBtn.classList.remove('active');
+                soundBtn.style.display = 'none';
+
+                if (passengerMarker) map.removeLayer(passengerMarker);
+                if (passengerCircle) map.removeLayer(passengerCircle);
+                passengerMarker = null; passengerCircle = null;
+                infoEl.classList.remove('alert-active');
+            }
+        });
+
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundBtn.innerText = soundEnabled ? "🔊 Som: ATIVADO (Clique para mutar)" : "🔇 Som: DESATIVADO";
+            soundBtn.classList.toggle('muted', !soundEnabled);
+        });
+
+        function checarProximidade() {
+            if (!alarmEnabled || !passengerPos || !busPos) return;
+            const distKm = calcularDistancia(passengerPos[0], passengerPos[1], busPos[0], busPos[1]);
+
+            if (distKm <= 1.0) {
+                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(distKm * 1000)} metros</b>`;
+                infoEl.classList.add('alert-active');
+                if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
+            } else {
+                infoEl.classList.remove('alert-active');
+                alarmTriggered = false;
+            }
+        }
+
+        db.ref('onibus/linha_01').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const { lat, lng, velocidade, statusTransito, ocorrenciaManual, passageiros } = data;
+                busPos = [lat, lng];
+
+                let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
+                let velMedicaKmh = 25;
+
+                if (ocorrenciaManual === 'acidente') {
+                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente à Frente</span>`;
+                    infoEl.classList.add('alert-active');
+                } else if (ocorrenciaManual === 'quebrado') {
+                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Ônibus Quebrado</span>`;
+                    infoEl.classList.add('alert-active');
+                } else {
+                    if (!alarmTriggered) infoEl.classList.remove('alert-active');
+                    if (statusTransito === 'lento') {
+                        tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
+                        velMedicaKmh = 12;
+                    } else if (statusTransito === 'parado') {
+                        tagStatus = `<span class="badge-status status-parado">🔴 Parado</span>`;
+                        velMedicaKmh = 5;
+                    }
+                }
+
+                const totalPass = passageiros || 0;
+                let tagPassageiros = "";
+
+                if (totalPass > 0) {
+                    let lotacaoTxt = "🟢 Livre";
+                    if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
+                    else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
+                    tagPassageiros = ` <span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
+                }
+
+                let textoStatus = `🚌 <b>Linha Plantão</b> | <span class="nobreak"><b>${velocidade || 0} km/h</b></span><br>${tagStatus}${tagPassageiros}`;
+                
+                if (passengerPos && !ocorrenciaManual) {
+                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
+                    let tempoMin = Math.round((dist / velMedicaKmh) * 60);
+                    if (tempoMin < 1) tempoMin = 1;
+
+                    const agora = new Date();
+                    agora.setMinutes(agora.getMinutes() + tempoMin);
+                    const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (às ${horaChegadaStr})`;
+                }
+
+                infoEl.innerHTML = textoStatus;
+
+                if (!busMarker) {
+                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão</b>");
+                } else {
+                    busMarker.setLatLng(busPos);
+                }
+
+                checarProximidade();
+            } else {
+                infoEl.innerText = "Ônibus Offline";
+                infoEl.classList.remove('alert-active');
+                
+                if (busMarker) {
+                    map.removeLayer(busMarker);
+                    busMarker = null;
+                }
+                busPos = null;
+            }
+        });
+
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (isIOS && !isStandalone) document.getElementById('iosInstallBox').style.display = 'block';
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
+        });
+
+        document.getElementById('installBtn').addEventListener('click', (e) => {
+            e.target.style.display = 'none';
+            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
+        });
     </script>
 </body>
 </html>
