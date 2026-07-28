@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Rotas FCV">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3448/3448339.png">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png">
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -57,7 +57,7 @@
             gap: 10px;
             align-items: center;
             width: 90%;
-            max-width: 320px;
+            max-width: 340px;
         }
 
         .btn {
@@ -69,6 +69,7 @@
             font-weight: bold;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             cursor: pointer;
+            transition: all 0.2s ease;
         }
 
         .btn-alarm {
@@ -77,8 +78,20 @@
         }
 
         .btn-alarm.active {
-            background-color: #4caf50;
+            background-color: #f44336;
             color: #fff;
+        }
+
+        .btn-sound {
+            background-color: #333333;
+            color: #ffffff;
+            display: none; /* Exibido apenas quando o alerta está ativo */
+            border: 1px solid #555;
+        }
+
+        .btn-sound.muted {
+            background-color: #555555;
+            color: #ffc107;
         }
 
         .btn-install {
@@ -100,6 +113,7 @@
 
     <div class="controls">
         <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
+        <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
         <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
     </div>
 
@@ -127,19 +141,32 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
+        // Ícone Personalizado do Ônibus FCV
+        const busIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
+            iconSize: [48, 48],       // Tamanho do ícone em pixels
+            iconAnchor: [24, 24],     // Ponto de ancoragem no centro da imagem
+            popupAnchor: [0, -24]     // Onde o balão de texto abre
+        });
+
         let busMarker = null;
         let passengerMarker = null;
         let passengerCircle = null;
         let passengerPos = null;
         let busPos = null;
+        let watchId = null;
         let alarmEnabled = false;
+        let soundEnabled = true;
         let alarmTriggered = false;
 
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
+        const soundBtn = document.getElementById('soundBtn');
 
-        // Synth para gerar o som de alerta sonoro sem precisar carregar arquivo de áudio
+        // Gerador de Som de Alerta (Sintetizador Web Audio)
         function playBeep() {
+            if (!soundEnabled) return; // Não toca se estiver mutado
+
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = audioCtx.createOscillator();
@@ -153,15 +180,15 @@
                 gain.connect(audioCtx.destination);
                 
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.6); // Toca por 0.6 segundos
+                osc.stop(audioCtx.currentTime + 0.6);
             } catch (e) {
-                console.log("Erro ao tocar áudio:", e);
+                console.log("Erro ao tocar som:", e);
             }
         }
 
-        // Função de Haversine para calcular distância em Km entre duas coordenadas
+        // Fórmula de Haversine para calcular distância em Km
         function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Raio da Terra em Km
+            const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = 
@@ -169,19 +196,19 @@
                 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                 Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c; // Distância em Km
+            return R * c;
         }
 
-        // Ativar/Desativar o monitoramento de proximidade do passageiro
+        // Alternar Ativar / Desativar Alerta
         alarmBtn.addEventListener('click', () => {
             if (!alarmEnabled) {
                 if ("geolocation" in navigator) {
-                    navigator.geolocation.watchPosition((position) => {
+                    watchId = navigator.geolocation.watchPosition((position) => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
                         passengerPos = [lat, lng];
 
-                        // Desenha/Atualiza o marcador do passageiro
+                        // Marcador do Passageiro
                         if (!passengerMarker) {
                             passengerMarker = L.circleMarker(passengerPos, {
                                 radius: 8,
@@ -192,7 +219,7 @@
                                 fillOpacity: 0.9
                             }).addTo(map).bindPopup("<b>Sua Posição</b>");
 
-                            // Círculo de 1 km (1000 metros)
+                            // Raio de 1 km
                             passengerCircle = L.circle(passengerPos, {
                                 radius: 1000,
                                 color: '#4caf50',
@@ -206,24 +233,48 @@
                         }
 
                         alarmEnabled = true;
-                        alarmBtn.innerText = "✅ Alerta de 1 km Ativado";
+                        alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
                         alarmBtn.classList.add('active');
+                        soundBtn.style.display = 'block'; // Mostra opção de som
                         
                         checarProximidade();
                     }, (err) => {
-                        alert("Permita o acesso à sua localização para ativar o alarme de aproximação.");
+                        alert("Permita o acesso à localização para ativar o alerta de proximidade.");
                     }, { enableHighAccuracy: true });
                 }
             } else {
+                // DESATIVAR ALERTA E LIMPAR RECURSOS
+                if (watchId !== null) navigator.geolocation.clearWatch(watchId);
                 alarmEnabled = false;
                 alarmTriggered = false;
+                passengerPos = null;
+                
                 alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
                 alarmBtn.classList.remove('active');
+                soundBtn.style.display = 'none';
+
                 if (passengerMarker) map.removeLayer(passengerMarker);
                 if (passengerCircle) map.removeLayer(passengerCircle);
                 passengerMarker = null;
                 passengerCircle = null;
                 infoEl.classList.remove('alert-active');
+
+                // Atualiza o texto do topo sem a distância do passageiro
+                if (busPos) {
+                    infoEl.innerHTML = `🚌 Ônibus Linha 01 em Movimento`;
+                }
+            }
+        });
+
+        // Alternar entre Som Ativo e Apenas Sinal Visual
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundBtn.innerText = "🔊 Som: ATIVADO (Clique para mutar)";
+                soundBtn.classList.remove('muted');
+            } else {
+                soundBtn.innerText = "🔇 Som: DESATIVADO (Apenas sinal visual)";
+                soundBtn.classList.add('muted');
             }
         });
 
@@ -237,20 +288,18 @@
                 infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${distMetros} metros</b>`;
                 infoEl.classList.add('alert-active');
 
-                // Toca o bipe sonoro se ainda não tiver disparado
                 if (!alarmTriggered) {
                     playBeep();
-                    // Dispara um segundo bipe após 0.8s para chamar atenção
                     setTimeout(playBeep, 800);
                     alarmTriggered = true;
                 }
             } else {
                 infoEl.classList.remove('alert-active');
-                alarmTriggered = false; // Reseta o disparo se o ônibus se afastar
+                alarmTriggered = false;
             }
         }
 
-        // Monitora o ônibus via Firebase
+        // Monitora a posição do ônibus via Firebase
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -259,7 +308,7 @@
 
                 if (!alarmTriggered) {
                     let textoStatus = `🚌 Ônibus Linha 01 | Vel: ${velocidade || 0} km/h`;
-                    if (passengerPos) {
+                    if (passengerPos && alarmEnabled) {
                         const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
                         textoStatus += `<br>Distância até você: <b>${dist.toFixed(2)} km</b>`;
                     }
@@ -267,7 +316,8 @@
                 }
 
                 if (!busMarker) {
-                    busMarker = L.marker(busPos).addTo(map).bindPopup("<b>Ônibus em Movimento</b>");
+                    // Cria o marcador com o Ícone do Ônibus FCV
+                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Ônibus FCV</b>");
                     map.setView(busPos, 15);
                 } else {
                     busMarker.setLatLng(busPos);
