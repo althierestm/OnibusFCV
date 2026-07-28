@@ -188,6 +188,19 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // --- SISTEMA DE PRESENÇA (PASSAGEIRO ONLINE) ---
+        const sessionPassageiroId = db.ref('passageiros_online').push().key;
+        const minhaConexaoRef = db.ref(`passageiros_online/${sessionPassageiroId}`);
+
+        db.ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                minhaConexaoRef.onDisconnect().remove();
+                minhaConexaoRef.set({
+                    ativoEm: firebase.database.ServerValue.TIMESTAMP
+                });
+            }
+        });
+
         const map = L.map('map').setView([-20.91, -42.50], 13);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -346,7 +359,7 @@
                     }
                 }
 
-                // Lógica para Ocultar Passageiros se for 0
+                // Ocultar contador de passageiros se for igual a 0
                 const totalPass = passageiros || 0;
                 let tagPassageiros = "";
 
@@ -364,7 +377,6 @@
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
                     if (tempoMin < 1) tempoMin = 1;
 
-                    // Cálculo da Hora Exata Estimada (ETA)
                     const agora = new Date();
                     agora.setMinutes(agora.getMinutes() + tempoMin);
                     const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
