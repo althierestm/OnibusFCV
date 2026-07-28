@@ -155,7 +155,7 @@
             background: var(--box-bg);
             padding: 12px;
             border-radius: 10px;
-            max-height: 180px;
+            max-height: 200px;
             overflow-y: auto;
             border: 1px solid var(--border-color);
         }
@@ -282,6 +282,16 @@
             return `${h}:${m}:${s}`;
         }
 
+        function formatarDataEDiaSemana(timestamp) {
+            if (!timestamp) return '';
+            const data = new Date(timestamp);
+            const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const diaSemana = dias[data.getDay()];
+            const dia = data.getDate().toString().padStart(2, '0');
+            const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+            return `${diaSemana}, ${dia}/${mes}`;
+        }
+
         function atualizarCronometroLocal() {
             if (!tempoInicioViagem) return "00:00:00";
             const agora = Date.now();
@@ -289,7 +299,7 @@
             return formatarTempo(decorridoSeg);
         }
 
-        // Carrega o Histórico de Viagens com Cronômetro Dinâmico
+        // Carrega o Histórico de Viagens com Data, Dia da Semana e Cronômetro Dinâmico
         db.ref('historico_viagens').limitToLast(10).on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -300,6 +310,7 @@
             const keys = Object.keys(data).reverse();
             keys.forEach(key => {
                 const item = data[key];
+                const dataFormatada = formatarDataEDiaSemana(item.inicio);
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                 
                 if (item.fim) {
@@ -308,7 +319,7 @@
                     const duracaoStr = formatarTempo(duracaoSeg);
                     html += `
                         <div class="history-item">
-                            <b>🏁 Viagem ${inicio} - ${fim}</b> (${duracaoStr})<br>
+                            <b>📅 ${dataFormatada}</b> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})<br>
                             👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
                         </div>
                     `;
@@ -316,7 +327,7 @@
                     const tempoAtualStr = atualizarCronometroLocal();
                     html += `
                         <div class="history-item">
-                            <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
+                            <b>📅 ${dataFormatada}</b> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
                             ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b> | 👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
                         </div>
                     `;
