@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel do Motorista - FCV</title>
     
+    <!-- Suporte a WebApp (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+
     <style>
         :root {
             --bg-color: #000000; /* Super OLED Pure Black */
@@ -347,8 +351,13 @@
         let tempoInicioViagem = null;
         let lastSignalTimeout = null; // Controle de inatividade (5 minutos)
         
-        // Variavel do Bloqueio de Tela
+        // Variável do Bloqueio de Tela (Wake Lock)
         let wakeLock = null;
+
+        // Variáveis de Otimização de Dados (450m ou 20s)
+        let ultimaLatEnviada = null;
+        let ultimaLngEnviada = null;
+        let ultimoTempoEnvio = 0;
 
         const toggleBtn = document.getElementById('toggleBtn');
         const statusText = document.getElementById('statusText');
@@ -363,7 +372,19 @@
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
 
-        // --- LÓGICA DE MANTER A TELA ACESA (SCREEN WAKE LOCK) ---
+        // --- CÁLCULO DE DISTÂNCIA (Fórmula de Haversine) ---
+        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Raio da Terra em metros
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+
+        // --- MANTER A TELA ACESA (SCREEN WAKE LOCK) ---
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
@@ -392,7 +413,6 @@
                 await requestWakeLock();
             }
         });
-        // --------------------------------------------------------
 
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
@@ -556,10 +576,15 @@
                 routeSelect.disabled = true;
                 tempoInicioViagem = Date.now();
 
+                // Reseta variáveis de otimização
+                ultimaLatEnviada = null;
+                ultimaLngEnviada = null;
+                ultimoTempoEnvio = 0;
+
                 // Ativa o bloqueio para manter a tela acesa
                 requestWakeLock();
 
-                // Configura desativação automática no Firebase se o app/navegador fechar repentinamente
+                // Configura desativação automática no Firebase se o app fechar abruptamente
                 db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
 
                 const novaViagemRef = db.ref('historico_viagens').push();
@@ -587,23 +612,45 @@
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
+                    const agora = Date.now();
 
                     let statusTransito = "normal";
                     if (speedKmh < 5) statusTransito = "parado";
                     else if (speedKmh < 18) statusTransito = "lento";
 
-                    db.ref(`onibus/${currentRouteKey}`).set({
-                        nome: routeName,
-                        placa: routePlaca,
-                        lat: lat,
-                        lng: lng,
-                        velocidade: speedKmh,
-                        statusTransito: statusTransito,
-                        ocorrenciaManual: ocorrenciaAtual,
-                        ativo: true,
-                        ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
-                    });
+                    // --- OTIMIZAÇÃO: ENVIO APENAS A CADA 450M OU 20 SEGUNDOS ---
+                    let deveEnviar = false;
 
+                    if (ultimaLatEnviada === null || ultimaLngEnviada === null) {
+                        deveEnviar = true; // Primeiro envio obrigatório
+                    } else {
+                        const distanciaAndada = calcularDistanciaMetros(ultimaLatEnviada, ultimaLngEnviada, lat, lng);
+                        const tempoDecorrido = (agora - ultimoTempoEnvio) / 1000;
+
+                        if (distanciaAndada >= 450 || tempoDecorrido >= 20) {
+                            deveEnviar = true;
+                        }
+                    }
+
+                    if (deveEnviar) {
+                        db.ref(`onibus/${currentRouteKey}`).set({
+                            nome: routeName,
+                            placa: routePlaca,
+                            lat: lat,
+                            lng: lng,
+                            velocidade: speedKmh,
+                            statusTransito: statusTransito,
+                            ocorrenciaManual: ocorrenciaAtual,
+                            ativo: true,
+                            ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
+                        });
+
+                        ultimaLatEnviada = lat;
+                        ultimaLngEnviada = lng;
+                        ultimoTempoEnvio = agora;
+                    }
+
+                    // Atualização visual na tela do motorista (em tempo real)
                     statusText.innerHTML = `
                         <b>${routeName} (${routePlaca})</b><br>
                         Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
@@ -624,7 +671,6 @@
         }
 
         function pararTransmissao() {
-            // Libera a tela para desligar normalmente quando a rota for finalizada
             releaseWakeLock();
 
             if (watchId !== null) {
@@ -650,7 +696,6 @@
             }
 
             if (currentRouteKey) {
-                // Remove a instrução onDisconnect pois foi desligado manualmente
                 db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().cancel();
                 
                 db.ref(`onibus/${currentRouteKey}`).update({
@@ -674,6 +719,13 @@
                     ocorrenciaManual: ocorrenciaAtual
                 });
             }
+        }
+
+        // Registro do Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker do WebApp ativado com sucesso.'))
+                .catch(err => console.error('Erro ao registrar Service Worker:', err));
         }
     </script>
 </body>
