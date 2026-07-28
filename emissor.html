@@ -39,10 +39,7 @@
             background: #333;
         }
 
-        .active {
-            background: #2196F3;
-            color: #fff;
-        }
+        .active { background: #2196F3; color: #fff; }
 
         .btn {
             width: 100%;
@@ -59,45 +56,54 @@
         .btn-start { background-color: #2196F3; color: white; }
         .btn-stop { background-color: #f44336; color: white; display: none; }
 
-        /* Botões de Seleção de Status */
-        .status-container {
+        .auto-status-box {
             display: none;
             flex-direction: column;
             gap: 8px;
             margin-top: 15px;
             margin-bottom: 15px;
+            padding: 12px;
+            background: #2a2a2a;
+            border-radius: 12px;
+            font-size: 14px;
         }
 
-        .btn-status {
-            padding: 10px;
+        .badge-auto {
+            padding: 8px;
             border-radius: 8px;
-            border: 2px solid transparent;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .st-normal { background-color: #2e7d32; color: #fff; }
+        .st-lento { background-color: #f57c00; color: #fff; }
+        .st-parado { background-color: #c62828; color: #fff; }
+        .st-alerta { background-color: #d32f2f; color: #fff; animation: pulse 1s infinite alternate; }
+
+        .emergency-container {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-emergency {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
             font-weight: bold;
             cursor: pointer;
             color: #fff;
-            opacity: 0.6;
-            transition: 0.2s;
+            font-size: 13px;
         }
 
-        .btn-status.selected {
-            opacity: 1;
-            border-color: #ffffff;
-            transform: scale(1.02);
-        }
+        .btn-acidente { background-color: #d84315; }
+        .btn-quebrado { background-color: #b71c1c; }
+        .btn-reset { background-color: #555555; display: none; }
 
-        .st-normal { background-color: #2e7d32; }
-        .st-lento { background-color: #f57c00; }
-        .st-parado { background-color: #c62828; }
-
-        .info {
-            font-size: 12px;
-            color: #aaa;
-            margin-top: 10px;
-            line-height: 1.4;
-        }
+        .info { font-size: 12px; color: #aaa; margin-top: 10px; line-height: 1.4; }
     </style>
 
-    <!-- Firebase SDK (v8) -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -110,17 +116,21 @@
         <button id="startBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
         <button id="stopBtn" class="btn btn-stop">⏹ Parar Transmissão</button>
 
-        <!-- Seletor de Condição da Via -->
-        <div id="statusContainer" class="status-container">
-            <span style="font-size: 13px; color: #ccc;"><b>Condição da Via:</b></span>
-            <button id="stNormal" class="btn-status st-normal selected">🟢 Em Rota Normal</button>
-            <button id="stLento" class="btn-status st-lento">🟡 Trânsito Lento</button>
-            <button id="stParado" class="btn-status st-parado">🔴 Parado / Intervalo</button>
+        <!-- Status Automático Detectado pelo GPS -->
+        <div id="autoStatusBox" class="auto-status-box">
+            <span><b>Status do Trânsito (Automático):</b></span>
+            <div id="autoStatusBadge" class="badge-auto st-normal">🟢 Rota Normal</div>
         </div>
 
-        <div class="info" id="details">
-            Otimizado: envia a cada 100m ou 2min.
+        <!-- Botões de Ocorrências com Confirmação -->
+        <div id="emergencyContainer" class="emergency-container">
+            <span style="font-size: 12px; color: #ccc;"><b>Reportar Ocorrência Manual:</b></span>
+            <button id="btnAcidente" class="btn-emergency btn-acidente">⚠️ Acidente à Frente</button>
+            <button id="btnQuebrado" class="btn-emergency btn-quebrado">🔧 Ônibus Quebrado</button>
+            <button id="btnResetEmergency" class="btn-emergency btn-reset">✅ Normalizar Rota</button>
         </div>
+
+        <div class="info" id="details">Otimizado: monitorando velocidade e parada.</div>
     </div>
 
     <script>
@@ -138,38 +148,82 @@
         const db = firebase.database();
 
         let watchId = null;
-        let ultimaLat = null;
-        let ultimaLng = null;
+        let ultimaLat = null, ultimaLng = null;
         let ultimoTempoEnvio = 0;
+        let tempoParadoInicio = null;
+        
         let statusTransito = "normal"; // normal, lento, parado
+        let ocorrenciaManual = null; // null, "acidente", "quebrado"
 
         const DISTANCIA_MINIMA_METROS = 100;
-        const TEMPO_MAXIMO_PARADO_MS = 120000;
+        const TEMPO_MAXIMO_PARADO_MS = 120000; // 2 minutos
 
         const statusEl = document.getElementById('status');
         const detailsEl = document.getElementById('details');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
-        const statusContainer = document.getElementById('statusContainer');
+        const autoStatusBox = document.getElementById('autoStatusBox');
+        const autoStatusBadge = document.getElementById('autoStatusBadge');
+        const emergencyContainer = document.getElementById('emergencyContainer');
 
-        const stNormalBtn = document.getElementById('stNormal');
-        const stLentoBtn = document.getElementById('stLento');
-        const stParadoBtn = document.getElementById('stParado');
+        const btnAcidente = document.getElementById('btnAcidente');
+        const btnQuebrado = document.getElementById('btnQuebrado');
+        const btnResetEmergency = document.getElementById('btnResetEmergency');
 
-        function selecionarStatus(novoStatus, btnClicado) {
-            statusTransito = novoStatus;
-            [stNormalBtn, stLentoBtn, stParadoBtn].forEach(b => b.classList.remove('selected'));
-            btnClicado.classList.add('selected');
+        // Confirmação para relatar acidente
+        btnAcidente.addEventListener('click', () => {
+            if (confirm("⚠️ Tem certeza que deseja notificar sobre ACIDENTE À FRENTE?")) {
+                ocorrenciaManual = "acidente";
+                atualizarInterfaceOcorrencia();
+                if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
+            }
+        });
 
-            // Força o envio imediato da atualização do status para o Firebase
-            if (ultimaLat !== null && ultimaLng !== null) {
-                enviarParaFirebase(ultimaLat, ultimaLng, 0, true);
+        // Confirmação para relatar ônibus quebrado
+        btnQuebrado.addEventListener('click', () => {
+            if (confirm("🔧 Tem certeza que deseja notificar sobre ÔNIBUS QUEBRADO?")) {
+                ocorrenciaManual = "quebrado";
+                atualizarInterfaceOcorrencia();
+                if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
+            }
+        });
+
+        // Voltar ao normal
+        btnResetEmergency.addEventListener('click', () => {
+            ocorrenciaManual = null;
+            atualizarInterfaceOcorrencia();
+            if (ultimaLat) enviarParaFirebase(ultimaLat, ultimaLng, 0);
+        });
+
+        function atualizarInterfaceOcorrencia() {
+            if (ocorrenciaManual === "acidente") {
+                autoStatusBadge.className = "badge-auto st-alerta";
+                autoStatusBadge.innerText = "⚠️ Alerta: Acidente à Frente";
+                btnResetEmergency.style.display = 'block';
+            } else if (ocorrenciaManual === "quebrado") {
+                autoStatusBadge.className = "badge-auto st-alerta";
+                autoStatusBadge.innerText = "🔧 Alerta: Ônibus Quebrado";
+                btnResetEmergency.style.display = 'block';
+            } else {
+                btnResetEmergency.style.display = 'none';
+                atualizarBadgeStatusAuto();
             }
         }
 
-        stNormalBtn.addEventListener('click', () => selecionarStatus("normal", stNormalBtn));
-        stLentoBtn.addEventListener('click', () => selecionarStatus("lento", stLentoBtn));
-        stParadoBtn.addEventListener('click', () => selecionarStatus("parado", stParadoBtn));
+        function atualizarBadgeStatusAuto() {
+            if (ocorrenciaManual) return; // Se houver emergência manual, mantém o alerta
+
+            if (statusTransito === "normal") {
+                autoStatusBadge.className = "badge-auto st-normal";
+                autoStatusBadge.innerText = "🟢 Rota Normal";
+            } else if (statusTransito === "lento") {
+                autoStatusBadge.className = "badge-auto st-lento";
+                autoStatusBadge.innerText = "🟡 Trânsito Lento";
+            } else if (statusTransito === "parado") {
+                autoStatusBadge.className = "badge-auto st-parado";
+                autoStatusBadge.innerText = "🔴 Parado / Ponto";
+            }
+        }
 
         function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
             const R = 6371000;
@@ -181,7 +235,7 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function enviarParaFirebase(lat, lng, velocidade, forcar = false) {
+        function enviarParaFirebase(lat, lng, velocidade) {
             ultimaLat = lat;
             ultimaLng = lng;
             ultimoTempoEnvio = Date.now();
@@ -191,6 +245,7 @@
                 lng: lng,
                 velocidade: velocidade,
                 statusTransito: statusTransito,
+                ocorrenciaManual: ocorrenciaManual,
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             }).then(() => {
                 const hora = new Date().toLocaleTimeString();
@@ -204,13 +259,33 @@
             const velocidade = Math.round((position.coords.speed || 0) * 3.6);
             const agora = Date.now();
 
+            // LOGICA AUTOMATICA DE STATUS BASEADA NA VELOCIDADE E TEMPO
+            if (velocidade <= 2) {
+                if (!tempoParadoInicio) tempoParadoInicio = agora;
+                
+                // Se estiver parado há mais de 2 minutos (120000ms)
+                if (agora - tempoParadoInicio >= TEMPO_MAXIMO_PARADO_MS) {
+                    statusTransito = "parado";
+                } else {
+                    statusTransito = "lento";
+                }
+            } else if (velocidade > 2 && velocidade <= 15) {
+                tempoParadoInicio = null;
+                statusTransito = "lento";
+            } else {
+                tempoParadoInicio = null;
+                statusTransito = "normal";
+            }
+
+            atualizarBadgeStatusAuto();
+
             if (ultimaLat === null || ultimaLng === null) {
                 enviarParaFirebase(lat, lng, velocidade);
             } else {
                 const distanciaAndada = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng);
                 const tempoDecorrido = agora - ultimoTempoEnvio;
 
-                if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= TEMPO_MAXIMO_PARADO_MS) {
+                if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= 20000 || ocorrenciaManual !== null) {
                     enviarParaFirebase(lat, lng, velocidade);
                 }
             }
@@ -223,7 +298,8 @@
                     statusEl.classList.add('active');
                     startBtn.style.display = 'none';
                     stopBtn.style.display = 'block';
-                    statusContainer.style.display = 'flex';
+                    autoStatusBox.style.display = 'flex';
+                    emergencyContainer.style.display = 'flex';
 
                     processarEEnviarPosicao(position);
                 }, (err) => {
@@ -243,11 +319,14 @@
             statusEl.classList.remove('active');
             startBtn.style.display = 'block';
             stopBtn.style.display = 'none';
-            statusContainer.style.display = 'none';
+            autoStatusBox.style.display = 'none';
+            emergencyContainer.style.display = 'none';
             detailsEl.innerText = "Transmissão pausada.";
 
             ultimaLat = null;
             ultimaLng = null;
+            tempoParadoInicio = null;
+            ocorrenciaManual = null;
         });
     </script>
 </body>
