@@ -57,6 +57,8 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
             cursor: pointer;
             text-align: center;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         .route-select option {
@@ -343,10 +345,13 @@
             { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
         ];
 
+        // Grupo de camadas para controlar a exibição dos pontos no mapa
+        const pontosGroup = L.layerGroup();
+
         pontosDaRota.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
-                .addTo(map)
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`);
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                .addTo(pontosGroup);
         });
 
         const busIcon = L.icon({
@@ -356,7 +361,6 @@
             popupAnchor: [0, -30]
         });
 
-        // ESTRUTURA PARA GERENCIAR MÚLTIPLOS ÔNIBUS
         let busData = {};
         let busMarkers = {};
         let passengerMarker = null, passengerCircle = null;
@@ -435,7 +439,7 @@
         }
 
         document.getElementById('focusBusBtn').addEventListener('click', () => {
-            const keysAtivas = Object.keys(busData).filter(k => busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
+            const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
                 const targetKey = keysAtivas[0];
                 const targetBus = busData[targetKey];
@@ -483,8 +487,9 @@
             
             let menorDistancia = Infinity;
             Object.keys(busData).forEach(key => {
-                if (busData[key].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
-                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], busData[key].lat, busData[key].lng);
+                const bus = busData[key];
+                if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
+                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
                     if (dist < menorDistancia) menorDistancia = dist;
                 }
             });
@@ -499,13 +504,23 @@
             }
         }
 
-        // ATUALIZA OS MARCADORES E O CARD INFORMATIVO
         function atualizarExibicaoGeral() {
+            // EXIBE OS PONTOS APENAS SE A ROTA SELECIONADA FOR 'PLANTÃO'
+            if (selectedRouteKey === 'plantao') {
+                if (!map.hasLayer(pontosGroup)) {
+                    map.addLayer(pontosGroup);
+                }
+            } else {
+                if (map.hasLayer(pontosGroup)) {
+                    map.removeLayer(pontosGroup);
+                }
+            }
+
             let onibusEmCirculacao = 0;
 
             Object.keys(busData).forEach(key => {
                 const bus = busData[key];
-                const deveserExibido = bus.ativo && (selectedRouteKey === 'todas' || selectedRouteKey === key);
+                const deveserExibido = bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key);
 
                 if (deveserExibido) {
                     onibusEmCirculacao++;
@@ -548,9 +563,9 @@
                     velMedicaKmh = 5;
                 }
 
-                let texto = `🚌 <b>${bus.nome}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
+                let texto = `🚌 <b>${bus.nome || selectedRouteKey}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
 
-                if (passengerPos && !bus.ocorrenciaManual) {
+                if (passengerPos && !bus.ocorrenciaManual && bus.lat && bus.lng) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
                     if (tempoMin < 1) tempoMin = 1;
@@ -570,16 +585,10 @@
             checarProximidade();
         }
 
-        // ESCUTA TODAS AS ROTAS DO BANCO DE DADOS
         db.ref('onibus').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                busData = data;
-                atualizarExibicaoGeral();
-            } else {
-                busData = {};
-                atualizarExibicaoGeral();
-            }
+            busData = data || {};
+            atualizarExibicaoGeral();
         });
 
         if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
