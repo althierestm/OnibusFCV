@@ -32,6 +32,34 @@
             touch-action: manipulation;
         }
 
+        /* Estilo do Ponto Azul estilo Google Maps */
+        .user-location-dot {
+            width: 16px;
+            height: 16px;
+            background-color: #1a73e8;
+            border: 3px solid #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .user-location-pulse {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            width: 28px;
+            height: 28px;
+            background-color: rgba(26, 115, 232, 0.35);
+            border-radius: 50%;
+            animation: gpsPulse 2s infinite ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes gpsPulse {
+            0% { transform: scale(0.6); opacity: 0.8; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
         .info-box {
             position: absolute;
             top: 20px;
@@ -162,7 +190,6 @@
 
         .btn-floating:active { transform: scale(0.92); }
 
-        /* Modal/Card de Seleção de Rotas */
         .route-modal {
             display: none;
             position: absolute;
@@ -181,9 +208,7 @@
             gap: 6px;
         }
 
-        .route-modal.active {
-            display: flex;
-        }
+        .route-modal.active { display: flex; }
 
         .route-option {
             background: rgba(255, 255, 255, 0.08);
@@ -246,7 +271,6 @@
 
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
-    <!-- Modal de Rotas -->
     <div class="route-modal" id="routeModal">
         <button class="route-option selected" data-value="todas">🚌 Exibir Todas</button>
         <button class="route-option" data-value="plantao">📍 Rota de Plantão</button>
@@ -255,7 +279,6 @@
         <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
     </div>
 
-    <!-- Botões Flutuantes da Direita -->
     <div class="right-nav-buttons">
         <button id="toggleRouteBtn" class="btn-floating" title="Selecionar Rota">🗺️</button>
         <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
@@ -320,6 +343,14 @@
             popupAnchor: [0, -14]
         });
 
+        // Ícone customizado da bolinha azul (Google Maps Style)
+        const userLocationIcon = L.divIcon({
+            className: 'user-location-marker',
+            html: '<div class="user-location-pulse"></div><div class="user-location-dot"></div>',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+        });
+
         const pontosPlantao = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -375,20 +406,17 @@
         const routeModal = document.getElementById('routeModal');
         const routeOptions = document.querySelectorAll('.route-option');
 
-        // Alternar abertura do menu de rotas
         toggleRouteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             routeModal.classList.toggle('active');
         });
 
-        // Fechar o menu ao clicar fora dele
         document.addEventListener('click', (e) => {
             if (!routeModal.contains(e.target) && e.target !== toggleRouteBtn) {
                 routeModal.classList.remove('active');
             }
         });
 
-        // Evento de seleção de rota no modal
         routeOptions.forEach(opt => {
             opt.addEventListener('click', () => {
                 routeOptions.forEach(o => o.classList.remove('selected'));
@@ -399,11 +427,46 @@
             });
         });
 
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                passengerPos = [pos.coords.latitude, pos.coords.longitude];
-            }, () => {}, { enableHighAccuracy: true });
+        // Inicia o rastreamento continuo da posição do passageiro
+        function iniciarGeolocalizacao(centralizar = false) {
+            if ("geolocation" in navigator) {
+                if (watchId === null) {
+                    watchId = navigator.geolocation.watchPosition((position) => {
+                        passengerPos = [position.coords.latitude, position.coords.longitude];
+
+                        if (!passengerMarker) {
+                            // Cria o marcador com a bolinha azul pulsante
+                            passengerMarker = L.marker(passengerPos, { icon: userLocationIcon })
+                                .addTo(map)
+                                .bindPopup("<b>Sua Posição</b>");
+                        } else {
+                            passengerMarker.setLatLng(passengerPos);
+                        }
+
+                        // Se o alerta de 1km estiver ligado, atualiza o círculo de raio
+                        if (alarmEnabled) {
+                            if (!passengerCircle) {
+                                passengerCircle = L.circle(passengerPos, {
+                                    radius: 1000, color: '#1a73e8', fillColor: '#1a73e8', fillOpacity: 0.08, weight: 1.5
+                                }).addTo(map);
+                            } else {
+                                passengerCircle.setLatLng(passengerPos);
+                            }
+                        }
+
+                        if (centralizar) map.setView(passengerPos, 16);
+                        checarProximidade();
+                    }, (err) => {
+                        console.warn("Erro ao obter localização: ", err);
+                    }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
+                } else if (passengerPos && centralizar) {
+                    map.setView(passengerPos, 16);
+                }
+            }
         }
+
+        // Tenta pegar a localização assim que abre a página
+        iniciarGeolocalizacao(false);
 
         function playBeep() {
             if (!soundEnabled) return;
@@ -431,34 +494,6 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        function iniciarGeolocalizacao(centralizar = false) {
-            if ("geolocation" in navigator) {
-                if (watchId === null) {
-                    watchId = navigator.geolocation.watchPosition((position) => {
-                        passengerPos = [position.coords.latitude, position.coords.longitude];
-
-                        if (!passengerMarker) {
-                            passengerMarker = L.circleMarker(passengerPos, {
-                                radius: 8, fillColor: "#2196F3", color: "#ffffff", weight: 2, fillOpacity: 0.9
-                            }).addTo(map).bindPopup("<b>Sua Posição</b>");
-
-                            passengerCircle = L.circle(passengerPos, {
-                                radius: 1000, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.1, weight: 1.5
-                            }).addTo(map);
-                        } else {
-                            passengerMarker.setLatLng(passengerPos);
-                            passengerCircle.setLatLng(passengerPos);
-                        }
-
-                        if (centralizar) map.setView(passengerPos, 15);
-                        checarProximidade();
-                    }, () => alert("Ative a localização do seu dispositivo."), { enableHighAccuracy: true });
-                } else if (passengerPos && centralizar) {
-                    map.setView(passengerPos, 15);
-                }
-            }
-        }
-
         document.getElementById('focusBusBtn').addEventListener('click', () => {
             const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
@@ -472,8 +507,12 @@
         });
 
         document.getElementById('focusUserBtn').addEventListener('click', () => {
-            if (passengerPos) { map.setView(passengerPos, 16); if (passengerMarker) passengerMarker.openPopup(); }
-            else { iniciarGeolocalizacao(true); }
+            if (passengerPos) { 
+                map.setView(passengerPos, 16); 
+                if (passengerMarker) passengerMarker.openPopup(); 
+            } else { 
+                iniciarGeolocalizacao(true); 
+            }
         });
 
         alarmBtn.addEventListener('click', () => {
@@ -482,17 +521,23 @@
                 alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
                 alarmBtn.classList.add('active');
                 soundBtn.style.display = 'block';
+
+                if (passengerPos) {
+                    passengerCircle = L.circle(passengerPos, {
+                        radius: 1000, color: '#1a73e8', fillColor: '#1a73e8', fillOpacity: 0.08, weight: 1.5
+                    }).addTo(map);
+                }
                 iniciarGeolocalizacao();
             } else {
-                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
                 alarmEnabled = false; alarmTriggered = false;
                 alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
                 alarmBtn.classList.remove('active');
                 soundBtn.style.display = 'none';
 
-                if (passengerMarker) map.removeLayer(passengerMarker);
-                if (passengerCircle) map.removeLayer(passengerCircle);
-                passengerMarker = null; passengerCircle = null;
+                if (passengerCircle) {
+                    map.removeLayer(passengerCircle);
+                    passengerCircle = null;
+                }
                 infoEl.classList.remove('alert-active');
             }
         });
