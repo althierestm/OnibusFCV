@@ -3,176 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onibus FCV Colaborador</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
-    
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
+    <title>Rotas FCV - Passageiro</title>
 
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; }
-        #map { height: 100vh; width: 100%; }
-        
-        .info-box {
-            position: absolute;
-            top: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.90);
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 20px;
-            font-size: 13px;
-            line-height: 1.5;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            text-align: center;
-            max-width: 90%;
-            transition: background 0.3s ease;
+        :root {
+            --bg-color: #000000; /* Super OLED Pure Black */
+            --container-bg: #0d0d0d;
+            --text-color: #ffffff;
+            --box-bg: #161616;
+            --border-color: #262626;
+            --accent-color: #00a6fb;
+            --map-tiles-filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
         }
 
-        .badge-status {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: 3px;
+        body.light-mode {
+            --bg-color: #f4f6f9;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --box-bg: #eef2f5;
+            --border-color: #cccccc;
+            --accent-color: #0077b6;
+            --map-tiles-filter: none;
         }
 
-        .badge-pass {
-            display: inline-block;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-size: 11px;
-            background: #333;
-            color: #fff;
-            margin-left: 4px;
-        }
-
-        .status-normal { background-color: #2e7d32; color: #fff; }
-        .status-lento { background-color: #f57c00; color: #fff; }
-        .status-parado { background-color: #c62828; color: #fff; }
-        .status-emergencia { background-color: #d32f2f; color: #fff; font-size: 12px; padding: 5px 10px; }
-
-        .alert-active {
-            background: #b71c1c !important;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { transform: translateX(-50%) scale(1); }
-            to { transform: translateX(-50%) scale(1.03); }
-        }
-
-        .controls {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
             align-items: center;
-            width: 90%;
-            max-width: 340px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .btn {
+        .container {
             width: 100%;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            max-width: 420px;
+            background-color: var(--container-bg);
+            padding: 18px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .btn-theme {
+            background: var(--box-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 6px 12px;
+            border-radius: 20px;
             cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
-        .btn-alarm { background-color: #2196F3; color: #ffffff; }
-        .btn-alarm.active { background-color: #f44336; color: #fff; }
-
-        .btn-sound { background-color: #333333; color: #ffffff; display: none; border: 1px solid #555; }
-        .btn-sound.muted { background-color: #555555; color: #ffc107; }
-
-        .btn-install { display: none; background-color: #0088cc; color: white; }
-
-        .ios-install-box {
-            display: none;
-            background: rgba(30, 30, 30, 0.95);
-            color: #ffffff;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 13px;
-            line-height: 1.4;
-            text-align: center;
-            border: 1px solid #444;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            width: 100%;
-            box-sizing: border-box;
+        .btn-theme:active {
+            transform: scale(0.95);
         }
 
-        .right-nav-buttons {
-            position: absolute;
-            right: 15px;
-            bottom: 120px;
-            z-index: 1000;
+        .status-card {
+            background-color: var(--box-bg);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .status-live {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .status-off {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            border: 1px solid #f44336;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .info-box {
+            background: var(--box-bg);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .info-box span {
+            display: block;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-top: 4px;
+        }
+
+        #map {
+            width: 100%;
+            height: 320px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 15px;
+            z-index: 1;
+        }
+
+        /* Aplica o filtro escuro nas tiles do mapa no modo OLED */
+        .leaflet-tile-pane {
+            filter: var(--map-tiles-filter);
+        }
+
+        /* Rodapé */
+        .footer {
+            margin-top: 15px;
+            padding-top: 12px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-floating {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            border: none;
-            background: #ffffff;
-            color: #333;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            cursor: pointer;
-            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            transition: transform 0.2s ease;
+            border-top: 1px solid var(--border-color);
         }
 
-        .btn-floating:active { transform: scale(0.92); }
+        .footer-logo {
+            max-width: 95px;
+            height: auto;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            opacity: 1;
+        }
+
+        .footer-credit {
+            font-size: 8px;
+            color: var(--text-color);
+            opacity: 0.4;
+            margin-top: 4px;
+            text-transform: none;
+            letter-spacing: 0.3px;
+        }
     </style>
 
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
-    <div class="info-box" id="info">Aguardando sinal do ônibus...</div>
+    <div class="container">
+        <div class="top-bar">
+            <h2>🚌 Rota FCV</h2>
+            <button id="themeBtn" class="btn-theme">
+                <span id="themeIcon">💡</span>
+                <span id="themeText">Super OLED</span>
+            </button>
+        </div>
 
-    <div class="right-nav-buttons">
-        <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
-        <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
-    </div>
+        <div class="status-card" id="statusCard">
+            Status: <span class="status-badge status-off" id="statusBadge">Aguardando ônibus...</span>
+        </div>
 
-    <div class="controls">
-        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
-        <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
-        <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
-        
-        <div id="iosInstallBox" class="ios-install-box">
-            📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
+        <div class="info-grid">
+            <div class="info-box">
+                👥 Passageiros
+                <span id="passCount">--</span>
+            </div>
+            <div class="info-box">
+                ⚡ Velocidade
+                <span id="speedCount">-- km/h</span>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <!-- RODAPÉ -->
+        <div class="footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
+            <div class="footer-credit">by Althieres Dias</div>
         </div>
     </div>
-
-    <div id="map"></div>
 
     <script>
         const firebaseConfig = {
@@ -188,249 +238,77 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- SISTEMA DE PRESENÇA (PASSAGEIRO ONLINE) ---
-        const sessionPassageiroId = db.ref('passageiros_online').push().key;
-        const minhaConexaoRef = db.ref(`passageiros_online/${sessionPassageiroId}`);
+        // Registro de presença do passageiro online
+        const sessionRef = db.ref('passageiros_online').push();
+        sessionRef.set(true);
+        sessionRef.onDisconnect().remove();
 
-        db.ref('.info/connected').on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                minhaConexaoRef.onDisconnect().remove();
-                minhaConexaoRef.set({
-                    ativoEm: firebase.database.ServerValue.TIMESTAMP
-                });
-            }
-        });
+        // Inicialização do Mapa
+        const map = L.map('map').setView([-20.914, -42.502], 14); // Posição inicial padrão
 
-        const map = L.map('map').setView([-20.91, -42.50], 13);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap © CARTO',
-            maxZoom: 19
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
         }).addTo(map);
 
+        let busMarker = null;
+
+        // Ícone personalizado para o ônibus
         const busIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
-            iconSize: [60, 60],
-            iconAnchor: [30, 30],
-            popupAnchor: [0, -30]
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png',
+            iconSize: [38, 38],
+            iconAnchor: [19, 19]
         });
 
-        let busMarker = null, passengerMarker = null, passengerCircle = null;
-        let passengerPos = null, busPos = null, watchId = null;
-        let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
+        // Alternador de Tema (Super OLED / Claro) com Ícone de Lâmpada
+        const themeBtn = document.getElementById('themeBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
 
-        const infoEl = document.getElementById('info');
-        const alarmBtn = document.getElementById('alarmBtn');
-        const soundBtn = document.getElementById('soundBtn');
-
-        // Tenta obter a localização do passageiro silenciosamente para calcular o ETA
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((pos) => {
-                passengerPos = [pos.coords.latitude, pos.coords.longitude];
-            }, () => {}, { enableHighAccuracy: true });
-        }
-
-        function playBeep() {
-            if (!soundEnabled) return;
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = "sine";
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.6);
-            } catch (e) {}
-        }
-
-        function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        function iniciarGeolocalizacao(centralizar = false) {
-            if ("geolocation" in navigator) {
-                if (watchId === null) {
-                    watchId = navigator.geolocation.watchPosition((position) => {
-                        passengerPos = [position.coords.latitude, position.coords.longitude];
-
-                        if (!passengerMarker) {
-                            passengerMarker = L.circleMarker(passengerPos, {
-                                radius: 8, fillColor: "#2196F3", color: "#ffffff", weight: 2, fillOpacity: 0.9
-                            }).addTo(map).bindPopup("<b>Sua Posição</b>");
-
-                            passengerCircle = L.circle(passengerPos, {
-                                radius: 1000, color: '#4caf50', fillColor: '#4caf50', fillOpacity: 0.1, weight: 1.5
-                            }).addTo(map);
-                        } else {
-                            passengerMarker.setLatLng(passengerPos);
-                            passengerCircle.setLatLng(passengerPos);
-                        }
-
-                        if (centralizar) map.setView(passengerPos, 15);
-                        checarProximidade();
-                    }, () => alert("Ative a localização do seu dispositivo."), { enableHighAccuracy: true });
-                } else if (passengerPos && centralizar) {
-                    map.setView(passengerPos, 15);
-                }
-            }
-        }
-
-        document.getElementById('focusBusBtn').addEventListener('click', () => {
-            if (busPos && busMarker) { 
-                map.setView(busPos, 16); 
-                busMarker.openPopup(); 
-            } else { 
-                alert("O ônibus está offline no momento."); 
-            }
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            
+            themeIcon.innerText = isLight ? "💡" : "💡";
+            themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
         });
 
-        document.getElementById('focusUserBtn').addEventListener('click', () => {
-            if (passengerPos) { map.setView(passengerPos, 16); if (passengerMarker) passengerMarker.openPopup(); }
-            else { iniciarGeolocalizacao(true); }
-        });
-
-        alarmBtn.addEventListener('click', () => {
-            if (!alarmEnabled) {
-                alarmEnabled = true;
-                alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
-                alarmBtn.classList.add('active');
-                soundBtn.style.display = 'block';
-                iniciarGeolocalizacao();
-            } else {
-                if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-                alarmEnabled = false; alarmTriggered = false;
-                alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
-                alarmBtn.classList.remove('active');
-                soundBtn.style.display = 'none';
-
-                if (passengerMarker) map.removeLayer(passengerMarker);
-                if (passengerCircle) map.removeLayer(passengerCircle);
-                passengerMarker = null; passengerCircle = null;
-                infoEl.classList.remove('alert-active');
-            }
-        });
-
-        soundBtn.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            soundBtn.innerText = soundEnabled ? "🔊 Som: ATIVADO (Clique para mutar)" : "🔇 Som: DESATIVADO";
-            soundBtn.classList.toggle('muted', !soundEnabled);
-        });
-
-        function checarProximidade() {
-            if (!alarmEnabled || !passengerPos || !busPos) return;
-            const distKm = calcularDistancia(passengerPos[0], passengerPos[1], busPos[0], busPos[1]);
-
-            if (distKm <= 1.0) {
-                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(distKm * 1000)} metros</b>`;
-                infoEl.classList.add('alert-active');
-                if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
-            } else {
-                infoEl.classList.remove('alert-active');
-                alarmTriggered = false;
-            }
-        }
-
-        // Monitora o Firebase
+        // Monitoramento da linha do ônibus no Firebase
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                const { lat, lng, velocidade, statusTransito, ocorrenciaManual, passageiros } = data;
-                busPos = [lat, lng];
 
-                let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
-                let velMedicaKmh = 25;
+            const statusBadge = document.getElementById('statusBadge');
+            const passCount = document.getElementById('passCount');
+            const speedCount = document.getElementById('speedCount');
 
-                if (ocorrenciaManual === 'acidente') {
-                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente à Frente</span>`;
-                    infoEl.classList.add('alert-active');
-                } else if (ocorrenciaManual === 'quebrado') {
-                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Ônibus Quebrado</span>`;
-                    infoEl.classList.add('alert-active');
-                } else {
-                    if (!alarmTriggered) infoEl.classList.remove('alert-active');
-                    if (statusTransito === 'lento') {
-                        tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
-                        velMedicaKmh = 12;
-                    } else if (statusTransito === 'parado') {
-                        tagStatus = `<span class="badge-status status-parado">🔴 Parado / Ponto</span>`;
-                        velMedicaKmh = 5;
-                    }
-                }
-
-                // Ocultar número de passageiros se for igual a 0
-                const totalPass = passageiros || 0;
-                let tagPassageiros = "";
-
-                if (totalPass > 0) {
-                    let lotacaoTxt = "🟢 Livre";
-                    if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
-                    else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
-                    tagPassageiros = ` <span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
-                }
-
-                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}${tagPassageiros}`;
-                
-                // Cálculo de ETA (Tempo e Horário Estimado de Chegada)
-                if (passengerPos && !ocorrenciaManual) {
-                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
-                    let tempoMin = Math.round((dist / velMedicaKmh) * 60);
-                    if (tempoMin < 1) tempoMin = 1;
-
-                    const agora = new Date();
-                    agora.setMinutes(agora.getMinutes() + tempoMin);
-                    const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (às ${horaChegadaStr})`;
-                }
-
-                infoEl.innerHTML = textoStatus;
+            if (data && data.lat && data.lng) {
+                const pos = [data.lat, data.lng];
 
                 if (!busMarker) {
-                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão FCV</b>");
-                    map.setView(busPos, 15);
+                    busMarker = L.marker(pos, { icon: busIcon }).addTo(map);
                 } else {
-                    busMarker.setLatLng(busPos);
+                    busMarker.setLatLng(pos);
                 }
 
-                checarProximidade();
+                map.panTo(pos);
+
+                statusBadge.innerText = "EM TRÂNSITO";
+                statusBadge.className = "status-badge status-live";
+
+                passCount.innerText = data.passageiros !== undefined ? data.passageiros : 0;
+                speedCount.innerText = `${data.velocidade || 0} km/h`;
             } else {
-                infoEl.innerText = "Ônibus Offline";
-                infoEl.classList.remove('alert-active');
-                
                 if (busMarker) {
                     map.removeLayer(busMarker);
                     busMarker = null;
                 }
-                busPos = null;
+
+                statusBadge.innerText = "OFFLINE";
+                statusBadge.className = "status-badge status-off";
+
+                passCount.innerText = "--";
+                speedCount.innerText = "-- km/h";
             }
-        });
-
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        
-        if (isIOS && !isStandalone) document.getElementById('iosInstallBox').style.display = 'block';
-
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
-        });
-
-        document.getElementById('installBtn').addEventListener('click', (e) => {
-            e.target.style.display = 'none';
-            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
         });
     </script>
 </body>
