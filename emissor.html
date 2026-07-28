@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motorista - Onibus FCV</title>
+    <link rel="manifest" href="manifest-motorista.json">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,60 +14,85 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
             text-align: center;
         }
 
         .card {
             background: #1e1e1e;
-            padding: 30px;
+            padding: 25px;
             border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-width: 90%;
-            width: 320px;
+            width: 100%;
+            max-width: 340px;
         }
 
         .status {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 20px 0;
-            padding: 10px;
-            border-radius: 10px;
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 12px;
             background: #333;
         }
 
         .active {
-            background: #2e7d32;
+            background: #2196F3;
             color: #fff;
         }
 
         .btn {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 12px;
+            font-size: 15px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
+            margin-bottom: 10px;
         }
 
-        .btn-start {
-            background-color: #2196F3;
-            color: white;
-        }
+        .btn-start { background-color: #2196F3; color: white; }
+        .btn-stop { background-color: #f44336; color: white; display: none; }
 
-        .btn-stop {
-            background-color: #f44336;
-            color: white;
+        /* Botões de Seleção de Status */
+        .status-container {
             display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 15px;
+            margin-bottom: 15px;
         }
+
+        .btn-status {
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            font-weight: bold;
+            cursor: pointer;
+            color: #fff;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .btn-status.selected {
+            opacity: 1;
+            border-color: #ffffff;
+            transform: scale(1.02);
+        }
+
+        .st-normal { background-color: #2e7d32; }
+        .st-lento { background-color: #f57c00; }
+        .st-parado { background-color: #c62828; }
 
         .info {
             font-size: 12px;
             color: #aaa;
-            margin-top: 15px;
+            margin-top: 10px;
             line-height: 1.4;
         }
     </style>
@@ -78,19 +104,26 @@
 <body>
 
     <div class="card">
-        <h2>🚌 Painel do Motorista</h2>
+        <h2>🚌 Motorista - FCV</h2>
         <div id="status" class="status">GPS Desconectado</div>
         
         <button id="startBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
         <button id="stopBtn" class="btn btn-stop">⏹ Parar Transmissão</button>
 
+        <!-- Seletor de Condição da Via -->
+        <div id="statusContainer" class="status-container">
+            <span style="font-size: 13px; color: #ccc;"><b>Condição da Via:</b></span>
+            <button id="stNormal" class="btn-status st-normal selected">🟢 Em Rota Normal</button>
+            <button id="stLento" class="btn-status st-lento">🟡 Trânsito Lento</button>
+            <button id="stParado" class="btn-status st-parado">🔴 Parado / Intervalo</button>
+        </div>
+
         <div class="info" id="details">
-            Transmissão otimizada: atualiza a cada 100 metros percorridos ou 2 minutos parado.
+            Otimizado: envia a cada 100m ou 2min.
         </div>
     </div>
 
     <script>
-        // Configurações do Firebase rotasfcv
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -108,64 +141,78 @@
         let ultimaLat = null;
         let ultimaLng = null;
         let ultimoTempoEnvio = 0;
+        let statusTransito = "normal"; // normal, lento, parado
 
-        // Configurações de Otimização de Dados
-        const DISTANCIA_MINIMA_METROS = 100; // Envia a cada 100 metros
-        const TEMPO_MAXIMO_PARADO_MS = 120000; // Ou 2 minutos se ficar parado
+        const DISTANCIA_MINIMA_METROS = 100;
+        const TEMPO_MAXIMO_PARADO_MS = 120000;
 
         const statusEl = document.getElementById('status');
         const detailsEl = document.getElementById('details');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
+        const statusContainer = document.getElementById('statusContainer');
 
-        // Cálculo de distância em metros
+        const stNormalBtn = document.getElementById('stNormal');
+        const stLentoBtn = document.getElementById('stLento');
+        const stParadoBtn = document.getElementById('stParado');
+
+        function selecionarStatus(novoStatus, btnClicado) {
+            statusTransito = novoStatus;
+            [stNormalBtn, stLentoBtn, stParadoBtn].forEach(b => b.classList.remove('selected'));
+            btnClicado.classList.add('selected');
+
+            // Força o envio imediato da atualização do status para o Firebase
+            if (ultimaLat !== null && ultimaLng !== null) {
+                enviarParaFirebase(ultimaLat, ultimaLng, 0, true);
+            }
+        }
+
+        stNormalBtn.addEventListener('click', () => selecionarStatus("normal", stNormalBtn));
+        stLentoBtn.addEventListener('click', () => selecionarStatus("lento", stLentoBtn));
+        stParadoBtn.addEventListener('click', () => selecionarStatus("parado", stParadoBtn));
+
         function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
             const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function enviarParaFirebase(lat, lng, velocidade, forcar = false) {
+            ultimaLat = lat;
+            ultimaLng = lng;
+            ultimoTempoEnvio = Date.now();
+
+            db.ref('onibus/linha_01').set({
+                lat: lat,
+                lng: lng,
+                velocidade: velocidade,
+                statusTransito: statusTransito,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                const hora = new Date().toLocaleTimeString();
+                detailsEl.innerHTML = `Último envio às <b>${hora}</b><br>Velocidade: <b>${velocidade} km/h</b>`;
+            });
         }
 
         function processarEEnviarPosicao(position) {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            const velocidade = Math.round((position.coords.speed || 0) * 3.6); // km/h
+            const velocidade = Math.round((position.coords.speed || 0) * 3.6);
             const agora = Date.now();
 
-            let deveEnviar = false;
-
             if (ultimaLat === null || ultimaLng === null) {
-                deveEnviar = true;
+                enviarParaFirebase(lat, lng, velocidade);
             } else {
                 const distanciaAndada = calcularDistanciaMetros(ultimaLat, ultimaLng, lat, lng);
                 const tempoDecorrido = agora - ultimoTempoEnvio;
 
                 if (distanciaAndada >= DISTANCIA_MINIMA_METROS || tempoDecorrido >= TEMPO_MAXIMO_PARADO_MS) {
-                    deveEnviar = true;
+                    enviarParaFirebase(lat, lng, velocidade);
                 }
-            }
-
-            if (deveEnviar) {
-                ultimaLat = lat;
-                ultimaLng = lng;
-                ultimoTempoEnvio = agora;
-
-                db.ref('onibus/linha_01').set({
-                    lat: lat,
-                    lng: lng,
-                    velocidade: velocidade,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
-                }).then(() => {
-                    const hora = new Date().toLocaleTimeString();
-                    detailsEl.innerHTML = `Último envio às <b>${hora}</b><br>Velocidade: <b>${velocidade} km/h</b>`;
-                }).catch((err) => {
-                    console.error("Erro ao enviar:", err);
-                });
             }
         }
 
@@ -176,15 +223,12 @@
                     statusEl.classList.add('active');
                     startBtn.style.display = 'none';
                     stopBtn.style.display = 'block';
+                    statusContainer.style.display = 'flex';
 
                     processarEEnviarPosicao(position);
                 }, (err) => {
-                    alert("Erro ao obter localização do GPS: " + err.message);
-                }, {
-                    enableHighAccuracy: true
-                });
-            } else {
-                alert("Geolocalização não é suportada neste navegador.");
+                    alert("Erro no GPS: " + err.message);
+                }, { enableHighAccuracy: true });
             }
         });
 
@@ -193,14 +237,13 @@
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
-
-            // Marca o ônibus como Offline no Firebase
             db.ref('onibus/linha_01').remove();
 
             statusEl.innerText = "GPS Desconectado";
             statusEl.classList.remove('active');
             startBtn.style.display = 'block';
             stopBtn.style.display = 'none';
+            statusContainer.style.display = 'none';
             detailsEl.innerText = "Transmissão pausada.";
 
             ultimaLat = null;
