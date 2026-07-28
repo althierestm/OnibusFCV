@@ -37,6 +37,10 @@
             transition: background 0.3s ease;
         }
 
+        .nobreak {
+            white-space: nowrap;
+        }
+
         .badge-status {
             display: inline-block;
             padding: 3px 8px;
@@ -147,6 +151,39 @@
         }
 
         .btn-floating:active { transform: scale(0.92); }
+
+        /* RODAPÉ FCV */
+        .footer {
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer-logo {
+            max-width: 85px;
+            height: auto;
+            opacity: 0.85;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-logo:hover {
+            opacity: 1;
+        }
+
+        .footer-credit {
+            font-size: 8px;
+            color: #ffffff;
+            opacity: 0.5;
+            margin-top: 2px;
+            text-transform: none;
+            text-align: center;
+            letter-spacing: 0.3px;
+            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
+        }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -169,6 +206,12 @@
         
         <div id="iosInstallBox" class="ios-install-box">
             📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
+        </div>
+
+        <!-- RODAPÉ -->
+        <div class="footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
+            <div class="footer-credit">by Althieres Dias</div>
         </div>
     </div>
 
@@ -361,7 +404,7 @@
                         tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
                         velMedicaKmh = 12;
                     } else if (statusTransito === 'parado') {
-                        tagStatus = `<span class="badge-status status-parado">🔴 Parado / Ponto</span>`;
+                        tagStatus = `<span class="badge-status status-parado">🔴 Parado</span>`;
                         velMedicaKmh = 5;
                     }
                 }
@@ -377,7 +420,7 @@
                     tagPassageiros = ` <span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
                 }
 
-                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}${tagPassageiros}`;
+                let textoStatus = `🚌 <b>Linha Plantão</b> | <span class="nobreak"><b>${velocidade || 0} km/h</b></span><br>${tagStatus}${tagPassageiros}`;
                 
                 // Cálculo de ETA (Tempo e Horário Estimado de Chegada)
                 if (passengerPos && !ocorrenciaManual) {
@@ -395,7 +438,7 @@
                 infoEl.innerHTML = textoStatus;
 
                 if (!busMarker) {
-                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão FCV</b>");
+                    busMarker = L.marker(busPos, { icon: busIcon }).addTo(map).bindPopup("<b>Linha Plantão</b>");
                     map.setView(busPos, 15);
                 } else {
                     busMarker.setLatLng(busPos);
