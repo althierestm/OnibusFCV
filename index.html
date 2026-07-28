@@ -43,7 +43,17 @@
             border-radius: 12px;
             font-size: 11px;
             font-weight: bold;
-            margin-top: 4px;
+            margin-top: 3px;
+        }
+
+        .badge-pass {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: #333;
+            color: #fff;
+            margin-left: 4px;
         }
 
         .status-normal { background-color: #2e7d32; color: #fff; }
@@ -313,13 +323,12 @@
         db.ref('onibus/linha_01').on('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
-                const { lat, lng, velocidade, statusTransito, ocorrenciaManual } = data;
+                const { lat, lng, velocidade, statusTransito, ocorrenciaManual, passageiros } = data;
                 busPos = [lat, lng];
 
                 let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
                 let velMedicaKmh = 25;
 
-                // Checa primeiro se há Ocorrência Manual
                 if (ocorrenciaManual === 'acidente') {
                     tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente à Frente</span>`;
                     infoEl.classList.add('alert-active');
@@ -337,14 +346,26 @@
                     }
                 }
 
-                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus}`;
+                // Tag de Passageiros
+                const totalPass = passageiros || 0;
+                let lotacaoTxt = "🟢 Livre";
+                if (totalPass > 15 && totalPass <= 30) lotacaoTxt = "🟡 Normal";
+                else if (totalPass > 30) lotacaoTxt = "🔴 Lotado";
+                const tagPassageiros = `<span class="badge-pass">👥 ${totalPass} (${lotacaoTxt})</span>`;
+
+                let textoStatus = `🚌 <b>Linha Plantão FCV</b> | ${velocidade || 0} km/h<br>${tagStatus} ${tagPassageiros}`;
                 
                 if (passengerPos && alarmEnabled && !ocorrenciaManual) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], lat, lng);
                     let tempoMin = Math.round((dist / velMedicaKmh) * 60);
                     if (tempoMin < 1) tempoMin = 1;
 
-                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b>`;
+                    // Cálculo da Hora Exata Estimada (ETA)
+                    const agora = new Date();
+                    agora.setMinutes(agora.getMinutes() + tempoMin);
+                    const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    textoStatus += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (às ${horaChegadaStr})`;
                 }
 
                 infoEl.innerHTML = textoStatus;
@@ -358,11 +379,9 @@
 
                 checarProximidade();
             } else {
-                // QUANDO O ÔNIBUS FICAR OFFLINE:
                 infoEl.innerText = "Ônibus Offline";
                 infoEl.classList.remove('alert-active');
                 
-                // Remove o pino do ônibus do mapa se ele existir
                 if (busMarker) {
                     map.removeLayer(busMarker);
                     busMarker = null;
