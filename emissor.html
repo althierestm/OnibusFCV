@@ -12,6 +12,7 @@
             --text-color: #ffffff;
             --box-bg: #161616;
             --border-color: #262626;
+            --accent-color: #00a6fb;
         }
 
         body.light-mode {
@@ -20,6 +21,7 @@
             --text-color: #333333;
             --box-bg: #eef2f5;
             --border-color: #cccccc;
+            --accent-color: #0077b6;
         }
 
         body {
@@ -64,6 +66,9 @@
             border-radius: 20px;
             cursor: pointer;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .status-box {
@@ -109,30 +114,6 @@
         .btn-start { background-color: #2e7d32; color: white; }
         .btn-stop { background-color: #c62828; color: white; }
 
-        .counter-section {
-            background: var(--box-bg);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        .counter-title { font-size: 14px; margin-bottom: 10px; opacity: 0.8; }
-        .counter-controls { display: flex; justify-content: space-between; align-items: center; }
-        
-        .btn-count {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            background: #222;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .count-display { font-size: 26px; font-weight: bold; color: #00a6fb; }
-
         .incident-section { margin-top: 10px; }
         .incident-title { font-size: 13px; opacity: 0.8; margin-bottom: 8px; text-align: left; }
         
@@ -149,14 +130,13 @@
             color: #000;
         }
 
+        /* SEÇÃO DE HISTÓRICO */
         .history-section {
             margin-top: 25px;
             text-align: left;
             background: var(--box-bg);
             padding: 12px;
             border-radius: 10px;
-            max-height: 200px;
-            overflow-y: auto;
             border: 1px solid var(--border-color);
         }
 
@@ -164,7 +144,7 @@
             font-size: 13px;
             font-weight: bold;
             margin-bottom: 8px;
-            color: #00a6fb;
+            color: var(--accent-color);
         }
 
         .history-item {
@@ -172,6 +152,10 @@
             padding: 6px 0;
             border-bottom: 1px solid var(--border-color);
             line-height: 1.4;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
         }
 
         .badge-live {
@@ -183,6 +167,39 @@
         @keyframes blink {
             from { opacity: 1; }
             to { opacity: 0.4; }
+        }
+
+        /* COMPONENTE EXPANSÍVEL (ACORDEÃO) */
+        details.history-details {
+            margin-top: 10px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        details.history-details summary {
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-color);
+            opacity: 0.85;
+            outline: none;
+            padding: 4px 0;
+            user-select: none;
+        }
+
+        details.history-details summary:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+
+        .history-expanded-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 8px;
+            padding-top: 5px;
+            border-top: 1px solid var(--border-color);
         }
 
         /* ESTILO DO RODAPÉ */
@@ -213,7 +230,7 @@
             color: var(--text-color);
             opacity: 0.4;
             margin-top: 3px;
-            text-transform: none; /* Mantém letras minúsculas/normais */
+            text-transform: none;
             text-align: center;
             letter-spacing: 0.3px;
         }
@@ -227,7 +244,10 @@
     <div class="container">
         <div class="top-bar">
             <h2>🚌 Motorista</h2>
-            <button id="themeBtn" class="btn-theme">🖤 Super OLED</button>
+            <button id="themeBtn" class="btn-theme">
+                <span>💡</span>
+                <span id="themeText">Super OLED</span>
+            </button>
         </div>
 
         <div class="status-box" id="statusText">
@@ -240,15 +260,6 @@
 
         <button id="toggleBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
 
-        <div class="counter-section">
-            <div class="counter-title">👥 Passageiros no Ônibus</div>
-            <div class="counter-controls">
-                <button class="btn-count" id="btnMinus">-</button>
-                <span class="count-display" id="passCount">0</span>
-                <button class="btn-count" id="btnPlus">+</button>
-            </div>
-        </div>
-
         <div class="incident-section">
             <div class="incident-title">Relatar Ocorrência:</div>
             <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
@@ -256,8 +267,14 @@
         </div>
 
         <div class="history-section">
-            <div class="history-title">📜 Histórico de Viagens Recentes</div>
-            <div id="historyList">Carregando histórico...</div>
+            <div class="history-title">📜 Viagens de Hoje</div>
+            <div id="todayHistoryList">Carregando viagens do dia...</div>
+
+            <!-- HISTÓRICO EXPANSÍVEL (ANTERIORES) -->
+            <details class="history-details" id="oldHistoryDetails" style="display: none;">
+                <summary>📁 Ver histórico de dias anteriores (<span id="oldHistoryCount">0</span>)</summary>
+                <div class="history-expanded-list" id="oldHistoryList"></div>
+            </details>
         </div>
 
         <!-- RODAPÉ -->
@@ -283,7 +300,6 @@
 
         let isTransmitting = false;
         let watchId = null;
-        let qtdPassageiros = 0;
         let ocorrenciaAtual = null;
         let viagemAtualId = null;
         
@@ -292,20 +308,21 @@
 
         const toggleBtn = document.getElementById('toggleBtn');
         const statusText = document.getElementById('statusText');
-        const passCountEl = document.getElementById('passCount');
-        const btnPlus = document.getElementById('btnPlus');
-        const btnMinus = document.getElementById('btnMinus');
         const btnAccident = document.getElementById('btnAccident');
         const btnBroken = document.getElementById('btnBroken');
         const onlinePassCountEl = document.getElementById('onlinePassCount');
         const themeBtn = document.getElementById('themeBtn');
-        const historyListEl = document.getElementById('historyList');
+        const themeText = document.getElementById('themeText');
+        const todayHistoryListEl = document.getElementById('todayHistoryList');
+        const oldHistoryListEl = document.getElementById('oldHistoryList');
+        const oldHistoryDetails = document.getElementById('oldHistoryDetails');
+        const oldHistoryCount = document.getElementById('oldHistoryCount');
 
         // Alternador de Tema (Super OLED / Claro)
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
-            themeBtn.innerText = isLight ? "☀️ Claro" : "🖤 Super OLED";
+            themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
         });
 
         // Monitora passageiros online
@@ -331,6 +348,15 @@
             return `${diaSemana}, ${dia}/${mes}`;
         }
 
+        function ehHoje(timestamp) {
+            if (!timestamp) return false;
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            return data.getDate() === hoje.getDate() &&
+                   data.getMonth() === hoje.getMonth() &&
+                   data.getFullYear() === hoje.getFullYear();
+        }
+
         function atualizarCronometroLocal() {
             if (!tempoInicioViagem) return "00:00:00";
             const agora = Date.now();
@@ -338,55 +364,83 @@
             return formatarTempo(decorridoSeg);
         }
 
-        // Carrega o Histórico de Viagens
-        db.ref('historico_viagens').limitToLast(10).on('value', (snapshot) => {
+        // LIMPEZA AUTOMÁTICA DE REGISTROS COM MAIS DE 30 DIAS
+        function limparHistoricoAntigo(data) {
+            const trintaDiasEmMs = 30 * 24 * 60 * 60 * 1000;
+            const agora = Date.now();
+
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                const timestampItem = item.inicio || item.fim;
+                if (timestampItem && (agora - timestampItem > trintaDiasEmMs)) {
+                    db.ref(`historico_viagens/${key}`).remove();
+                }
+            });
+        }
+
+        // Carrega o Histórico de Viagens e Organiza
+        db.ref('historico_viagens').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
-                historyListEl.innerHTML = "<div class='history-item'>Nenhuma viagem registrada ainda.</div>";
+                todayHistoryListEl.innerHTML = "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
+                oldHistoryDetails.style.display = "none";
                 return;
             }
-            let html = "";
+
+            // Executa rotina de limpeza de 30 dias
+            limparHistoricoAntigo(data);
+
+            let htmlHoje = "";
+            let htmlAnteriores = "";
+            let qtdAnteriores = 0;
+
             const keys = Object.keys(data).reverse();
+
             keys.forEach(key => {
                 const item = data[key];
                 const dataFormatada = formatarDataEDiaSemana(item.inicio);
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                
-                if (item.fim) {
+                const eHoje = ehHoje(item.inicio);
+
+                if (!item.fim) {
+                    // Viagem EM ANDAMENTO
+                    const tempoAtualStr = atualizarCronometroLocal();
+                    const itemHtml = `
+                        <div class="history-item">
+                            <b>📅 ${dataFormatada}</b> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
+                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
+                        </div>
+                    `;
+                    if (eHoje) htmlHoje += itemHtml;
+                    else htmlAnteriores += itemHtml;
+                } else {
+                    // Viagem CONCLUÍDA
                     const fim = new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     const duracaoSeg = Math.floor((item.fim - item.inicio) / 1000);
                     const duracaoStr = formatarTempo(duracaoSeg);
-                    html += `
+                    const itemHtml = `
                         <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})<br>
-                            👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
+                            <b>📅 ${dataFormatada}</b> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
                         </div>
                     `;
-                } else {
-                    const tempoAtualStr = atualizarCronometroLocal();
-                    html += `
-                        <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
-                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b> | 👥 Passageiros: <b>${item.passageirosFinal || 0}</b>
-                        </div>
-                    `;
+
+                    if (eHoje) {
+                        htmlHoje += itemHtml;
+                    } else {
+                        htmlAnteriores += itemHtml;
+                        qtdAnteriores++;
+                    }
                 }
             });
-            historyListEl.innerHTML = html;
-        });
 
-        // Controles do Contador
-        btnPlus.addEventListener('click', () => {
-            qtdPassageiros++;
-            passCountEl.innerText = qtdPassageiros;
-            atualizarDadosFirebase();
-        });
+            todayHistoryListEl.innerHTML = htmlHoje || "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
 
-        btnMinus.addEventListener('click', () => {
-            if (qtdPassageiros > 0) {
-                qtdPassageiros--;
-                passCountEl.innerText = qtdPassageiros;
-                atualizarDadosFirebase();
+            if (qtdAnteriores > 0) {
+                oldHistoryListEl.innerHTML = htmlAnteriores;
+                oldHistoryCount.innerText = qtdAnteriores;
+                oldHistoryDetails.style.display = "block";
+            } else {
+                oldHistoryDetails.style.display = "none";
             }
         });
 
@@ -420,9 +474,7 @@
                 const novaViagemRef = db.ref('historico_viagens').push();
                 viagemAtualId = novaViagemRef.key;
                 novaViagemRef.set({
-                    inicio: firebase.database.ServerValue.TIMESTAMP,
-                    passageirosInicial: qtdPassageiros,
-                    passageirosFinal: qtdPassageiros
+                    inicio: firebase.database.ServerValue.TIMESTAMP
                 });
 
                 // Inicia o Cronômetro
@@ -450,7 +502,6 @@
                         velocidade: speedKmh,
                         statusTransito: statusTransito,
                         ocorrenciaManual: ocorrenciaAtual,
-                        passageiros: qtdPassageiros,
                         ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                     });
 
@@ -485,8 +536,7 @@
 
             if (viagemAtualId) {
                 db.ref(`historico_viagens/${viagemAtualId}`).update({
-                    fim: firebase.database.ServerValue.TIMESTAMP,
-                    passageirosFinal: qtdPassageiros
+                    fim: firebase.database.ServerValue.TIMESTAMP
                 });
                 viagemAtualId = null;
             }
@@ -504,15 +554,8 @@
         function atualizarDadosFirebase() {
             if (isTransmitting) {
                 db.ref('onibus/linha_01').update({
-                    passageiros: qtdPassageiros,
                     ocorrenciaManual: ocorrenciaAtual
                 });
-
-                if (viagemAtualId) {
-                    db.ref(`historico_viagens/${viagemAtualId}`).update({
-                        passageirosFinal: qtdPassageiros
-                    });
-                }
             }
         }
     </script>
