@@ -270,8 +270,8 @@
             }
         });
 
-        // Inicializa focado em Muriaé/FCV
-        const map = L.map('map', { doubleClickZoom: false }).setView([-20.915, -42.365], 13);
+        // Inicializa o mapa centralizado na rota em Muriaé
+        const map = L.map('map', { doubleClickZoom: false }).setView([-21.128, -42.370], 14);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CARTO',
@@ -286,34 +286,32 @@
             popupAnchor: [0, -14]
         });
 
-        // LISTA DOS PONTOS CORRIGIDA
+        // LISTA DOS PONTOS COM AS COORDENADAS CORRETAS
         const pontosDaRota = [
-            { nome: "1º PONTO - UNIVERSITÁRIO", desc: "Fundação Cristiano Varella", coords: [-20.8931, -42.3662] },
-            { nome: "2º PONTO - BR-116", desc: "Concessionária Man Caminhões - Antiga Ford", coords: [-20.8992, -42.3651] },
-            { nome: "3º PONTO - BR-116", desc: "Trevo da Chevrolet", coords: [-20.9085, -42.3638] },
-            { nome: "4º PONTO - BR-356", desc: "Viaduto do Bahamas", coords: [-20.9152, -42.3621] },
-            { nome: "5º PONTO - BR-356", desc: "Próximo ao Vitrines", coords: [-20.9210, -42.3610] },
-            { nome: "6º PONTO - BR-356", desc: "Em frente ao Mamão Car", coords: [-20.9265, -42.3601] },
-            { nome: "7º PONTO - BR-356", desc: "Ponto de ônibus após trevo do Bairro Porto", coords: [-20.9312, -42.3592] },
-            { nome: "8º PONTO - BR-356", desc: "Entrada do Bairro Marambaia", coords: [-20.9358, -42.3580] },
-            { nome: "9º PONTO - BR-356", desc: "Entrada do Bairro Vale Verde", coords: [-20.9390, -42.3572] },
-            { nome: "10º PONTO - PORTO", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-20.9335, -42.3655] },
-            { nome: "11º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente ao nº 55", coords: [-20.9250, -42.3680] },
-            { nome: "12º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Pauliene", coords: [-20.9230, -42.3688] },
-            { nome: "13º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Dilfar, nº 777", coords: [-20.9210, -42.3695] },
-            { nome: "14º PONTO - CENTRO", desc: "Av. Juscelino Kubitscheck - Em frente à Patolab", coords: [-20.9195, -42.3700] },
-            { nome: "15º PONTO - PREFEITO HÉLIO ARAÚJO", desc: "Rua Santa Rita, nº 90 - Próximo à Auto Escola Via Brasil", coords: [-20.9185, -42.3705] },
-            { nome: "16º PONTO - PREFEITO HÉLIO ARAÚJO", desc: "Rua José Augusto de Abreu - Em frente ao antigo Colégio CCEM", coords: [-20.9150, -42.3718] },
-            { nome: "17º PONTO - SAFIRA", desc: "Rua Silvério Campos - Confecções Veggi", coords: [-20.9122, -42.3732] },
-            { nome: "18º PONTO - SAFIRA", desc: "Rua Silvério Campos - Em frente à Escola Sebastião Laviola", coords: [-20.9100, -42.3740] },
-            { nome: "19º PONTO - BARRA", desc: "Av. Coronel Monteiro de Castro - Pão Chic", coords: [-20.9165, -42.3640] },
-            { nome: "20º PONTO - DORNELAS", desc: "Av. Dante Bruno - R Embalagens", coords: [-20.9102, -42.3595] },
-            { nome: "21º PONTO - DORNELAS", desc: "Av. Dante Bruno - Pracinha do Dornelas", coords: [-20.9080, -42.3580] },
-            { nome: "22º PONTO - SANTANA", desc: "Rua Hermes de Almeida, nº 45 - Pracinha do Santana", coords: [-20.9045, -42.3562] },
-            { nome: "23º PONTO - JOSÉ CIRILO", desc: "Rua Altino Rodrigues Pereira - Entrada Bairro Joanópolis", coords: [-20.8998, -42.3540] },
-            { nome: "24º PONTO - JOSÉ CIRILO", desc: "Rua Altino Rodrigues Pereira - Após o Posto de Saúde", coords: [-20.8975, -42.3570] },
-            { nome: "25º PONTO - BR-116", desc: "Av. Rio Bahia - Antiga Vemasa Mitsubishi Barra", coords: [-20.8955, -42.3610] },
-            { nome: "26º PONTO - UNIVERSITÁRIO", desc: "Fundação Cristiano Varella", coords: [-20.8931, -42.3662] }
+            { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
+            { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
+            { nome: "Ponto 3", desc: "Trevo Chevrolet", coords: [-21.124339, -42.381411] },
+            { nome: "Ponto 4", desc: "Viaduto Bahamas", coords: [-21.126903, -42.369898] },
+            { nome: "Ponto 5", desc: "Vitrines", coords: [-21.128478, -42.364518] },
+            { nome: "Ponto 6", desc: "Mamão Car", coords: [-21.128883, -42.358430] },
+            { nome: "Ponto 7", desc: "Porto", coords: [-21.126512, -42.354167] },
+            { nome: "Ponto 8", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129501, -42.357890] },
+            { nome: "Ponto 9", desc: "Centro - Juscelino Kubitscheck", coords: [-21.130203, -42.361406] },
+            { nome: "Ponto 10", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129459, -42.364093] },
+            { nome: "Ponto 11", desc: "Centro - Em frente à PatoLab", coords: [-21.129295, -42.366361] },
+            { nome: "Ponto 12", desc: "Armação - Em frente ao Supermercado Armação", coords: [-21.131572, -42.369898] },
+            { nome: "Ponto 13", desc: "Rua Santa Rita", coords: [-21.132698, -42.370226] },
+            { nome: "Ponto 14", desc: "Em frente ao antigo CEM", coords: [-21.135450, -42.371829] },
+            { nome: "Ponto 15", desc: "Safira - Em frente à Veggi", coords: [-21.136084, -42.373685] },
+            { nome: "Ponto 16", desc: "Safira - Em frente à Escola Mun. Sebastião Laviola", coords: [-21.132534, -42.377801] },
+            { nome: "Ponto 17", desc: "Rua Tiradentes - Em frente ao Mercado Bazinho", coords: [-21.130625, -42.376847] },
+            { nome: "Ponto 18", desc: "Barra - Em frente à ANB Academia", coords: [-21.128571, -42.376218] },
+            { nome: "Ponto 19", desc: "Barra - Em frente ao IF Sudeste", coords: [-21.127701, -42.378948] },
+            { nome: "Ponto 20", desc: "Barra - Em frente à Pão Chic", coords: [-21.128060, -42.381262] },
+            { nome: "Ponto 21", desc: "Av. Dante Bruno", coords: [-21.130188, -42.393765] },
+            { nome: "Ponto 22", desc: "Praça do Dornelas - Em frente à We Training", coords: [-21.130458, -42.393329] },
+            { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] },
+            { nome: "Ponto Final", desc: "Retorno ao Ponto 1 (Início)", coords: [-21.111615, -42.383600] }
         ];
 
         // DESENHA A LINHA AZUL CONTINUA UNINDO OS PONTOS
@@ -326,7 +324,7 @@
             lineJoin: 'round'
         }).addTo(map);
 
-        // ADICIONA CADA PONTO COM A LOGO DA FCV NO MAPA
+        // ADICIONA OS BONEQUINHOS (LOGO FCV) NOS PONTOS
         pontosDaRota.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .addTo(map)
