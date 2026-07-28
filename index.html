@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
     
-    <!-- Ícone do App PWA e Favicon no Navegador -->
+    <!-- Ícone do App PWA e Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
@@ -89,7 +89,7 @@
         .btn-sound {
             background-color: #333333;
             color: #ffffff;
-            display: none; /* Exibido apenas quando o alerta está ativo */
+            display: none;
             border: 1px solid #555;
         }
 
@@ -102,6 +102,22 @@
             display: none;
             background-color: #2196F3;
             color: white;
+        }
+
+        /* Card de Instruções para iOS (iPhone) */
+        .ios-install-box {
+            display: none;
+            background: rgba(30, 30, 30, 0.95);
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 13px;
+            line-height: 1.4;
+            text-align: center;
+            border: 1px solid #444;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            width: 100%;
+            box-sizing: border-box;
         }
 
         /* Botões Flutuantes no Canto Direito */
@@ -157,7 +173,14 @@
     <div class="controls">
         <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
         <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
+        
+        <!-- Botão para Android -->
         <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
+        
+        <!-- Mensagem de Orientação para iPhone/iOS -->
+        <div id="iosInstallBox" class="ios-install-box">
+            📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
+        </div>
     </div>
 
     <div id="map"></div>
@@ -184,7 +207,7 @@
             attribution: '© OpenStreetMap'
         }).addTo(map);
 
-        // Ícone Personalizado do Ônibus FCV no Mapa
+        // Ícone Personalizado do Ônibus FCV
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
             iconSize: [60, 60],
@@ -410,14 +433,25 @@
             navigator.serviceWorker.register('sw.js');
         }
 
-        // Instalação do PWA
-        let deferredPrompt;
+        // Detecção de Dispositivo e Instalação (Android vs iOS)
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const iosInstallBox = document.getElementById('iosInstallBox');
         const installBtn = document.getElementById('installBtn');
 
+        // Se estiver rodando no iOS e NÃO estiver instalado ainda
+        if (isIOS && !isStandalone) {
+            iosInstallBox.style.display = 'block';
+        }
+
+        // Instalação para Android/Chrome
+        let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            installBtn.style.display = 'block';
+            if (!isStandalone) {
+                installBtn.style.display = 'block';
+            }
         });
 
         installBtn.addEventListener('click', () => {
