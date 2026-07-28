@@ -163,7 +163,6 @@
             color: #000;
         }
 
-        /* SEÇÃO DE HISTÓRICO */
         .history-section {
             margin-top: 25px;
             text-align: left;
@@ -202,7 +201,6 @@
             to { opacity: 0.4; }
         }
 
-        /* COMPONENTE EXPANSÍVEL (ACORDEÃO) */
         details.history-details {
             margin-top: 10px;
             background-color: rgba(255, 255, 255, 0.03);
@@ -235,7 +233,6 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* ESTILO DO RODAPÉ */
         .footer {
             margin-top: 25px;
             padding-top: 15px;
@@ -314,14 +311,12 @@
             <div class="history-title">📜 Viagens de Hoje</div>
             <div id="todayHistoryList">Carregando viagens do dia...</div>
 
-            <!-- HISTÓRICO EXPANSÍVEL (ANTERIORES) -->
             <details class="history-details" id="oldHistoryDetails" style="display: none;">
                 <summary>📁 Ver histórico de dias anteriores (<span id="oldHistoryCount">0</span>)</summary>
                 <div class="history-expanded-list" id="oldHistoryList"></div>
             </details>
         </div>
 
-        <!-- RODAPÉ -->
         <div class="footer">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
             <div class="footer-credit">by Althieres Dias</div>
@@ -350,6 +345,7 @@
         
         let timerInterval = null;
         let tempoInicioViagem = null;
+        let lastSignalTimeout = null; // Controle de inatividade (5 minutos)
 
         const toggleBtn = document.getElementById('toggleBtn');
         const statusText = document.getElementById('statusText');
@@ -364,14 +360,12 @@
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
 
-        // Alternador de Tema (Super OLED / Claro)
         themeBtn.addEventListener('click', () => {
             document.body.classList.toggle('light-mode');
             const isLight = document.body.classList.contains('light-mode');
             themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
         });
 
-        // Monitora passageiros online
         db.ref('passageiros_online').on('value', (snapshot) => {
             const totalOnline = snapshot.numChildren() || 0;
             onlinePassCountEl.innerText = totalOnline;
@@ -410,7 +404,16 @@
             return formatarTempo(decorridoSeg);
         }
 
-        // LIMPEZA AUTOMÁTICA DE REGISTROS COM MAIS DE 30 DIAS
+        function resetarInatividadeTimer() {
+            if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
+            
+            // 5 minutos = 300.000 ms
+            lastSignalTimeout = setTimeout(() => {
+                alert("Sem sinal de GPS há 5 minutos. A transmissão foi encerrada automaticamente.");
+                pararTransmissao();
+            }, 300000);
+        }
+
         function limparHistoricoAntigo(data) {
             const trintaDiasEmMs = 30 * 24 * 60 * 60 * 1000;
             const agora = Date.now();
@@ -424,7 +427,6 @@
             });
         }
 
-        // Carrega o Histórico de Viagens e Organiza
         db.ref('historico_viagens').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -488,7 +490,6 @@
             }
         });
 
-        // Ocorrências
         btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
         btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken, "Deseja relatar Ônibus com Defeito?"));
 
@@ -518,7 +519,7 @@
                 const routeName = optionSelected.getAttribute('data-nome');
                 const routePlaca = optionSelected.getAttribute('data-placa');
 
-                routeSelect.disabled = true; // Desabilita troca durante viagem
+                routeSelect.disabled = true;
                 tempoInicioViagem = Date.now();
 
                 const novaViagemRef = db.ref('historico_viagens').push();
@@ -529,7 +530,6 @@
                     rotaNome: routeName
                 });
 
-                // Inicia o Cronômetro
                 timerInterval = setInterval(() => {
                     const tempoStr = atualizarCronometroLocal();
                     const cronoEl = document.getElementById('liveTimer');
@@ -539,7 +539,11 @@
                     if (histCronoEl) histCronoEl.innerText = tempoStr;
                 }, 1000);
 
+                resetarInatividadeTimer();
+
                 watchId = navigator.geolocation.watchPosition((pos) => {
+                    resetarInatividadeTimer(); // Renova a tolerância de 5 minutos a cada coordenada enviada
+
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
@@ -588,6 +592,11 @@
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
+            }
+
+            if (lastSignalTimeout) {
+                clearTimeout(lastSignalTimeout);
+                lastSignalTimeout = null;
             }
 
             if (viagemAtualId) {
