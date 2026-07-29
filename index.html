@@ -410,9 +410,9 @@
     <div class="route-modal" id="routeModal">
         <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
+        <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15 - GFH 8D02)</button>
         <!-- Demais rotas ocultas temporariamente
         <button class="route-option" data-value="todas">🚌 Exibir Todas</button>
-        <button class="route-option" data-value="rota_02">🚌 Rota 02 (GFH-8D02)</button>
         <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
         -->
     </div>
@@ -540,6 +540,21 @@
             { nome: "15º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
         ];
 
+        const pontosRota02 = [
+            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126556, -42.353724] },
+            { nome: "2º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente ao nº 55", coords: [-21.129491, -42.357881] },
+            { nome: "3º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Pauliene", coords: [-21.130199, -42.361421] },
+            { nome: "4º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Dilfar, nº 777", coords: [-21.129444, -42.364152] },
+            { nome: "5º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Patolab", coords: [-21.129143, -42.366186] },
+            { nome: "6º Ponto - Prefeito Hélio Araújo", desc: "Rua Santa Rita, nº 90 - Próximo à Auto Escola Via Brasil", coords: [-21.1325739, -42.369992] },
+            { nome: "7º Ponto - Safira", desc: "Rua Silvério Campos - Confecção do Veggi", coords: [-21.136115, -42.373648] },
+            { nome: "8º Ponto - Safira", desc: "Rua Silvério Campos - Em frente à Escola Sebastião Laviola", coords: [-21.132505, -42.377855] },
+            { nome: "9º Ponto - Safira", desc: "Rua Silas Macedo, nº 18", coords: [-21.134736, -42.378482] },
+            { nome: "10º Ponto - Planalto", desc: "Rua Três - Pracinha do Planalto", coords: [-21.138006, -42.375926] },
+            { nome: "11º Ponto - Barra", desc: "Avenida Rio-Bahia - Antiga Vemasa Mitsubishi", coords: [-21.145680, -42.380753] },
+            { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
+        ];
+
         const pontosPlantaoGroup = L.layerGroup();
         pontosPlantao.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
@@ -552,6 +567,13 @@
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
                 .addTo(pontosRota01Group);
+        });
+
+        const pontosRota02Group = L.layerGroup();
+        pontosRota02.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                .addTo(pontosRota02Group);
         });
 
         const busIcon = L.icon({
@@ -662,6 +684,7 @@
 
         function obterPontosDaRotaAtual() {
             if (selectedRouteKey === 'rota_01') return pontosRota01;
+            if (selectedRouteKey === 'rota_02') return pontosRota02;
             return pontosPlantao; // Padrão
         }
 
@@ -781,15 +804,23 @@
             if (selectedRouteKey === 'plantao') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
             } else if (selectedRouteKey === 'rota_01') {
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+            } else if (selectedRouteKey === 'rota_02') {
+                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
+                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
+                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
             } else if (selectedRouteKey === 'todas') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
+                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
             }
 
             let onibusEmCirculacao = 0;
