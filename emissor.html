@@ -594,6 +594,28 @@
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
 
+        // --- MONITORAMENTO DE ROTAS EM USO (BLOQUEIO DE SELEÇÃO) ---
+        db.ref('onibus').on('value', (snapshot) => {
+            const rotasStatus = snapshot.val() || {};
+            
+            Array.from(routeSelect.options).forEach(opt => {
+                const key = opt.value;
+                const dadosRota = rotasStatus[key];
+                const nomeBase = opt.getAttribute('data-nome');
+                const placaBase = opt.getAttribute('data-placa');
+
+                // Se a rota está ativa/em uso por outro terminal
+                if (dadosRota && (dadosRota.ativo || dadosRota.emUso) && key !== currentRouteKey) {
+                    opt.disabled = true;
+                    opt.innerText = `🔴 (EM ROTA) ${nomeBase} (${placaBase})`;
+                } else {
+                    opt.disabled = false;
+                    const icone = key === 'plantao' ? '📍' : '🚌';
+                    opt.innerText = `${icone} ${nomeBase} (${placaBase})`;
+                }
+            });
+        });
+
         // --- CÁLCULO DE DISTÂNCIA (Fórmula de Haversine) ---
         function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
             const R = 6371000; // Raio da Terra em metros
@@ -683,9 +705,9 @@
         function resetarInatividadeTimer() {
             if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
             
-            // 5 minutos = 300.000 ms
+            // 5 minutos = 300.000 ms -> Encerra corrida se ficar sem GPS/Sinal
             lastSignalTimeout = setTimeout(() => {
-                alert("Sem sinal de GPS há 5 minutos. A transmissão foi encerrada automaticamente.");
+                alert("Sem sinal de GPS há 5 minutos. A corrida foi encerrada e finalizada automaticamente.");
                 pararTransmissao();
             }, 300000);
         }
@@ -703,7 +725,7 @@
             });
         }
 
-        // --- EXIBIÇÃO DE HISTÓRICO (LIMITADO A 5 DE HOJE + SANFONA) ---
+        // --- EXIBIÇÃO DE HISTÓRICO (LIMITADO A 5 DE HOJE + SANFONA + CÓDIGO DA CORRIDA) ---
         db.ref('historico_viagens').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) {
@@ -727,6 +749,7 @@
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                 const eHoje = ehHoje(item.inicio);
                 const nomeRota = item.rotaNome || "Rota Não Especificada";
+                const codigoCorrida = item.codigoViagem ? `#${item.codigoViagem}` : '';
 
                 let itemHtml = "";
 
@@ -734,7 +757,7 @@
                     const tempoAtualStr = atualizarCronometroLocal();
                     itemHtml = `
                         <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
+                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
                             ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
                         </div>
                     `;
@@ -744,23 +767,20 @@
                     const duracaoStr = formatarTempo(duracaoSeg);
                     itemHtml = `
                         <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
+                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
                         </div>
                     `;
                 }
 
                 if (eHoje) {
                     contadorHoje++;
-                    // Apenas as primeiras 5 viagens de hoje aparecem diretamente na lista
                     if (contadorHoje <= 5) {
                         htmlHoje += itemHtml;
                     } else {
-                        // Do 6º em diante de hoje vai para a sanfona
                         htmlEscondidos += itemHtml;
                         contadorEscondidos++;
                     }
                 } else {
-                    // Viagens de dias anteriores vão para a sanfona
                     htmlEscondidos += itemHtml;
                     contadorEscondidos++;
                 }
@@ -802,6 +822,12 @@
         function iniciarTransmissao() {
             if ("geolocation" in navigator) {
                 const optionSelected = routeSelect.options[routeSelect.selectedIndex];
+                
+                if (optionSelected.disabled) {
+                    alert("Esta rota já está sendo utilizada por outro motorista no momento!");
+                    return;
+                }
+
                 currentRouteKey = routeSelect.value;
                 const routeName = optionSelected.getAttribute('data-nome');
                 const routePlaca = optionSelected.getAttribute('data-placa');
@@ -817,15 +843,35 @@
                 // Ativa o bloqueio para manter a tela acesa
                 requestWakeLock();
 
-                // Configura desativação automática no Firebase se o app fechar abruptamente
-                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
+                // MARCA ROTA COMO EM USO / ATIVA NO FIREBASE
+                db.ref(`onibus/${currentRouteKey}`).update({
+                    ativo: true,
+                    emUso: true
+                });
 
-                const novaViagemRef = db.ref('historico_viagens').push();
-                viagemAtualId = novaViagemRef.key;
-                novaViagemRef.set({
-                    inicio: firebase.database.ServerValue.TIMESTAMP,
-                    rotaKey: currentRouteKey,
-                    rotaNome: routeName
+                // TRANCAR ROTA CASO O APPS/SISTEMA FECHE ABRUPTAMENTE
+                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
+                db.ref(`onibus/${currentRouteKey}/emUso`).onDisconnect().set(false);
+
+                // --- GERAR CÓDIGO DA CORRIDA (Ex: 00001, 00002) ---
+                db.ref('contador_corridas').transaction((atual) => {
+                    return (atual || 0) + 1;
+                }, (error, committed, snapshot) => {
+                    const numeroSeq = snapshot.val() || 1;
+                    const codigoFormatado = String(numeroSeq).padStart(5, '0');
+
+                    const novaViagemRef = db.ref('historico_viagens').push();
+                    viagemAtualId = novaViagemRef.key;
+                    
+                    novaViagemRef.set({
+                        inicio: firebase.database.ServerValue.TIMESTAMP,
+                        rotaKey: currentRouteKey,
+                        rotaNome: routeName,
+                        codigoViagem: codigoFormatado
+                    });
+
+                    // Salva a garantia de desconexão para encerrar a corrida pendente se o celular desligar
+                    db.ref(`historico_viagens/${viagemAtualId}/fim`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
                 });
 
                 timerInterval = setInterval(() => {
@@ -875,6 +921,7 @@
                             statusTransito: statusTransito,
                             ocorrenciaManual: ocorrenciaAtual,
                             ativo: true,
+                            emUso: true,
                             ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                         });
 
@@ -922,6 +969,7 @@
             }
 
             if (viagemAtualId) {
+                db.ref(`historico_viagens/${viagemAtualId}/fim`).onDisconnect().cancel();
                 db.ref(`historico_viagens/${viagemAtualId}`).update({
                     fim: firebase.database.ServerValue.TIMESTAMP
                 });
@@ -930,9 +978,12 @@
 
             if (currentRouteKey) {
                 db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().cancel();
+                db.ref(`onibus/${currentRouteKey}/emUso`).onDisconnect().cancel();
                 
+                // DESBLOQUEIA A ROTA NO FIREBASE
                 db.ref(`onibus/${currentRouteKey}`).update({
-                    ativo: false
+                    ativo: false,
+                    emUso: false
                 });
             }
 
