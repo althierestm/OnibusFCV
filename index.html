@@ -32,6 +32,25 @@
             touch-action: manipulation;
         }
 
+        /* Selo BETA */
+        .beta-badge {
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #1a73e8, #6a1b9a);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            pointer-events: none;
+        }
+
         /* Estilo do Ponto Azul estilo Google Maps */
         .user-location-dot {
             width: 16px;
@@ -268,6 +287,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
+
+    <div class="beta-badge">BETA</div>
 
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
