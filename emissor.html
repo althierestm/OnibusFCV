@@ -572,8 +572,6 @@
         let lastSignalTimeout = null;
         let wakeLock = null;
 
-        let ultimaLatEnviada = null;
-        let ultimaLngEnviada = null;
         let ultimoTempoEnvio = 0;
 
         const toggleBtn = document.getElementById('toggleBtn');
@@ -609,16 +607,6 @@
                 }
             });
         });
-
-        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-        }
 
         async function requestWakeLock() {
             try {
@@ -805,9 +793,6 @@
 
                 routeSelect.disabled = true;
                 tempoInicioViagem = Date.now();
-
-                ultimaLatEnviada = null;
-                ultimaLngEnviada = null;
                 ultimoTempoEnvio = 0;
 
                 requestWakeLock();
@@ -834,6 +819,7 @@
                         inicio: firebase.database.ServerValue.TIMESTAMP,
                         rotaKey: currentRouteKey,
                         rotaNome: routeName,
+                        placa: routePlaca,
                         codigoViagem: codigoFormatado
                     });
 
@@ -862,21 +848,8 @@
                     if (speedKmh < 5) statusTransito = "parado";
                     else if (speedKmh < 18) statusTransito = "lento";
 
-                    let deveEnviar = false;
-
-                    if (ultimaLatEnviada === null || ultimaLngEnviada === null) {
-                        deveEnviar = true;
-                    } else {
-                        const distanciaAndada = calcularDistanciaMetros(ultimaLatEnviada, ultimaLngEnviada, lat, lng);
-                        const tempoDecorrido = (agora - ultimoTempoEnvio) / 1000;
-
-                        if (distanciaAndada >= 450 || tempoDecorrido >= 20) {
-                            deveEnviar = true;
-                        }
-                    }
-
-                    if (deveEnviar) {
-                        // Atualiza status ao vivo do ônibus para os passageiros
+                    // Envia a cada 8 segundos para manter a rota precisa no mapa ou quando aciona ocorrência
+                    if (agora - ultimoTempoEnvio >= 8000 || ocorrenciaAtual) {
                         db.ref(`onibus/${currentRouteKey}`).set({
                             nome: routeName,
                             placa: routePlaca,
@@ -890,19 +863,17 @@
                             ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                         });
 
-                        // GRAVA O PONTO DO TRAJETO NO HISTÓRICO PARA O PAINEL DE GESTÃO (MAPA DE REPLAY)
+                        // GRAVA O PONTO DO TRAJETO COM A OCORRÊNCIA PARA O PAINEL DE GESTÃO
                         if (viagemAtualId) {
                             db.ref(`historico_viagens/${viagemAtualId}/pontosTrajeto`).push({
                                 lat: lat,
                                 lng: lng,
                                 velocidade: speedKmh,
-                                ocorrenciaManual: ocorrenciaAtual,
+                                ocorrencia: ocorrenciaAtual,
                                 timestamp: firebase.database.ServerValue.TIMESTAMP
                             });
                         }
 
-                        ultimaLatEnviada = lat;
-                        ultimaLngEnviada = lng;
                         ultimoTempoEnvio = agora;
                     }
 
