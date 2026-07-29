@@ -3,551 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel do Motorista - FCV</title>
-    
-    <!-- Suporte a WebApp (PWA) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0077b6">
-
-    <style>
-        :root {
-            --bg-color: #000000; /* Super OLED Pure Black */
-            --container-bg: #0d0d0d;
-            --text-color: #ffffff;
-            --box-bg: #161616;
-            --border-color: #262626;
-            --accent-color: #00a6fb;
-            --fcv-blue: #005691;
-            --fcv-blue-dark: #003a63;
-        }
-
-        body.light-mode {
-            --bg-color: #f4f6f9;
-            --container-bg: #ffffff;
-            --text-color: #333333;
-            --box-bg: #eef2f5;
-            --border-color: #cccccc;
-            --accent-color: #0077b6;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: background 0.3s ease, color 0.3s ease;
-            touch-action: manipulation;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        /* --- BADGE BETA CIRCULADO --- */
-        .beta-badge {
-            background-color: #ff9800;
-            color: #000000;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            display: inline-block;
-            box-shadow: 0 2px 6px rgba(255, 152, 0, 0.4);
-        }
-
-        /* --- TELA DE LOGIN (OVERLAY AZUL FCV) --- */
-        #loginOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #003a63 0%, #0077b6 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 9999;
-            padding: 30px 20px;
-            box-sizing: border-box;
-        }
-
-        .login-header {
-            margin-top: 30px;
-            text-align: center;
-            position: relative;
-        }
-
-        .login-logo {
-            max-width: 160px;
-            height: auto;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
-        }
-
-        .login-title {
-            color: #ffffff;
-            font-size: 20px;
-            font-weight: bold;
-            margin: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 25px 20px;
-            border-radius: 18px;
-            width: 100%;
-            max-width: 320px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            box-sizing: border-box;
-        }
-
-        .login-input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .login-input-group label {
-            display: block;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.25);
-            color: #ffffff;
-            font-size: 15px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
-
-        .login-input::placeholder {
-            color: rgba(255, 255, 255, 0.5);
-        }
-
-        .login-input:focus {
-            border-color: #00a6fb;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: #00a6fb;
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(0, 166, 251, 0.4);
-            transition: transform 0.1s ease, background 0.2s ease;
-        }
-
-        .btn-login:active {
-            transform: scale(0.98);
-            background: #0084ca;
-        }
-
-        .login-error {
-            color: #ff5252;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 12px;
-            text-align: center;
-            display: none;
-            background: rgba(255, 0, 0, 0.15);
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 0, 0, 0.3);
-        }
-
-        .login-footer {
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .login-footer-logo {
-            max-width: 130px;
-            height: auto;
-            opacity: 0.9;
-            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
-        }
-
-        /* --- PAINEL PRINCIPAL --- */
-        .container {
-            width: 100%;
-            max-width: 400px;
-            background-color: var(--container-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
-            box-sizing: border-box;
-            text-align: center;
-            position: relative;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .top-bar-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        h2 { margin: 0; color: #4caf50; font-size: 18px; }
-
-        .btn-theme {
-            background: none;
-            border: 1px solid var(--border-color);
-            color: var(--text-color);
-            padding: 5px 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* SELEÇÃO DE ROTA */
-        .route-selection-box {
-            background-color: var(--box-bg);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            border: 1px solid var(--border-color);
-            text-align: left;
-        }
-
-        .route-selection-box label {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--accent-color);
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        .route-select {
-            width: 100%;
-            padding: 10px;
-            border-radius: 8px;
-            background: var(--container-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            font-weight: bold;
-            outline: none;
-        }
-
-        .status-box {
-            background-color: var(--box-bg);
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            line-height: 1.5;
-            border: 1px solid var(--border-color);
-        }
-
-        .timer-display {
-            font-size: 18px;
-            font-weight: bold;
-            color: #ff9800;
-            margin-top: 5px;
-        }
-
-        .online-app-box {
-            background-color: #051923;
-            border: 1px solid #003554;
-            color: #00a6fb;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-bottom: 12px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-start { background-color: #2e7d32; color: white; }
-        .btn-stop { background-color: #c62828; color: white; }
-
-        .incident-section { margin-top: 10px; }
-        .incident-title { font-size: 13px; opacity: 0.8; margin-bottom: 8px; text-align: left; }
-        
-        .btn-incident {
-            background-color: var(--box-bg);
-            color: var(--text-color);
-            padding: 10px;
-            font-size: 13px;
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-incident.active {
-            background-color: #ff9800;
-            color: #000;
-        }
-
-        .history-section {
-            margin-top: 25px;
-            text-align: left;
-            background: var(--box-bg);
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        .history-title {
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: var(--accent-color);
-        }
-
-        .history-item {
-            font-size: 11px;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border-color);
-            line-height: 1.4;
-        }
-
-        .history-item:last-child {
-            border-bottom: none;
-        }
-
-        .badge-live {
-            color: #4caf50;
-            font-weight: bold;
-            animation: blink 1s infinite alternate;
-        }
-
-        @keyframes blink {
-            from { opacity: 1; }
-            to { opacity: 0.4; }
-        }
-
-        details.history-details {
-            margin-top: 10px;
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-
-        details.history-details summary {
-            font-weight: bold;
-            cursor: pointer;
-            color: var(--text-color);
-            opacity: 0.85;
-            outline: none;
-            padding: 4px 0;
-            user-select: none;
-        }
-
-        details.history-details summary:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
-
-        .history-expanded-list {
-            max-height: 180px;
-            overflow-y: auto;
-            margin-top: 8px;
-            padding-top: 5px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .footer {
-            margin-top: 25px;
-            padding-top: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .footer-logo {
-            max-width: 100px;
-            height: auto;
-            opacity: 0.85;
-            transition: opacity 0.3s ease;
-        }
-
-        .footer-logo:hover {
-            opacity: 1;
-        }
-
-        .footer-credit {
-            font-size: 8px;
-            color: var(--text-color);
-            opacity: 0.4;
-            margin-top: 3px;
-            text-transform: none;
-            text-align: center;
-            letter-spacing: 0.3px;
-        }
-    </style>
+    <title>Emissor de Rota - FCV</title>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --accent-blue: #00a6fb;
+            --danger-red: #ff5252;
+            --warning-orange: #ff9800;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+            --border-color: #333333;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 20px;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%; max-width: 420px;
+            background: var(--card-bg);
+            padding: 20px; border-radius: 16px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        h2 { margin-top: 0; font-size: 20px; color: var(--accent-blue); }
+
+        label {
+            font-size: 12px; color: var(--text-sub);
+            display: block; text-align: left; margin-top: 10px; margin-bottom: 4px;
+        }
+
+        select, input {
+            width: 100%; padding: 12px; margin-bottom: 10px;
+            border-radius: 8px; border: 1px solid var(--border-color);
+            background: #2a2a2a; color: #fff; font-size: 14px; outline: none;
+        }
+
+        .btn {
+            width: 100%; padding: 14px; margin-top: 8px;
+            border: none; border-radius: 8px;
+            font-size: 15px; font-weight: bold; cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active { opacity: 0.8; }
+        .btn-start { background: #4caf50; color: #fff; }
+        .btn-stop { background: var(--danger-red); color: #fff; display: none; }
+        .btn-aod { background: #262626; color: var(--accent-blue); border: 1px solid var(--accent-blue); display: none; }
+        
+        .incident-panel {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+
+        .btn-incident {
+            background: #2b2313;
+            color: var(--warning-orange);
+            border: 1px solid var(--warning-orange);
+            margin-top: 8px;
+        }
+
+        .status-box {
+            margin-top: 15px; padding: 12px; border-radius: 8px;
+            background: #262626; font-size: 13px; color: var(--text-sub);
+            border: 1px solid var(--border-color);
+        }
+
+        /* TELA PRETA ECONOMIA DE BATERIA (ALWAYS ON DISPLAY) */
+        #aodOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #000000;
+            color: #ffffff;
+            z-index: 999999;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .aod-clock {
+            font-size: 60px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #ffffff;
+        }
+
+        .aod-route {
+            font-size: 18px;
+            color: var(--accent-blue);
+            margin: 15px 0 5px 0;
+            font-weight: 600;
+        }
+
+        .aod-passengers {
+            font-size: 16px;
+            color: #888888;
+        }
+
+        .aod-hint {
+            position: absolute; bottom: 30px;
+            font-size: 11px; color: #444;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- OVERLAY TELA DE LOGIN -->
-    <div id="loginOverlay">
-        <div class="login-header">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
-            <div class="login-title">
-                <span class="beta-badge">BETA</span> Motorista
-            </div>
+    <div class="container">
+        <h2>Emissor de Rota</h2>
+        
+        <label for="selectRota">Selecione a Rota:</label>
+        <select id="selectRota">
+            <option value="Rota Centro - Bairro">Rota Centro - Bairro</option>
+            <option value="Rota Bairro - Centro">Rota Bairro - Centro</option>
+            <option value="Rota Universitária">Rota Universitária</option>
+        </select>
+
+        <label for="inputPlaca">Identificação do Veículo:</label>
+        <input type="text" id="inputPlaca" placeholder="Placa do Veículo (ex: FCV-001)">
+
+        <button id="btnStart" class="btn btn-start" onclick="iniciarViagem()">Iniciar Viagem</button>
+        <button id="btnStop" class="btn btn-stop" onclick="encerrarViagem()">Encerrar Viagem</button>
+        <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button>
+
+        <!-- PAINEL DE OCORRÊNCIAS -->
+        <div class="incident-panel" id="incidentPanel">
+            <div style="font-size:12px; color:var(--text-sub); text-align:left; margin-bottom:5px;">Registrar Alerta no Trajeto:</div>
+            <button class="btn btn-incident" onclick="registrarOcorrencia('acidente')">Trânsito / Acidente à Frente</button>
+            <button class="btn btn-incident" onclick="registrarOcorrencia('defeito')">Ônibus com Defeito</button>
         </div>
 
-        <form class="login-card" id="loginForm" onsubmit="return false;">
-            <div class="login-input-group">
-                <label for="usernameInput">Usuário</label>
-                <input type="text" id="usernameInput" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
-            </div>
-            
-            <div class="login-input-group">
-                <label for="passwordInput">Senha</label>
-                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
-            </div>
-
-            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
-            <div id="loginError" class="login-error">Usuário ou senha incorretos!</div>
-        </form>
-
-        <div class="login-footer">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella - Pela Vida" class="login-footer-logo">
-        </div>
+        <div class="status-box" id="statusBox">Aguardando início da viagem...</div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
-    <div class="container">
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <!-- SELO BETA NO CANTO ESQUERDO -->
-                <span class="beta-badge">BETA</span>
-                <h2>🚌 Motorista</h2>
-            </div>
-            <button id="themeBtn" class="btn-theme">
-                <span>💡</span>
-                <span id="themeText">Super OLED</span>
-            </button>
+    <!-- TELA ALWAYS ON DISPLAY (AOD) -->
+    <div id="aodOverlay" onclick="desativarAOD()">
+        <div id="aodContent">
+            <div class="aod-clock" id="aodClock">00:00</div>
+            <div class="aod-route" id="aodRouteName">Nome da Rota</div>
+            <div class="aod-passengers" id="aodPassengersCount">Passageiros online: 0</div>
         </div>
-
-        <!-- SELEÇÃO DE ROTA -->
-        <div class="route-selection-box">
-            <label for="routeSelect">📍 ROTA DE HOJE:</label>
-            <select id="routeSelect" class="route-select">
-                <option value="plantao" data-nome="Rota de Plantão" data-placa="FCV">📍 Rota de Plantão</option>
-                <option value="rota_01" data-nome="Rota 01" data-placa="GSH-5A89">🚌 Rota 01 (GSH-5A89)</option>
-                <option value="rota_02" data-nome="Rota 02" data-placa="GFH-8D02">🚌 Rota 02 (GFH-8D02)</option>
-                <option value="rota_03" data-nome="Rota 03" data-placa="GFH-8D01">🚌 Rota 03 (GFH-8D01)</option>
-            </select>
-        </div>
-
-        <div class="status-box" id="statusText">
-            Status: <b style="color: #f44336;">OFFLINE</b>
-        </div>
-
-        <div class="online-app-box">
-            📱 Passageiros com o App Aberto: <span id="onlinePassCount">0</span>
-        </div>
-
-        <button id="toggleBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
-
-        <div class="incident-section">
-            <div class="incident-title">Relatar Ocorrência:</div>
-            <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
-            <button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button>
-        </div>
-
-        <div class="history-section">
-            <div class="history-title">📜 Viagens de Hoje (Últimas 5)</div>
-            <div id="todayHistoryList">Carregando viagens do dia...</div>
-
-            <details class="history-details" id="oldHistoryDetails" style="display: none;">
-                <summary>📁 Ver mais viagens e histórico (<span id="oldHistoryCount">0</span>)</summary>
-                <div class="history-expanded-list" id="oldHistoryList"></div>
-            </details>
-        </div>
-
-        <div class="footer">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
-            <div class="footer-credit">by Althieres Dias</div>
-        </div>
+        <div class="aod-hint">Toque em qualquer lugar para sair do modo economia</div>
     </div>
 
     <script>
-        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
-        const loginOverlay = document.getElementById('loginOverlay');
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('usernameInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginError = document.getElementById('loginError');
-
-        if (sessionStorage.getItem('fcv_motorista_autenticado') === 'true') {
-            loginOverlay.style.display = 'none';
-        }
-
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const usuarioDigitado = usernameInput.value.trim();
-            const senhaDigitada = passwordInput.value.trim();
-
-            if (usuarioDigitado === "admin" && senhaDigitada === "motorista") {
-                loginError.style.display = 'none';
-                sessionStorage.setItem('fcv_motorista_autenticado', 'true');
-                loginOverlay.style.display = 'none';
-            } else {
-                loginError.style.display = 'block';
-                passwordInput.value = '';
-            }
-        });
-
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -557,403 +174,160 @@
             messagingSenderId: "235141426187",
             appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let isTransmitting = false;
         let watchId = null;
-        let ocorrenciaAtual = null;
-        let viagemAtualId = null;
-        let currentRouteKey = null;
-        
-        let timerInterval = null;
-        let tempoInicioViagem = null;
-        let lastSignalTimeout = null;
+        let viagemKey = null;
         let wakeLock = null;
+        let clockInterval = null;
+        let ultimaOcorrencia = null;
 
-        let ultimoTempoEnvio = 0;
-
-        const toggleBtn = document.getElementById('toggleBtn');
-        const statusText = document.getElementById('statusText');
-        const routeSelect = document.getElementById('routeSelect');
-        const btnAccident = document.getElementById('btnAccident');
-        const btnBroken = document.getElementById('btnBroken');
-        const onlinePassCountEl = document.getElementById('onlinePassCount');
-        const themeBtn = document.getElementById('themeBtn');
-        const themeText = document.getElementById('themeText');
-        const todayHistoryListEl = document.getElementById('todayHistoryList');
-        const oldHistoryListEl = document.getElementById('oldHistoryList');
-        const oldHistoryDetails = document.getElementById('oldHistoryDetails');
-        const oldHistoryCount = document.getElementById('oldHistoryCount');
-
-        // --- MONITORAMENTO DE ROTAS EM USO ---
-        db.ref('onibus').on('value', (snapshot) => {
-            const rotasStatus = snapshot.val() || {};
-            
-            Array.from(routeSelect.options).forEach(opt => {
-                const key = opt.value;
-                const dadosRota = rotasStatus[key];
-                const nomeBase = opt.getAttribute('data-nome');
-                const placaBase = opt.getAttribute('data-placa');
-
-                if (dadosRota && (dadosRota.ativo || dadosRota.emUso) && key !== currentRouteKey) {
-                    opt.disabled = true;
-                    opt.innerText = `🔴 (EM ROTA) ${nomeBase} (${placaBase})`;
-                } else {
-                    opt.disabled = false;
-                    const icone = key === 'plantao' ? '📍' : '🚌';
-                    opt.innerText = `${icone} ${nomeBase} (${placaBase})`;
-                }
-            });
-        });
-
-        async function requestWakeLock() {
+        // MANTER TELA ACESA (WAKE LOCK API)
+        async function solicitarWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
                     wakeLock = await navigator.wakeLock.request('screen');
                 }
             } catch (err) {
-                console.error(`Erro ao ativar Wake Lock: ${err.message}`);
+                console.log("WakeLock erro:", err);
             }
         }
 
-        function releaseWakeLock() {
+        function liberarWakeLock() {
             if (wakeLock !== null) {
                 wakeLock.release();
                 wakeLock = null;
             }
         }
 
-        document.addEventListener('visibilitychange', async () => {
-            if (isTransmitting && document.visibilityState === 'visible') {
-                await requestWakeLock();
-            }
-        });
-
-        themeBtn.addEventListener('click', () => {
-            document.body.classList.toggle('light-mode');
-            const isLight = document.body.classList.contains('light-mode');
-            themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
-        });
-
-        db.ref('passageiros_online').on('value', (snapshot) => {
-            onlinePassCountEl.innerText = snapshot.numChildren() || 0;
-        });
-
-        function formatarTempo(segundos) {
-            const h = Math.floor(segundos / 3600).toString().padStart(2, '0');
-            const m = Math.floor((segundos % 3600) / 60).toString().padStart(2, '0');
-            const s = Math.floor(segundos % 60).toString().padStart(2, '0');
-            return `${h}:${m}:${s}`;
-        }
-
-        function formatarDataEDiaSemana(timestamp) {
-            if (!timestamp) return '';
-            const data = new Date(timestamp);
-            const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-            return `${dias[data.getDay()]}, ${data.getDate().toString().padStart(2, '0')}/${(data.getMonth() + 1).toString().padStart(2, '0')}`;
-        }
-
-        function ehHoje(timestamp) {
-            if (!timestamp) return false;
-            const data = new Date(timestamp);
-            const hoje = new Date();
-            return data.getDate() === hoje.getDate() &&
-                   data.getMonth() === hoje.getMonth() &&
-                   data.getFullYear() === hoje.getFullYear();
-        }
-
-        function atualizarCronometroLocal() {
-            if (!tempoInicioViagem) return "00:00:00";
-            return formatarTempo(Math.floor((Date.now() - tempoInicioViagem) / 1000));
-        }
-
-        function resetarInatividadeTimer() {
-            if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
-            lastSignalTimeout = setTimeout(() => {
-                alert("Sem sinal de GPS há 5 minutos. A corrida foi finalizada automaticamente.");
-                pararTransmissao();
-            }, 300000);
-        }
-
-        function limparHistoricoAntigo(data) {
-            const trintaDiasEmMs = 30 * 24 * 60 * 60 * 1000;
-            const agora = Date.now();
-            Object.keys(data).forEach(key => {
-                const item = data[key];
-                const timestampItem = item.inicio || item.fim;
-                if (timestampItem && (agora - timestampItem > trintaDiasEmMs)) {
-                    db.ref(`historico_viagens/${key}`).remove();
-                }
+        // LEITURA EM TEMPO REAL DOS PASSAGEIROS
+        function monitorarPassageiros() {
+            db.ref('passageiros_online').on('value', (snapshot) => {
+                const count = snapshot.val() || 0;
+                document.getElementById('aodPassengersCount').innerText = `Passageiros online: ${count}`;
             });
         }
 
-        db.ref('historico_viagens').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                todayHistoryListEl.innerHTML = "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
-                oldHistoryDetails.style.display = "none";
+        function iniciarViagem() {
+            const rota = document.getElementById('selectRota').value;
+            const placa = document.getElementById('inputPlaca').value || "FCV";
+
+            viagemKey = db.ref('historico_viagens').push().key;
+            const inicioTimestamp = Date.now();
+
+            db.ref(`historico_viagens/${viagemKey}`).set({
+                rotaNome: rota,
+                placa: placa,
+                inicio: inicioTimestamp,
+                fim: null
+            });
+
+            // Monitoramento contínuo de GPS
+            if ("geolocation" in navigator) {
+                watchId = navigator.geolocation.watchPosition(
+                    (pos) => enviarPontoGPS(pos),
+                    (err) => {
+                        console.error(err);
+                        document.getElementById('statusBox').innerText = "Erro ao obter GPS: " + err.message;
+                    },
+                    { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+                );
+            } else {
+                alert("Geolocalização não é suportada por este dispositivo.");
                 return;
             }
 
-            limparHistoricoAntigo(data);
+            solicitarWakeLock();
+            monitorarPassageiros();
 
-            let htmlHoje = "";
-            let htmlEscondidos = "";
-            let contadorHoje = 0;
-            let contadorEscondidos = 0;
-
-            const keys = Object.keys(data).reverse();
-
-            keys.forEach(key => {
-                const item = data[key];
-                const dataFormatada = formatarDataEDiaSemana(item.inicio);
-                const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                const eHoje = ehHoje(item.inicio);
-                const nomeRota = item.rotaNome || "Rota Não Especificada";
-                const codigoCorrida = item.codigoViagem ? `#${item.codigoViagem}` : '';
-
-                let itemHtml = "";
-
-                if (!item.fim) {
-                    const tempoAtualStr = atualizarCronometroLocal();
-                    itemHtml = `
-                        <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
-                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
-                        </div>
-                    `;
-                } else {
-                    const fim = new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const duracaoSeg = Math.floor((item.fim - item.inicio) / 1000);
-                    const duracaoStr = formatarTempo(duracaoSeg);
-                    itemHtml = `
-                        <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
-                        </div>
-                    `;
-                }
-
-                if (eHoje) {
-                    contadorHoje++;
-                    if (contadorHoje <= 5) htmlHoje += itemHtml;
-                    else { htmlEscondidos += itemHtml; contadorEscondidos++; }
-                } else {
-                    htmlEscondidos += itemHtml;
-                    contadorEscondidos++;
-                }
-            });
-
-            todayHistoryListEl.innerHTML = htmlHoje || "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
-
-            if (contadorEscondidos > 0) {
-                oldHistoryListEl.innerHTML = htmlEscondidos;
-                oldHistoryCount.innerText = contadorEscondidos;
-                oldHistoryDetails.style.display = "block";
-            } else {
-                oldHistoryDetails.style.display = "none";
-            }
-        });
-
-        btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
-        btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken, "Deseja relatar Ônibus com Defeito?"));
-
-        function toggleOcorrencia(tipo, botao, mensagemConfirmacao) {
-            if (ocorrenciaAtual === tipo) {
-                ocorrenciaAtual = null;
-                botao.classList.remove('active');
-            } else {
-                if (!confirm(mensagemConfirmacao)) return;
-                ocorrenciaAtual = tipo;
-                btnAccident.classList.remove('active');
-                btnBroken.classList.remove('active');
-                botao.classList.add('active');
-            }
-            atualizarDadosFirebase();
+            document.getElementById('btnStart').style.display = 'none';
+            document.getElementById('btnStop').style.display = 'block';
+            document.getElementById('btnAOD').style.display = 'block';
+            document.getElementById('incidentPanel').style.display = 'block';
+            document.getElementById('statusBox').innerText = "Rastreamento ativado e transmitindo...";
         }
 
-        toggleBtn.addEventListener('click', () => {
-            if (!isTransmitting) iniciarTransmissao();
-            else pararTransmissao();
-        });
+        function enviarPontoGPS(pos) {
+            if (!viagemKey) return;
 
-        function iniciarTransmissao() {
-            if ("geolocation" in navigator) {
-                const optionSelected = routeSelect.options[routeSelect.selectedIndex];
-                
-                if (optionSelected.disabled) {
-                    alert("Esta rota já está sendo utilizada por outro motorista no momento!");
-                    return;
-                }
+            const speedKmh = pos.coords.speed ? Math.round(pos.coords.speed * 3.6) : 0;
+            const ponto = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude,
+                velocidade: speedKmh,
+                timestamp: Date.now()
+            };
 
-                currentRouteKey = routeSelect.value;
-                const routeName = optionSelected.getAttribute('data-nome');
-                const routePlaca = optionSelected.getAttribute('data-placa');
-
-                routeSelect.disabled = true;
-                tempoInicioViagem = Date.now();
-                ultimoTempoEnvio = 0;
-
-                requestWakeLock();
-
-                db.ref(`onibus/${currentRouteKey}`).update({
-                    ativo: true,
-                    emUso: true
-                });
-
-                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
-                db.ref(`onibus/${currentRouteKey}/emUso`).onDisconnect().set(false);
-
-                // --- GERAR CÓDIGO DA CORRIDA E HISTÓRICO ---
-                db.ref('contador_corridas').transaction((atual) => {
-                    return (atual || 0) + 1;
-                }, (error, committed, snapshot) => {
-                    const numeroSeq = snapshot.val() || 1;
-                    const codigoFormatado = String(numeroSeq).padStart(5, '0');
-
-                    const novaViagemRef = db.ref('historico_viagens').push();
-                    viagemAtualId = novaViagemRef.key;
-                    
-                    novaViagemRef.set({
-                        inicio: firebase.database.ServerValue.TIMESTAMP,
-                        rotaKey: currentRouteKey,
-                        rotaNome: routeName,
-                        placa: routePlaca,
-                        codigoViagem: codigoFormatado
-                    });
-
-                    db.ref(`historico_viagens/${viagemAtualId}/fim`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-                });
-
-                timerInterval = setInterval(() => {
-                    const tempoStr = atualizarCronometroLocal();
-                    const cronoEl = document.getElementById('liveTimer');
-                    const histCronoEl = document.getElementById('histCronometro');
-                    if (cronoEl) cronoEl.innerText = tempoStr;
-                    if (histCronoEl) histCronoEl.innerText = tempoStr;
-                }, 1000);
-
-                resetarInatividadeTimer();
-
-                watchId = navigator.geolocation.watchPosition((pos) => {
-                    resetarInatividadeTimer();
-
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
-                    const agora = Date.now();
-
-                    let statusTransito = "normal";
-                    if (speedKmh < 5) statusTransito = "parado";
-                    else if (speedKmh < 18) statusTransito = "lento";
-
-                    // Envia a cada 8 segundos para manter a rota precisa no mapa ou quando aciona ocorrência
-                    if (agora - ultimoTempoEnvio >= 8000 || ocorrenciaAtual) {
-                        db.ref(`onibus/${currentRouteKey}`).set({
-                            nome: routeName,
-                            placa: routePlaca,
-                            lat: lat,
-                            lng: lng,
-                            velocidade: speedKmh,
-                            statusTransito: statusTransito,
-                            ocorrenciaManual: ocorrenciaAtual,
-                            ativo: true,
-                            emUso: true,
-                            ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
-                        });
-
-                        // GRAVA O PONTO DO TRAJETO COM A OCORRÊNCIA PARA O PAINEL DE GESTÃO
-                        if (viagemAtualId) {
-                            db.ref(`historico_viagens/${viagemAtualId}/pontosTrajeto`).push({
-                                lat: lat,
-                                lng: lng,
-                                velocidade: speedKmh,
-                                ocorrencia: ocorrenciaAtual,
-                                timestamp: firebase.database.ServerValue.TIMESTAMP
-                            });
-                        }
-
-                        ultimoTempoEnvio = agora;
-                    }
-
-                    statusText.innerHTML = `
-                        <b>${routeName} (${routePlaca})</b><br>
-                        Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
-                        Velocidade: <b>${speedKmh} km/h</b>
-                        <div class="timer-display">⏱️ <span id="liveTimer">${atualizarCronometroLocal()}</span></div>
-                    `;
-                }, (err) => {
-                    alert("Erro ao obter localização: " + err.message);
-                }, { enableHighAccuracy: true });
-
-                isTransmitting = true;
-                toggleBtn.innerText = "⏹ Parar Transmissão";
-                toggleBtn.classList.remove('btn-start');
-                toggleBtn.classList.add('btn-stop');
-            } else {
-                alert("Geolocalização não é suportada neste navegador.");
+            // Anexa ocorrência caso tenha sido registrada recentemente
+            if (ultimaOcorrencia) {
+                ponto.ocorrencia = ultimaOcorrencia;
+                ultimaOcorrencia = null; // limpa após enviar
             }
+
+            // Atualiza histórico e posição ao vivo
+            db.ref(`historico_viagens/${viagemKey}/pontosTrajeto`).push(ponto);
+            db.ref('posicao_atual').set(ponto);
+
+            document.getElementById('statusBox').innerText = `Transmitindo - Vel: ${speedKmh} km/h`;
         }
 
-        function pararTransmissao() {
-            releaseWakeLock();
+        function registrarOcorrencia(tipo) {
+            ultimaOcorrencia = tipo;
+            const msg = tipo === 'acidente' ? "Trânsito/Acidente marcado!" : "Ônibus com defeito marcado!";
+            alert(msg);
+            document.getElementById('statusBox').innerText = `Alerta registrado: ${msg}`;
+        }
 
-            if (watchId !== null) {
+        function encerrarViagem() {
+            if (watchId) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
             }
 
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
+            if (viagemKey) {
+                db.ref(`historico_viagens/${viagemKey}/fim`).set(Date.now());
+                viagemKey = null;
             }
 
-            if (lastSignalTimeout) {
-                clearTimeout(lastSignalTimeout);
-                lastSignalTimeout = null;
-            }
+            liberarWakeLock();
+            desativarAOD();
 
-            if (viagemAtualId) {
-                db.ref(`historico_viagens/${viagemAtualId}/fim`).onDisconnect().cancel();
-                db.ref(`historico_viagens/${viagemAtualId}`).update({
-                    fim: firebase.database.ServerValue.TIMESTAMP
-                });
-                viagemAtualId = null;
-            }
-
-            if (currentRouteKey) {
-                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().cancel();
-                db.ref(`onibus/${currentRouteKey}/emUso`).onDisconnect().cancel();
-                
-                db.ref(`onibus/${currentRouteKey}`).update({
-                    ativo: false,
-                    emUso: false
-                });
-            }
-
-            isTransmitting = false;
-            tempoInicioViagem = null;
-            routeSelect.disabled = false;
-
-            statusText.innerHTML = `Status: <b style="color: #f44336;">OFFLINE</b>`;
-            toggleBtn.innerText = "▶ Iniciar Transmissão";
-            toggleBtn.classList.remove('btn-stop');
-            toggleBtn.classList.add('btn-start');
+            document.getElementById('btnStart').style.display = 'block';
+            document.getElementById('btnStop').style.display = 'none';
+            document.getElementById('btnAOD').style.display = 'none';
+            document.getElementById('incidentPanel').style.display = 'none';
+            document.getElementById('statusBox').innerText = "Viagem encerrada com sucesso.";
         }
 
-        function atualizarDadosFirebase() {
-            if (isTransmitting && currentRouteKey) {
-                db.ref(`onibus/${currentRouteKey}`).update({
-                    ocorrenciaManual: ocorrenciaAtual
-                });
+        // LÓGICA DO ALWAYS ON DISPLAY (AOD)
+        function ativarAOD() {
+            const rota = document.getElementById('selectRota').value;
+            document.getElementById('aodRouteName').innerText = rota;
+            document.getElementById('aodOverlay').style.display = 'flex';
+
+            atualizarRelogio();
+            clockInterval = setInterval(atualizarRelogio, 1000);
+        }
+
+        function desativarAOD() {
+            document.getElementById('aodOverlay').style.display = 'none';
+            if (clockInterval) {
+                clearInterval(clockInterval);
+                clockInterval = null;
             }
         }
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(() => console.log('Service Worker ativado.'))
-                .catch(err => console.error('Erro no Service Worker:', err));
+        function atualizarRelogio() {
+            const agora = new Date();
+            const horas = String(agora.getHours()).padStart(2, '0');
+            const minutos = String(agora.getMinutes()).padStart(2, '0');
+            document.getElementById('aodClock').innerText = `${horas}:${minutos}`;
+
+            // Prevenção suave de burn-in nas telas AMOLED (desloca 1px periodicamente)
+            const aodContent = document.getElementById('aodContent');
+            const offset = agora.getMinutes() % 5;
+            aodContent.style.transform = `translateY(${offset}px)`;
         }
     </script>
 </body>
