@@ -98,6 +98,7 @@
             overflow: hidden;
         }
 
+        /* PAINEL DE ROTAS / SIDEBAR */
         .sidebar {
             width: 340px;
             background: #161616;
@@ -106,8 +107,10 @@
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 10;
+            display: block;
         }
 
+        /* ÁREA DO MAPA E DETALHES */
         .content-area {
             flex: 1;
             display: flex;
@@ -208,23 +211,21 @@
             border-left-color: #4caf50;
         }
 
-        /* MODO MOBILE / TELA PEQUENA */
+        /* COMPORTAMENTO EM TELA PEQUENA (MOBILE) */
         @media (max-width: 768px) {
             .sidebar {
-                position: absolute;
-                top: 0; left: 0;
                 width: 100%;
                 height: 100%;
-                display: block;
             }
 
+            /* Por padrão, esconde totalmente o mapa no celular para não dar bugs de sobreposição */
             .content-area {
                 display: none;
                 width: 100%;
                 height: 100%;
             }
 
-            /* Quando selecionar uma rota */
+            /* Quando selecionar uma rota: Esconde a lista e Exibe o mapa */
             .main-container.viewing-route .sidebar {
                 display: none;
             }
@@ -233,7 +234,9 @@
                 display: flex;
             }
 
-            .btn-back { display: inline-block; }
+            .main-container.viewing-route .btn-back {
+                display: inline-block;
+            }
         }
     </style>
 </head>
@@ -355,8 +358,9 @@
             document.querySelectorAll('.trip-card').forEach(c => c.classList.remove('active'));
             if(cardElement) cardElement.classList.add('active');
 
-            // Ativa modo de exibição da rota (Oculta sidebar no mobile)
+            // Exibe a tela do mapa e o botão voltar
             document.getElementById('mainContainer').classList.add('viewing-route');
+            document.getElementById('btnBack').style.display = 'inline-block';
 
             trajetoLayerGroup.clearLayers();
 
@@ -463,6 +467,7 @@
         function voltarParaLista() {
             document.getElementById('mainContainer').classList.remove('viewing-route');
             document.getElementById('statsPanel').style.display = 'none';
+            document.getElementById('btnBack').style.display = 'none';
             document.getElementById('statusHeader').innerText = "Selecione uma viagem";
         }
     </script>
