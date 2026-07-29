@@ -21,6 +21,7 @@
             --text-sub: #aaaaaa;
             --danger-color: #ff5252;
             --warning-color: #ff9800;
+            --success-color: #4caf50;
         }
 
         * { box-sizing: border-box; }
@@ -108,6 +109,113 @@
             overflow-y: auto;
             flex-shrink: 0;
             z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* BOTÃO DE ENCERRAMENTO GLOBAL */
+        .btn-finish-all {
+            width: 100%;
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-finish-all:hover {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        /* BOTÕES DE DATA GRUPOS */
+        .date-group-btn {
+            background: #222222;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .date-group-btn:hover {
+            background: #2d2d2d;
+            border-color: var(--accent-blue);
+        }
+
+        .date-badge {
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        /* MODAL / JANELA DAS ROTAS DO DIA */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 450px;
+            max-height: 80vh;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #161616;
+        }
+
+        .modal-header h4 { margin: 0; font-size: 15px; color: var(--accent-blue); }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         /* ÁREA DO MAPA E DETALHES */
@@ -201,17 +309,18 @@
             background: #222222;
             padding: 14px;
             border-radius: 10px;
-            margin-bottom: 10px;
             border-left: 4px solid var(--accent-blue);
             cursor: pointer;
             transition: background 0.2s;
-            position: relative;
-            z-index: 101;
         }
 
-        .trip-card:active, .trip-card.active {
+        .trip-card:hover {
+            background: #2a2a2a;
+        }
+
+        .trip-card.active {
             background: #2d382e;
-            border-left-color: #4caf50;
+            border-left-color: var(--success-color);
         }
 
         /* REGRAS RÍGIDAS DE ISOLAMENTO MOBILE */
@@ -219,7 +328,7 @@
             .sidebar {
                 width: 100%;
                 height: 100%;
-                display: block !important;
+                display: flex !important;
             }
 
             .content-area {
@@ -228,7 +337,6 @@
                 height: 100%;
             }
 
-            /* Quando selecionar uma rota: Esconde totalmente a lista e abre o mapa */
             .main-container.viewing-route .sidebar {
                 display: none !important;
             }
@@ -254,21 +362,26 @@
     <div class="header">
         <button id="btnBack" class="btn-back" onclick="voltarParaLista()">Voltar pras Rotas</button>
         <h3>Gestão de Frota</h3>
-        <span id="statusHeader" style="font-size:11px; color:var(--text-sub);">Selecione uma viagem</span>
+        <span id="statusHeader" style="font-size:11px; color:var(--text-sub);">Selecione uma data</span>
     </div>
 
     <div class="main-container" id="mainContainer">
-        <!-- BARRA LATERAL COM AS VIAGENS -->
+        <!-- BARRA LATERAL COM BOTÃO MASTER E GRUPOS DE DATAS -->
         <div class="sidebar" id="sidebar">
-            <h4 style="margin:0 0 12px 0; color:var(--accent-blue);">Viagens Gravadas</h4>
-            <div id="tripsList">Carregando histórico...</div>
+            <button class="btn-finish-all" onclick="encerrarTodasRotas()">
+                🛑 ENCERRAR TODAS AS ROTAS EM ANDAMENTO
+            </button>
+
+            <h4 style="margin:10px 0 0 0; color:var(--accent-blue);">Histórico por Data</h4>
+            <div id="dateGroupsList" style="display:flex; flex-direction:column; gap:8px;">
+                Carregando datas...
+            </div>
         </div>
 
         <!-- ÁREA DO MAPA E ESTATÍSTICAS -->
         <div class="content-area" id="contentArea">
             <div id="map"></div>
             
-            <!-- DETALHES DA CORRIDA ABAIXO DO MAPA -->
             <div class="stats-panel" id="statsPanel">
                 <div class="stats-grid">
                     <div class="stat-card">
@@ -293,6 +406,19 @@
                     <div class="incidents-detail-title">Ocorrências Registradas nesta Viagem:</div>
                     <div id="incidentsList"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JANELA MODAL PARA ROTAS DO DIA SELECIONADO -->
+    <div class="modal-overlay" id="routesModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4 id="modalTitle">Rotas do Dia</h4>
+                <button class="btn-close-modal" onclick="fecharModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalRoutesList">
+                <!-- Rotas serão inseridas aqui dinamicamente -->
             </div>
         </div>
     </div>
@@ -322,6 +448,7 @@
 
         let map = null;
         let trajetoLayerGroup = null;
+        let todasViagensAgrupadas = {};
 
         function inicializarMapa() {
             if (!map) {
@@ -332,44 +459,98 @@
             }
         }
 
+        // ESCOUTA EM TEMPO REAL E AGRUPA POR DATA
         db.ref('historico_viagens').on('value', (snapshot) => {
             const data = snapshot.val();
-            const tripsListEl = document.getElementById('tripsList');
-            tripsListEl.innerHTML = "";
+            const dateGroupsEl = document.getElementById('dateGroupsList');
+            dateGroupsEl.innerHTML = "";
+            todasViagensAgrupadas = {};
 
             if (!data) {
-                tripsListEl.innerHTML = "Nenhuma viagem encontrada.";
+                dateGroupsEl.innerHTML = "Nenhuma viagem registrada.";
                 return;
             }
 
-            const keys = Object.keys(data).reverse();
-            keys.forEach(key => {
+            // Separar as viagens pelas suas datas de início
+            Object.keys(data).forEach(key => {
                 const viagem = data[key];
-                const inicioStr = new Date(viagem.inicio).toLocaleString([], {dateStyle:'short', timeStyle:'short'});
+                viagem.key = key; // Salva a chave do Firebase
+
+                const dataObj = new Date(viagem.inicio);
+                const dataChave = dataObj.toLocaleDateString('pt-BR'); // Ex: 29/07/2026
+
+                if (!todasViagensAgrupadas[dataChave]) {
+                    todasViagensAgrupadas[dataChave] = [];
+                }
+                todasViagensAgrupadas[dataChave].push(viagem);
+            });
+
+            // Ordenar as datas da mais recente para a mais antiga
+            const datasOrdenadas = Object.keys(todasViagensAgrupadas).sort((a, b) => {
+                const pA = a.split('/').reverse().join('');
+                const pB = b.split('/').reverse().join('');
+                return pB.localeCompare(pA);
+            });
+
+            datasOrdenadas.forEach(dataStr => {
+                const qtdViagens = todasViagensAgrupadas[dataStr].length;
                 
-                let card = document.createElement('div');
-                card.className = "trip-card";
-                card.innerHTML = `
-                    <div style="font-size:14px; font-weight:bold;">${viagem.rotaNome || 'Rota'} (${viagem.placa || 'FCV'})</div>
-                    <div style="font-size:11px; color:#aaa; margin-top:4px;">Início: ${inicioStr}</div>
-                    <div style="font-size:11px; margin-top:2px;">Status: ${viagem.fim ? 'Finalizada' : 'Em andamento'}</div>
+                let btn = document.createElement('button');
+                btn.className = 'date-group-btn';
+                btn.innerHTML = `
+                    <span>📅 ${dataStr}</span>
+                    <span class="date-badge">${qtdViagens} ${qtdViagens === 1 ? 'viagem' : 'viagens'}</span>
                 `;
-                card.onclick = () => carregarRotaNoMapa(viagem, card);
-                tripsListEl.appendChild(card);
+                btn.onclick = () => abrirJanelaRotasDoDia(dataStr);
+                dateGroupsEl.appendChild(btn);
             });
         });
 
+        // ABRIR JANELA COM AS ROTAS DA DATA SELECIONADA
+        function abrirJanelaRotasDoDia(dataStr) {
+            const viagensDoDia = todasViagensAgrupadas[dataStr] || [];
+            document.getElementById('modalTitle').innerText = `Rotas de ${dataStr}`;
+            
+            const listEl = document.getElementById('modalRoutesList');
+            listEl.innerHTML = "";
+
+            // Ordenar viagens dentro do dia (mais recentes primeiro)
+            viagensDoDia.sort((a, b) => b.inicio - a.inicio);
+
+            viagensDoDia.forEach(viagem => {
+                const inicioStr = new Date(viagem.inicio).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                const statusTexto = viagem.fim ? '<span style="color:#4caf50;">Finalizada</span>' : '<span style="color:#ff9800;">Em andamento</span>';
+
+                let card = document.createElement('div');
+                card.className = "trip-card";
+                card.innerHTML = `
+                    <div style="font-size:14px; font-weight:bold; color:#fff;">${viagem.rotaNome || 'Rota'} (${viagem.placa || 'FCV'})</div>
+                    <div style="font-size:11px; color:#aaa; margin-top:4px;">Início: ${inicioStr}</div>
+                    <div style="font-size:11px; margin-top:2px;">Status: ${statusTexto}</div>
+                `;
+                card.onclick = () => {
+                    fecharModal();
+                    carregarRotaNoMapa(viagem, card);
+                };
+                listEl.appendChild(card);
+            });
+
+            document.getElementById('routesModal').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('routesModal').style.display = 'none';
+        }
+
+        // CARREGAR A ROTA NO MAPA
         function carregarRotaNoMapa(viagem, cardElement) {
             document.querySelectorAll('.trip-card').forEach(c => c.classList.remove('active'));
-            if(cardElement) cardElement.classList.add('active');
+            if (cardElement) cardElement.classList.add('active');
 
-            // Ativa o estado de visualização de rota
             document.getElementById('mainContainer').classList.add('viewing-route');
             document.getElementById('btnBack').style.display = 'inline-block';
 
-            // Inicializa mapa se ainda não existir
             inicializarMapa();
-
             trajetoLayerGroup.clearLayers();
 
             if (!viagem.pontosTrajeto) {
@@ -476,7 +657,45 @@
             document.getElementById('mainContainer').classList.remove('viewing-route');
             document.getElementById('statsPanel').style.display = 'none';
             document.getElementById('btnBack').style.display = 'none';
-            document.getElementById('statusHeader').innerText = "Selecione uma viagem";
+            document.getElementById('statusHeader').innerText = "Selecione uma data";
+        }
+
+        // FUNÇÃO MASTER PARA ENCERRAR TODAS AS ROTAS ABERTAS/BUGADAS
+        function encerrarTodasRotas() {
+            if (!confirm("Tem certeza que deseja encerrar TODAS as rotas em andamento ou pendentes no sistema?")) {
+                return;
+            }
+
+            db.ref('historico_viagens').once('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    alert("Nenhuma rota encontrada.");
+                    return;
+                }
+
+                let updates = {};
+                let quantidadeEncerrada = 0;
+                const agora = Date.now();
+
+                Object.keys(data).forEach(key => {
+                    if (!data[key].fim) {
+                        updates[`historico_viagens/${key}/fim`] = agora;
+                        quantidadeEncerrada++;
+                    }
+                });
+
+                if (quantidadeEncerrada > 0) {
+                    db.ref().update(updates)
+                        .then(() => {
+                            alert(`Sucesso! ${quantidadeEncerrada} rota(s) que estavam abertas/bugadas foram finalizadas.`);
+                        })
+                        .catch((err) => {
+                            alert("Erro ao encerrar rotas: " + err.message);
+                        });
+                } else {
+                    alert("Todas as rotas já estão devidamente finalizadas!");
+                }
+            });
         }
     </script>
 </body>
