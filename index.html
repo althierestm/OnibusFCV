@@ -343,7 +343,6 @@
             popupAnchor: [0, -14]
         });
 
-        // Ícone customizado da bolinha azul (Google Maps Style)
         const userLocationIcon = L.divIcon({
             className: 'user-location-marker',
             html: '<div class="user-location-pulse"></div><div class="user-location-dot"></div>',
@@ -385,8 +384,9 @@
                 .addTo(pontosPlantaoGroup);
         });
 
+        // Ícone do Ônibus Atualizado com a nova imagem do GitHub
         const busIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Pino%20Onibus%20FCV.png',
+            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%20appgps.png',
             iconSize: [60, 60],
             iconAnchor: [30, 30],
             popupAnchor: [0, -30]
@@ -427,7 +427,6 @@
             });
         });
 
-        // Inicia o rastreamento continuo da posição do passageiro
         function iniciarGeolocalizacao(centralizar = false) {
             if ("geolocation" in navigator) {
                 if (watchId === null) {
@@ -435,7 +434,6 @@
                         passengerPos = [position.coords.latitude, position.coords.longitude];
 
                         if (!passengerMarker) {
-                            // Cria o marcador com a bolinha azul pulsante
                             passengerMarker = L.marker(passengerPos, { icon: userLocationIcon })
                                 .addTo(map)
                                 .bindPopup("<b>Sua Posição</b>");
@@ -443,7 +441,6 @@
                             passengerMarker.setLatLng(passengerPos);
                         }
 
-                        // Se o alerta de 1km estiver ligado, atualiza o círculo de raio
                         if (alarmEnabled) {
                             if (!passengerCircle) {
                                 passengerCircle = L.circle(passengerPos, {
@@ -465,7 +462,6 @@
             }
         }
 
-        // Tenta pegar a localização assim que abre a página
         iniciarGeolocalizacao(false);
 
         function playBeep() {
