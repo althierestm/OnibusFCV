@@ -286,7 +286,7 @@
     </div>
 
     <div class="controls">
-        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de 1 km</button>
+        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de Proximidade</button>
         <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
         <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
         
@@ -377,6 +377,15 @@
         ];
 
         const pontosPlantaoGroup = L.layerGroup();
+        const routeCoords = pontosPlantao.map(p => p.coords);
+
+        // Desenhar a linha azul do trajeto no mapa
+        const rotaLinhaAzul = L.polyline(routeCoords, {
+            color: '#1a73e8',
+            weight: 5,
+            opacity: 0.75,
+            lineJoin: 'round'
+        });
 
         pontosPlantao.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
@@ -384,12 +393,12 @@
                 .addTo(pontosPlantaoGroup);
         });
 
-        // Ícone do Ônibus Atualizado (icone onibus 1.png)
+        // Ícone do Ônibus Reduzido (38x38 para não tampar o mapa)
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png',
-            iconSize: [60, 60],
-            iconAnchor: [30, 30],
-            popupAnchor: [0, -30]
+            iconSize: [38, 38],
+            iconAnchor: [19, 19],
+            popupAnchor: [0, -19]
         });
 
         let busData = {};
@@ -490,6 +499,20 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
+        // Função para encontrar o índice do ponto cadastrado mais próximo de uma coordenada
+        function obterPontoMaisProximo(coords) {
+            let menorDist = Infinity;
+            let indiceProximo = -1;
+            pontosPlantao.forEach((p, idx) => {
+                const d = calcularDistancia(coords[0], coords[1], p.coords[0], p.coords[1]);
+                if (d < menorDist) {
+                    menorDist = d;
+                    indiceProximo = idx;
+                }
+            });
+            return { index: indiceProximo, distanciaKm: menorDist, ponto: pontosPlantao[indiceProximo] };
+        }
+
         document.getElementById('focusBusBtn').addEventListener('click', () => {
             const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
@@ -514,7 +537,7 @@
         alarmBtn.addEventListener('click', () => {
             if (!alarmEnabled) {
                 alarmEnabled = true;
-                alarmBtn.innerText = "🔕 Desativar Alerta de 1 km";
+                alarmBtn.innerText = "🔕 Desativar Alerta";
                 alarmBtn.classList.add('active');
                 soundBtn.style.display = 'block';
 
@@ -526,7 +549,7 @@
                 iniciarGeolocalizacao();
             } else {
                 alarmEnabled = false; alarmTriggered = false;
-                alarmBtn.innerText = "🔔 Ativar Alerta de 1 km";
+                alarmBtn.innerText = "🔔 Ativar Alerta de Proximidade";
                 alarmBtn.classList.remove('active');
                 soundBtn.style.display = 'none';
 
@@ -546,34 +569,63 @@
 
         function checarProximidade() {
             if (!alarmEnabled || !passengerPos) return;
-            
-            let menorDistancia = Infinity;
+
+            const pontoPassageiro = obterPontoMaisProximo(passengerPos);
+            let alertaDisparadoPorPontos = false;
+
             Object.keys(busData).forEach(key => {
                 const bus = busData[key];
                 if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
-                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
-                    if (dist < menorDistancia) menorDistancia = dist;
+                    const pontoOnibus = obterPontoMaisProximo([bus.lat, bus.lng]);
+                    
+                    // Diferença de pontos (Ônibus aproxima do ponto do passageiro)
+                    const diferencaPontos = pontoPassageiro.index - pontoOnibus.index;
+
+                    if (diferencaPontos > 0 && diferencaPontos <= 2) {
+                        alertaDisparadoPorPontos = true;
+                        infoEl.innerHTML = `🚨 <b>ÔNIBUS CHEGANDO!</b><br>Ônibus no <b>${pontoOnibus.ponto.nome}</b><br>Faltam <b>${diferencaPontos} ponto(s)</b> para o seu (${pontoPassageiro.ponto.nome})`;
+                        infoEl.classList.add('alert-active');
+                        if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
+                    }
                 }
             });
 
-            if (menorDistancia <= 1.0) {
-                infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(menorDistancia * 1000)} metros</b>`;
-                infoEl.classList.add('alert-active');
-                if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
-            } else {
-                infoEl.classList.remove('alert-active');
-                alarmTriggered = false;
+            if (!alertaDisparadoPorPontos) {
+                // Checagem backup por raio de 1km caso não seja no trecho direto dos pontos
+                let menorDistancia = Infinity;
+                Object.keys(busData).forEach(key => {
+                    const bus = busData[key];
+                    if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
+                        const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
+                        if (dist < menorDistancia) menorDistancia = dist;
+                    }
+                });
+
+                if (menorDistancia <= 1.0) {
+                    infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(menorDistancia * 1000)} metros</b>`;
+                    infoEl.classList.add('alert-active');
+                    if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
+                } else {
+                    infoEl.classList.remove('alert-active');
+                    alarmTriggered = false;
+                }
             }
         }
 
         function atualizarExibicaoGeral() {
-            if (selectedRouteKey === 'plantao') {
+            if (selectedRouteKey === 'plantao' || selectedRouteKey === 'todas') {
                 if (!map.hasLayer(pontosPlantaoGroup)) {
                     map.addLayer(pontosPlantaoGroup);
+                }
+                if (!map.hasLayer(rotaLinhaAzul)) {
+                    map.addLayer(rotaLinhaAzul);
                 }
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) {
                     map.removeLayer(pontosPlantaoGroup);
+                }
+                if (map.hasLayer(rotaLinhaAzul)) {
+                    map.removeLayer(rotaLinhaAzul);
                 }
             }
 
