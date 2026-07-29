@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Painel do Gestor - FCV</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -12,52 +12,241 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #121212; color: #fff; }
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --accent-blue: #00a6fb;
+            --border-color: #333333;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- LOGIN OVERLAY --- */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #003a63; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+            background: linear-gradient(135deg, #003a63 0%, #0077b6 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; padding: 20px;
         }
-        .login-box { background: #1e1e1e; padding: 25px; border-radius: 12px; width: 300px; text-align: center; }
-        .login-box input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; }
-        .login-box button { width: 100%; padding: 12px; background: #00a6fb; border: none; color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        
-        .header { background: #1e1e1e; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        .main-container { display: flex; height: calc(100vh - 60px); }
-        .sidebar { width: 350px; background: #181818; border-right: 1px solid #333; padding: 15px; overflow-y: auto; }
-        #map { flex: 1; height: 100%; }
 
-        .trip-card { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #00a6fb; cursor: pointer; transition: 0.2s; }
-        .trip-card:hover { background: #303030; }
-        .trip-card.active { border-left-color: #4caf50; background: #2d382e; }
+        .login-box {
+            background: var(--card-bg);
+            padding: 25px; border-radius: 16px; width: 100%; max-width: 320px;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
 
-        .incident-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-top: 5px; }
-        .bg-red { background: #d32f2f; color: white; }
-        .bg-orange { background: #f57c00; color: white; }
+        .login-box input {
+            width: 100%; padding: 12px; margin: 8px 0;
+            border-radius: 8px; border: 1px solid var(--border-color);
+            background: #2a2a2a; color: #fff; font-size: 14px; outline: none;
+        }
+
+        .login-box button {
+            width: 100%; padding: 12px; background: var(--accent-blue);
+            border: none; color: #fff; font-weight: bold; border-radius: 8px;
+            cursor: pointer; font-size: 15px; margin-top: 10px;
+        }
+
+        /* --- HEADER PRINCIPAL --- */
+        .header {
+            background: var(--card-bg);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            height: 55px;
+            flex-shrink: 0;
+        }
+
+        .header h3 { margin: 0; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+        .btn-back {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none; /* Exibido apenas em telas menores ao abrir rota */
+        }
+
+        /* --- LAYOUT PRINCIPAL --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 55px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 340px;
+            background: #161616;
+            border-right: 1px solid var(--border-color);
+            padding: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        /* CARD DE MÉTRICAS E DETALHES */
+        .stats-panel {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 15px;
+            display: none; /* Exibido quando uma viagem é selecionada */
+            gap: 10px;
+            flex-shrink: 0;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            width: 100%;
+        }
+
+        .stat-card {
+            background: #262626;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .stat-card .val {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-top: 4px;
+        }
+
+        .stat-card .lbl {
+            font-size: 10px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trip-card {
+            background: #222222;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent-blue);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .trip-card:active, .trip-card.active {
+            background: #2d382e;
+            border-left-color: #4caf50;
+        }
+
+        /* --- RESPONSIVIDADE PARA CELULAR (MODO MOBILE) --- */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%;
+                height: 100%;
+            }
+
+            /* Quando selecionar uma rota, oculta a sidebar no mobile */
+            .main-container.viewing-route .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .btn-back { display: inline-block; }
+        }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h3>🛡️ Painel do Gestor</h3>
+            <h3 style="margin-top:0;">🛡️ Painel do Gestor</h3>
             <input type="text" id="adminUser" placeholder="Usuário">
             <input type="password" id="adminPass" placeholder="Senha">
-            <button onclick="autenticarAdmin()">Acessar</button>
+            <button onclick="autenticarAdmin()">Acessar Painel</button>
             <div id="adminError" style="color:#ff5252; display:none; margin-top:10px; font-size:12px;">Dados incorretos!</div>
         </div>
     </div>
 
     <div class="header">
-        <h3 style="margin:0;">🚌 FCV - Gestão de Frotas & Histórico</h3>
-        <span id="statusHeader" style="font-size:12px; color:#aaa;">Selecione uma viagem para visualizar a rota</span>
+        <button id="btnBack" class="btn-back" onclick="voltarParaLista()">⬅ Voltar pras Rotas</button>
+        <h3>🚌 Gestão de Frota</h3>
+        <span id="statusHeader" style="font-size:11px; color:var(--text-sub);">Selecione uma viagem</span>
     </div>
 
-    <div class="main-container">
+    <div class="main-container" id="mainContainer">
+        <!-- BARRA LATERAL COM AS VIAGENS -->
         <div class="sidebar">
-            <h4 style="margin-top:0;">📜 Histórico de Viagens</h4>
+            <h4 style="margin:0 0 12px 0; color:var(--accent-blue);">📜 Viagens Gravadas</h4>
             <div id="tripsList">Carregando histórico...</div>
         </div>
-        <div id="map"></div>
+
+        <!-- ÁREA DO MAPA E ESTATÍSTICAS -->
+        <div class="content-area">
+            <div id="map"></div>
+            
+            <!-- DETALHES DA CORRIDA ABAIXO DO MAPA -->
+            <div class="stats-panel" id="statsPanel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="lbl">Média Vel.</div>
+                        <div class="val" id="valAvgSpeed">0 km/h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Máx Vel.</div>
+                        <div class="val" id="valMaxSpeed" style="color:#ff9800;">0 km/h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Duração</div>
+                        <div class="val" id="valDuration">--:--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Ocorrências</div>
+                        <div class="val" id="valIncidents" style="color:#ff5252;">Nenhuma</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -83,7 +272,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const map = L.map('map').setView([-20.7933, -42.3683], 13);
+        const map = L.map('map', { zoomControl: false }).setView([-20.7933, -42.3683], 13);
+        L.control.zoom({ position: 'topright' }).addTo(map);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
         let trajetoLayerGroup = L.layerGroup().addTo(map);
@@ -106,9 +296,9 @@
                 let card = document.createElement('div');
                 card.className = "trip-card";
                 card.innerHTML = `
-                    <b>${viagem.rotaNome || 'Rota'}</b> (${viagem.placa || 'FCV'})<br>
-                    <small>📅 Início: ${inicioStr}</small><br>
-                    <small> Status: ${viagem.fim ? '🏁 Finalizada' : '🟢 Em andamento'}</small>
+                    <div style="font-size:14px; font-weight:bold;">${viagem.rotaNome || 'Rota'} (${viagem.placa || 'FCV'})</div>
+                    <div style="font-size:11px; color:#aaa; margin-top:4px;">📅 Início: ${inicioStr}</div>
+                    <div style="font-size:11px; margin-top:2px;">Status: ${viagem.fim ? '🏁 Finalizada' : '🟢 Em andamento'}</div>
                 `;
                 card.onclick = () => carregarRotaNoMapa(viagem, card);
                 tripsListEl.appendChild(card);
@@ -119,6 +309,9 @@
             document.querySelectorAll('.trip-card').forEach(c => c.classList.remove('active'));
             if(cardElement) cardElement.classList.add('active');
 
+            // Ativa modo de exibição no celular
+            document.getElementById('mainContainer').classList.add('viewing-route');
+
             trajetoLayerGroup.clearLayers();
 
             if (!viagem.pontosTrajeto) {
@@ -128,11 +321,19 @@
 
             const pontos = Object.values(viagem.pontosTrajeto);
             const latLngs = [];
+            let somaVelocidade = 0;
+            let maxVelocidade = 0;
+            let qtdAcidentes = 0;
+            let qtdQuebrados = 0;
             let ultimoTempoMarcador = 0;
 
             pontos.forEach((p, index) => {
                 const pos = [p.lat, p.lng];
                 latLngs.push(pos);
+
+                const speed = p.velocidade || 0;
+                somaVelocidade += speed;
+                if (speed > maxVelocidade) maxVelocidade = speed;
 
                 const horaFormatada = new Date(p.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
@@ -148,28 +349,64 @@
                         .bindPopup(`🏁 <b>Fim da Viagem</b><br>Horário: ${horaFormatada}`);
                 }
 
-                // 3. Marca pontos no mapa a cada 5 Minutos (300.000 ms)
+                // 3. Marca pontos a cada 5 Minutos (300.000 ms)
                 if (index > 0 && (p.timestamp - ultimoTempoMarcador >= 300000)) {
                     L.circleMarker(pos, { radius: 6, color: '#00a6fb', fillColor: '#fff', fillOpacity: 1 }).addTo(trajetoLayerGroup)
-                        .bindPopup(`⏱️ <b>Passagem (5 min)</b><br>Horário: ${horaFormatada}<br>Velocidade: ${p.velocidade} km/h`);
+                        .bindPopup(`⏱️ <b>Passagem (5 min)</b><br>Horário: ${horaFormatada}<br>Velocidade: ${speed} km/h`);
                     ultimoTempoMarcador = p.timestamp;
                 }
 
-                // 4. Marca Ocorrências (Acidente ou Ônibus Quebrado)
+                // 4. Contabiliza Ocorrências
                 if (p.ocorrencia === 'acidente') {
+                    qtdAcidentes++;
                     L.marker(pos).addTo(trajetoLayerGroup)
                         .bindPopup(`⚠️ <b style="color:red;">ALERTA DE TRÂNSITO / ACIDENTE</b><br>Relatado às: ${horaFormatada}`);
                 } else if (p.ocorrencia === 'quebrado') {
+                    qtdQuebrados++;
                     L.marker(pos).addTo(trajetoLayerGroup)
                         .bindPopup(`🔧 <b style="color:orange;">ÔNIBUS COM DEFEITO</b><br>Relatado às: ${horaFormatada}`);
                 }
             });
 
-            // Desenha a linha azul do trajeto percorrido
+            // Linha azul da rota no mapa
             const polyline = L.polyline(latLngs, { color: '#00a6fb', weight: 5, opacity: 0.8 }).addTo(trajetoLayerGroup);
-            map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
+            
+            setTimeout(() => {
+                map.invalidateSize();
+                map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+            }, 300);
 
-            document.getElementById('statusHeader').innerText = `Exibindo trajeto de ${viagem.rotaNome} (${latLngs.length} pontos gravados)`;
+            // CALCULAR MÉTRICAS DE CORRIDA
+            const mediaVel = Math.round(somaVelocidade / pontos.length) || 0;
+            document.getElementById('valAvgSpeed').innerText = `${mediaVel} km/h`;
+            document.getElementById('valMaxSpeed').innerText = `${maxVelocidade} km/h`;
+
+            // DURAÇÃO
+            const tempoFim = viagem.fim || Date.now();
+            const duracaoSegs = Math.floor((tempoFim - viagem.inicio) / 1000);
+            const mins = Math.floor(duracaoSegs / 60);
+            const hrs = Math.floor(mins / 60);
+            document.getElementById('valDuration').innerText = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins} min`;
+
+            // OCORRÊNCIAS
+            const totalIncidents = qtdAcidentes + qtdQuebrados;
+            const incEl = document.getElementById('valIncidents');
+            if (totalIncidents === 0) {
+                incEl.innerText = "Nenhuma";
+                incEl.style.color = "#4caf50";
+            } else {
+                incEl.innerText = `${totalIncidents} Alerta(s)`;
+                incEl.style.color = "#ff5252";
+            }
+
+            document.getElementById('statsPanel').style.display = 'block';
+            document.getElementById('statusHeader').innerText = `${viagem.rotaNome} (${latLngs.length} pontos)`;
+        }
+
+        function voltarParaLista() {
+            document.getElementById('mainContainer').classList.remove('viewing-route');
+            document.getElementById('statsPanel').style.display = 'none';
+            document.getElementById('statusHeader').innerText = "Selecione uma viagem";
         }
     </script>
 </body>
