@@ -2,334 +2,75 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel Gestor - FCV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Gestor - FCV</title>
     
-    <!-- Leaflet CSS (Mapa) -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <meta name="theme-color" content="#003a63">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <style>
-        :root {
-            --bg-color: #000000;
-            --container-bg: #0d0d0d;
-            --text-color: #ffffff;
-            --box-bg: #161616;
-            --border-color: #262626;
-            --accent-color: #00a6fb;
-            --fcv-blue: #005691;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        /* --- BADGE ADMIN --- */
-        .admin-badge {
-            background-color: #00a6fb;
-            color: #000000;
-            font-size: 10px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            display: inline-block;
-        }
-
-        /* --- TELA DE LOGIN --- */
-        #loginOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #001f3f 0%, #003a63 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 9999;
-            padding: 30px 20px;
-            box-sizing: border-box;
-        }
-
-        .login-header { margin-top: 30px; text-align: center; }
-        .login-logo { max-width: 160px; height: auto; margin-bottom: 10px; }
-        
-        .login-title {
-            color: #ffffff;
-            font-size: 20px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .login-card {
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 25px 20px;
-            border-radius: 18px;
-            width: 100%;
-            max-width: 320px;
-            box-sizing: border-box;
-        }
-
-        .login-input-group { margin-bottom: 15px; text-align: left; }
-        .login-input-group label {
-            display: block;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px 15px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.4);
-            color: #ffffff;
-            font-size: 15px;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: #00a6fb;
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .login-error {
-            color: #ff5252;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 12px;
-            text-align: center;
-            display: none;
-            background: rgba(255, 0, 0, 0.2);
-            padding: 8px;
-            border-radius: 6px;
-        }
-
-        .login-footer-logo { max-width: 130px; opacity: 0.8; }
-
-        /* --- DASHBOARD PRINCIPAL --- */
-        .container {
-            width: 100%;
-            max-width: 800px;
-            background-color: var(--container-bg);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid var(--border-color);
-            box-sizing: border-box;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-        }
-
-        .top-bar h2 { margin: 0; color: var(--accent-color); font-size: 20px; }
-
-        .select-box {
-            background: var(--box-bg);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 20px;
-        }
-
-        .select-box label {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--accent-color);
-            display: block;
-            margin-bottom: 8px;
-        }
-
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            background: var(--container-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            font-size: 14px;
-            outline: none;
-        }
-
-        /* ESTATÍSTICAS DA VIAGEM */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: var(--box-bg);
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-        }
-
-        .stat-card .title { font-size: 11px; opacity: 0.7; text-transform: uppercase; }
-        .stat-card .value { font-size: 18px; font-weight: bold; color: #4caf50; margin-top: 5px; }
-
-        /* MAPA DE REPLAY */
-        #map {
-            width: 100%;
-            height: 380px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            z-index: 1;
-        }
-
-        .footer {
-            margin-top: 20px;
-            padding-top: 15px;
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .footer-logo { max-width: 100px; opacity: 0.8; }
-        .footer-credit { font-size: 9px; opacity: 0.4; margin-top: 5px; }
-    </style>
-
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #121212; color: #fff; }
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #003a63; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-box { background: #1e1e1e; padding: 25px; border-radius: 12px; width: 300px; text-align: center; }
+        .login-box input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; }
+        .login-box button { width: 100%; padding: 12px; background: #00a6fb; border: none; color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        
+        .header { background: #1e1e1e; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        .main-container { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 350px; background: #181818; border-right: 1px solid #333; padding: 15px; overflow-y: auto; }
+        #map { flex: 1; height: 100%; }
+
+        .trip-card { background: #252525; padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #00a6fb; cursor: pointer; transition: 0.2s; }
+        .trip-card:hover { background: #303030; }
+        .trip-card.active { border-left-color: #4caf50; background: #2d382e; }
+
+        .incident-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; margin-top: 5px; }
+        .bg-red { background: #d32f2f; color: white; }
+        .bg-orange { background: #f57c00; color: white; }
+    </style>
 </head>
 <body>
 
-    <!-- OVERLAY TELA DE LOGIN GESTOR -->
     <div id="loginOverlay">
-        <div class="login-header">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
-            <div class="login-title">
-                <span class="admin-badge">GESTOR</span> Telemetria
-            </div>
-        </div>
-
-        <form class="login-card" id="loginForm" onsubmit="return false;">
-            <div class="login-input-group">
-                <label for="usernameInput">Usuário Gestor</label>
-                <input type="text" id="usernameInput" class="login-input" placeholder="Digite o usuário" required autocomplete="username">
-            </div>
-            
-            <div class="login-input-group">
-                <label for="passwordInput">Senha</label>
-                <input type="password" id="passwordInput" class="login-input" placeholder="Digite a senha" required autocomplete="current-password">
-            </div>
-
-            <button type="submit" class="btn-login">Acessar Painel</button>
-            <div id="loginError" class="login-error">Credenciais incorretas!</div>
-        </form>
-
-        <div class="login-footer">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="FCV" class="login-footer-logo">
+        <div class="login-box">
+            <h3>🛡️ Painel do Gestor</h3>
+            <input type="text" id="adminUser" placeholder="Usuário">
+            <input type="password" id="adminPass" placeholder="Senha">
+            <button onclick="autenticarAdmin()">Acessar</button>
+            <div id="adminError" style="color:#ff5252; display:none; margin-top:10px; font-size:12px;">Dados incorretos!</div>
         </div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL DO DASHBOARD -->
-    <div class="container">
-        <div class="top-bar">
-            <h2>📊 Painel de Telemetria</h2>
-            <span class="admin-badge">GESTOR</span>
-        </div>
+    <div class="header">
+        <h3 style="margin:0;">🚌 FCV - Gestão de Frotas & Histórico</h3>
+        <span id="statusHeader" style="font-size:12px; color:#aaa;">Selecione uma viagem para visualizar a rota</span>
+    </div>
 
-        <div class="select-box">
-            <label for="tripSelect">🔍 SELECIONE UMA VIAGEM REGISTRADA:</label>
-            <select id="tripSelect">
-                <option value="">Carregando lista de relatórios...</option>
-            </select>
+    <div class="main-container">
+        <div class="sidebar">
+            <h4 style="margin-top:0;">📜 Histórico de Viagens</h4>
+            <div id="tripsList">Carregando histórico...</div>
         </div>
-
-        <!-- MÉTRICAS DA CORRIDA -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="title">Código</div>
-                <div class="value" id="valCodigo" style="color:var(--accent-color);">#-----</div>
-            </div>
-            <div class="stat-card">
-                <div class="title">Duração</div>
-                <div class="value" id="valDuracao">--:--:--</div>
-            </div>
-            <div class="stat-card">
-                <div class="title">Vel. Média</div>
-                <div class="value" id="valVelMedia">0 km/h</div>
-            </div>
-            <div class="stat-card">
-                <div class="title">Distância</div>
-                <div class="value" id="valDistancia">0 km</div>
-            </div>
-        </div>
-
-        <!-- MAPA DO REPLAY DA ROTA -->
         <div id="map"></div>
-
-        <div class="footer">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
-            <div class="footer-credit">by Althieres Dias</div>
-        </div>
     </div>
 
     <script>
-        // --- LOGICA DE AUTENTICAÇÃO ---
-        const loginOverlay = document.getElementById('loginOverlay');
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('usernameInput');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginError = document.getElementById('loginError');
-
-        if (sessionStorage.getItem('fcv_gestor_autenticado') === 'true') {
-            loginOverlay.style.display = 'none';
-        }
-
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (usernameInput.value.trim() === "Althieres" && passwordInput.value.trim() === "@lthieresTM") {
-                loginError.style.display = 'none';
-                sessionStorage.setItem('fcv_gestor_autenticado', 'true');
-                loginOverlay.style.display = 'none';
-                setTimeout(() => map.invalidateSize(), 300);
+        function autenticarAdmin() {
+            if (document.getElementById('adminUser').value === "Althieres" && document.getElementById('adminPass').value === "@lthieresTM") {
+                sessionStorage.setItem('fcv_admin', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
             } else {
-                loginError.style.display = 'block';
-                passwordInput.value = '';
+                document.getElementById('adminError').style.display = 'block';
             }
-        });
+        }
+        if (sessionStorage.getItem('fcv_admin') === 'true') document.getElementById('loginOverlay').style.display = 'none';
 
-        // --- FIREBASE INITIALIZATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
             authDomain: "rotasfcv.firebaseapp.com",
@@ -339,122 +80,96 @@
             messagingSenderId: "235141426187",
             appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- MAPA LEAFLET ---
-        const map = L.map('map').setView([-21.226, -42.368], 13); // Coordenadas Padrão Muriaé/Limeira
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
+        const map = L.map('map').setView([-20.7933, -42.3683], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
 
-        let currentPolyline = null;
-        let eventMarkers = [];
+        let trajetoLayerGroup = L.layerGroup().addTo(map);
 
-        const tripSelect = document.getElementById('tripSelect');
-        let dadosViagens = {};
-
-        // CARREGA HISTÓRICO DE VIAGENS NO DROPDOWN
         db.ref('historico_viagens').on('value', (snapshot) => {
-            dadosViagens = snapshot.val() || {};
-            tripSelect.innerHTML = '<option value="">-- Escolha uma viagem --</option>';
+            const data = snapshot.val();
+            const tripsListEl = document.getElementById('tripsList');
+            tripsListEl.innerHTML = "";
 
-            const keys = Object.keys(dadosViagens).reverse();
-            keys.forEach(key => {
-                const v = dadosViagens[key];
-                const codigo = v.codigoViagem ? `#${v.codigoViagem}` : '#00000';
-                const rota = v.rotaNome || 'Rota';
-                const data = v.inicio ? new Date(v.inicio).toLocaleDateString('pt-BR') : '';
-                const hora = v.inicio ? new Date(v.inicio).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
-
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.innerText = `${codigo} - ${rota} (${data} às ${hora})`;
-                tripSelect.appendChild(opt);
-            });
-        });
-
-        // AO SELECIONAR UMA VIAGEM
-        tripSelect.addEventListener('change', (e) => {
-            const key = e.target.value;
-            if (!key || !dadosViagens[key]) return;
-
-            const viagem = dadosViagens[key];
-            
-            // ATUALIZA CARDS
-            document.getElementById('valCodigo').innerText = viagem.codigoViagem ? `#${viagem.codigoViagem}` : '#-----';
-            
-            if (viagem.inicio && viagem.fim) {
-                const segs = Math.floor((viagem.fim - viagem.inicio) / 1000);
-                const h = Math.floor(segs / 3600).toString().padStart(2, '0');
-                const m = Math.floor((segs % 3600) / 60).toString().padStart(2, '0');
-                const s = Math.floor(segs % 60).toString().padStart(2, '0');
-                document.getElementById('valDuracao').innerText = `${h}:${m}:${s}`;
-            } else {
-                document.getElementById('valDuracao').innerText = 'Em andamento';
-            }
-
-            // DESENHA ROTA E CALCULA MÉTRICAS SE HOUVER TRAJETOS SALVOS
-            const pontos = viagem.pontosTrajeto || [];
-            
-            // Limpa mapa anterior
-            if (currentPolyline) map.removeLayer(currentPolyline);
-            eventMarkers.forEach(m => map.removeLayer(m));
-            eventMarkers = [];
-
-            if (pontos.length === 0) {
-                document.getElementById('valVelMedia').innerText = 'Sem dados';
-                document.getElementById('valDistancia').innerText = '0 km';
+            if (!data) {
+                tripsListEl.innerHTML = "Nenhuma viagem encontrada.";
                 return;
             }
 
-            let latLngs = [];
-            let velSoma = 0;
-            let distTotalMetros = 0;
+            const keys = Object.keys(data).reverse();
+            keys.forEach(key => {
+                const viagem = data[key];
+                const inicioStr = new Date(viagem.inicio).toLocaleString([], {dateStyle:'short', timeStyle:'short'});
+                
+                let card = document.createElement('div');
+                card.className = "trip-card";
+                card.innerHTML = `
+                    <b>${viagem.rotaNome || 'Rota'}</b> (${viagem.placa || 'FCV'})<br>
+                    <small>📅 Início: ${inicioStr}</small><br>
+                    <small> Status: ${viagem.fim ? '🏁 Finalizada' : '🟢 Em andamento'}</small>
+                `;
+                card.onclick = () => carregarRotaNoMapa(viagem, card);
+                tripsListEl.appendChild(card);
+            });
+        });
 
-            pontos.forEach((pt, idx) => {
-                const pos = [pt.lat, pt.lng];
+        function carregarRotaNoMapa(viagem, cardElement) {
+            document.querySelectorAll('.trip-card').forEach(c => c.classList.remove('active'));
+            if(cardElement) cardElement.classList.add('active');
+
+            trajetoLayerGroup.clearLayers();
+
+            if (!viagem.pontosTrajeto) {
+                alert("Esta viagem não possui pontos de trajeto registrados.");
+                return;
+            }
+
+            const pontos = Object.values(viagem.pontosTrajeto);
+            const latLngs = [];
+            let ultimoTempoMarcador = 0;
+
+            pontos.forEach((p, index) => {
+                const pos = [p.lat, p.lng];
                 latLngs.push(pos);
-                velSoma += (pt.velocidade || 0);
 
-                if (idx > 0) {
-                    const ant = pontos[idx - 1];
-                    distTotalMetros += calcularDistanciaMetros(ant.lat, ant.lng, pt.lat, pt.lng);
+                const horaFormatada = new Date(p.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                // 1. Marca Ponto de Início
+                if (index === 0) {
+                    L.marker(pos).addTo(trajetoLayerGroup)
+                        .bindPopup(`🚀 <b>Início da Viagem</b><br>Horário: ${horaFormatada}`);
                 }
 
-                // MARCADORES DE OCORRÊNCIA NA PISTA
-                if (pt.ocorrenciaManual) {
-                    const icone = pt.ocorrenciaManual === 'acidente' ? '⚠️' : '🔧';
-                    const texto = pt.ocorrenciaManual === 'acidente' ? 'Trânsito/Acidente' : 'Defeito Mecânico';
-                    
-                    const marker = L.marker(pos).addTo(map)
-                        .bindPopup(`<b>${icone} Ocorrência:</b> ${texto}`);
-                    eventMarkers.push(marker);
+                // 2. Marca Ponto de Fim
+                if (index === pontos.length - 1 && viagem.fim) {
+                    L.marker(pos).addTo(trajetoLayerGroup)
+                        .bindPopup(`🏁 <b>Fim da Viagem</b><br>Horário: ${horaFormatada}`);
+                }
+
+                // 3. Marca pontos no mapa a cada 5 Minutos (300.000 ms)
+                if (index > 0 && (p.timestamp - ultimoTempoMarcador >= 300000)) {
+                    L.circleMarker(pos, { radius: 6, color: '#00a6fb', fillColor: '#fff', fillOpacity: 1 }).addTo(trajetoLayerGroup)
+                        .bindPopup(`⏱️ <b>Passagem (5 min)</b><br>Horário: ${horaFormatada}<br>Velocidade: ${p.velocidade} km/h`);
+                    ultimoTempoMarcador = p.timestamp;
+                }
+
+                // 4. Marca Ocorrências (Acidente ou Ônibus Quebrado)
+                if (p.ocorrencia === 'acidente') {
+                    L.marker(pos).addTo(trajetoLayerGroup)
+                        .bindPopup(`⚠️ <b style="color:red;">ALERTA DE TRÂNSITO / ACIDENTE</b><br>Relatado às: ${horaFormatada}`);
+                } else if (p.ocorrencia === 'quebrado') {
+                    L.marker(pos).addTo(trajetoLayerGroup)
+                        .bindPopup(`🔧 <b style="color:orange;">ÔNIBUS COM DEFEITO</b><br>Relatado às: ${horaFormatada}`);
                 }
             });
 
-            // DESENHA A LINHA AZUL NO MAPA
-            currentPolyline = L.polyline(latLngs, {color: '#00a6fb', weight: 4}).addTo(map);
-            map.fitBounds(currentPolyline.getBounds());
+            // Desenha a linha azul do trajeto percorrido
+            const polyline = L.polyline(latLngs, { color: '#00a6fb', weight: 5, opacity: 0.8 }).addTo(trajetoLayerGroup);
+            map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
 
-            // ATUALIZA VELOCIDADE MÉDIA E DISTÂNCIA
-            const velMedia = Math.round(velSoma / pontos.length);
-            const distKm = (distTotalMetros / 1000).toFixed(2);
-
-            document.getElementById('valVelMedia').innerText = `${velMedia} km/h`;
-            document.getElementById('valDistancia').innerText = `${distKm} km`;
-        });
-
-        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+            document.getElementById('statusHeader').innerText = `Exibindo trajeto de ${viagem.rotaNome} (${latLngs.length} pontos gravados)`;
         }
     </script>
 </body>
