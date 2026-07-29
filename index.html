@@ -377,15 +377,6 @@
         ];
 
         const pontosPlantaoGroup = L.layerGroup();
-        const routeCoords = pontosPlantao.map(p => p.coords);
-
-        // Desenhar a linha azul do trajeto no mapa
-        const rotaLinhaAzul = L.polyline(routeCoords, {
-            color: '#1a73e8',
-            weight: 5,
-            opacity: 0.75,
-            lineJoin: 'round'
-        });
 
         pontosPlantao.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
@@ -393,7 +384,7 @@
                 .addTo(pontosPlantaoGroup);
         });
 
-        // Ícone do Ônibus Reduzido (38x38 para não tampar o mapa)
+        // Ícone do Ônibus Reduzido (38x38)
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png',
             iconSize: [38, 38],
@@ -499,7 +490,6 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // Função para encontrar o índice do ponto cadastrado mais próximo de uma coordenada
         function obterPontoMaisProximo(coords) {
             let menorDist = Infinity;
             let indiceProximo = -1;
@@ -578,7 +568,6 @@
                 if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
                     const pontoOnibus = obterPontoMaisProximo([bus.lat, bus.lng]);
                     
-                    // Diferença de pontos (Ônibus aproxima do ponto do passageiro)
                     const diferencaPontos = pontoPassageiro.index - pontoOnibus.index;
 
                     if (diferencaPontos > 0 && diferencaPontos <= 2) {
@@ -591,7 +580,6 @@
             });
 
             if (!alertaDisparadoPorPontos) {
-                // Checagem backup por raio de 1km caso não seja no trecho direto dos pontos
                 let menorDistancia = Infinity;
                 Object.keys(busData).forEach(key => {
                     const bus = busData[key];
@@ -617,15 +605,9 @@
                 if (!map.hasLayer(pontosPlantaoGroup)) {
                     map.addLayer(pontosPlantaoGroup);
                 }
-                if (!map.hasLayer(rotaLinhaAzul)) {
-                    map.addLayer(rotaLinhaAzul);
-                }
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) {
                     map.removeLayer(pontosPlantaoGroup);
-                }
-                if (map.hasLayer(rotaLinhaAzul)) {
-                    map.removeLayer(rotaLinhaAzul);
                 }
             }
 
