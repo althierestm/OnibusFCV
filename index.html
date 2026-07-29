@@ -20,10 +20,11 @@
             margin: 0; 
             padding: 0; 
             height: 100%; 
-            font-family: Arial, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
+            background-color: #000;
         }
 
         #map { 
@@ -32,13 +33,15 @@
             touch-action: manipulation;
         }
 
-        /* Selo BETA */
+        /* Selo BETA reposicionado */
         .beta-badge {
             position: absolute;
-            top: 20px;
-            right: 15px;
-            z-index: 1000;
-            background: linear-gradient(135deg, #1a73e8, #6a1b9a);
+            top: 16px;
+            right: 16px;
+            z-index: 1001;
+            background: rgba(26, 115, 232, 0.75);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
             color: #ffffff;
             font-size: 10px;
             font-weight: 800;
@@ -46,19 +49,19 @@
             border-radius: 12px;
             letter-spacing: 1px;
             text-transform: uppercase;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.25);
             pointer-events: none;
         }
 
-        /* Estilo do Ponto Azul estilo Google Maps */
+        /* Estilo Ponto Azul GPS */
         .user-location-dot {
             width: 16px;
             height: 16px;
-            background-color: #1a73e8;
+            background-color: #007aff;
             border: 3px solid #ffffff;
             border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0,0,0,0.4);
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
             position: relative;
         }
 
@@ -68,7 +71,7 @@
             left: -6px;
             width: 28px;
             height: 28px;
-            background-color: rgba(26, 115, 232, 0.35);
+            background-color: rgba(0, 122, 255, 0.35);
             border-radius: 50%;
             animation: gpsPulse 2s infinite ease-out;
             pointer-events: none;
@@ -79,53 +82,52 @@
             100% { transform: scale(1.8); opacity: 0; }
         }
 
+        /* Caixa de Informações - Estilo Glassmorphism iOS (Posicionada abaixo do Beta) */
         .info-box {
             position: absolute;
-            top: 20px;
+            top: 52px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(20, 20, 20, 0.75);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #fff;
-            padding: 12px 20px;
+            background: rgba(25, 25, 25, 0.65);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            padding: 12px 18px;
             border-radius: 20px;
             font-size: 13px;
-            line-height: 1.5;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            line-height: 1.45;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
             text-align: center;
-            width: 85%;
+            width: 88%;
             max-width: 380px;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-sizing: border-box;
         }
 
-        .nobreak { white-space: nowrap; }
-
         .badge-status {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 3px 9px;
             border-radius: 12px;
             font-size: 11px;
-            font-weight: bold;
-            margin-top: 3px;
+            font-weight: 600;
+            margin-top: 4px;
         }
 
-        .status-normal { background-color: rgba(46, 125, 50, 0.85); color: #fff; }
-        .status-lento { background-color: rgba(245, 124, 0, 0.85); color: #fff; }
-        .status-parado { background-color: rgba(198, 40, 40, 0.85); color: #fff; }
-        .status-emergencia { background-color: rgba(211, 47, 47, 0.9); color: #fff; font-size: 12px; padding: 5px 10px; }
+        .status-normal { background-color: rgba(52, 199, 89, 0.85); color: #fff; }
+        .status-lento { background-color: rgba(255, 149, 0, 0.85); color: #fff; }
+        .status-parado { background-color: rgba(255, 59, 48, 0.85); color: #fff; }
+        .status-emergencia { background-color: rgba(255, 45, 85, 0.9); color: #fff; font-size: 12px; padding: 5px 10px; }
 
         .alert-active {
-            background: rgba(183, 28, 28, 0.85) !important;
+            background: rgba(255, 59, 48, 0.75) !important;
             animation: pulse 1s infinite alternate;
         }
 
         @keyframes pulse {
             from { transform: translateX(-50%) scale(1); }
-            to { transform: translateX(-50%) scale(1.03); }
+            to { transform: translateX(-50%) scale(1.02); }
         }
 
         .controls {
@@ -146,43 +148,66 @@
             width: 100%;
             border: none;
             padding: 12px 20px;
-            border-radius: 25px;
+            border-radius: 22px;
             font-size: 14px;
-            font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
             cursor: pointer;
             transition: all 0.2s ease;
             touch-action: manipulation;
         }
 
-        .btn-alarm { background-color: #2196F3; color: #ffffff; }
-        .btn-alarm.active { background-color: #f44336; color: #fff; }
+        .btn-alarm { 
+            background: rgba(0, 122, 255, 0.85);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            color: #ffffff; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-alarm.active { 
+            background: rgba(255, 59, 48, 0.85); 
+            color: #fff; 
+        }
 
-        .btn-sound { background-color: #333333; color: #ffffff; display: none; border: 1px solid #555; }
-        .btn-sound.muted { background-color: #555555; color: #ffc107; }
+        .btn-sound { 
+            background: rgba(45, 45, 45, 0.7); 
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            color: #ffffff; 
+            display: none; 
+            border: 1px solid rgba(255, 255, 255, 0.15); 
+        }
+        .btn-sound.muted { background: rgba(75, 75, 75, 0.8); color: #ffcc00; }
 
-        .btn-install { display: none; background-color: #0088cc; color: white; }
+        .btn-install { 
+            display: none; 
+            background: rgba(0, 122, 255, 0.85); 
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            color: white; 
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
 
         .ios-install-box {
             display: none;
-            background: rgba(30, 30, 30, 0.75);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+            background: rgba(25, 25, 25, 0.65);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            backdrop-filter: blur(16px) saturate(180%);
             color: #ffffff;
             padding: 12px 16px;
             border-radius: 18px;
             font-size: 13px;
             line-height: 1.4;
             text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             width: 100%;
             box-sizing: border-box;
         }
 
         .right-nav-buttons {
             position: absolute;
-            right: 15px;
+            right: 16px;
             bottom: 120px;
             z-index: 1000;
             display: flex;
@@ -191,52 +216,55 @@
         }
 
         .btn-floating {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            border: none;
-            background: #ffffff;
-            color: #333;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.75);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            color: #1c1c1e;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            transition: transform 0.2s ease;
+            font-size: 20px;
+            transition: transform 0.2s ease, background-color 0.2s ease;
             touch-action: manipulation;
         }
 
         .btn-floating:active { transform: scale(0.92); }
 
+        /* Modal Seleção de Rota iOS */
         .route-modal {
             display: none;
             position: absolute;
             bottom: 120px;
-            right: 75px;
+            right: 72px;
             z-index: 1001;
-            background: rgba(20, 20, 20, 0.92);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 10px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            width: 210px;
+            background: rgba(25, 25, 25, 0.75);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+            padding: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            width: 200px;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
 
         .route-modal.active { display: flex; }
 
         .route-option {
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
             color: #fff;
             border: 1px solid transparent;
             padding: 10px 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 600;
             text-align: left;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -246,7 +274,7 @@
         }
 
         .route-option:active, .route-option.selected {
-            background: #2196F3;
+            background: rgba(0, 122, 255, 0.85);
             color: #fff;
             border-color: rgba(255, 255, 255, 0.3);
         }
@@ -273,7 +301,7 @@
         .footer-credit {
             font-size: 8px;
             color: #ffffff;
-            opacity: 0.5;
+            opacity: 0.6;
             margin-top: 2px;
             text-transform: none;
             text-align: center;
@@ -293,11 +321,13 @@
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
     <div class="route-modal" id="routeModal">
-        <button class="route-option selected" data-value="todas">🚌 Exibir Todas</button>
-        <button class="route-option" data-value="plantao">📍 Rota de Plantão</button>
+        <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
+        <!-- Demais rotas ocultas temporariamente
+        <button class="route-option" data-value="todas">🚌 Exibir Todas</button>
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (GSH-5A89)</button>
         <button class="route-option" data-value="rota_02">🚌 Rota 02 (GFH-8D02)</button>
         <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
+        -->
     </div>
 
     <div class="right-nav-buttons">
@@ -405,7 +435,6 @@
                 .addTo(pontosPlantaoGroup);
         });
 
-        // Ícone do Ônibus Reduzido (38x38)
         const busIcon = L.icon({
             iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png',
             iconSize: [38, 38],
@@ -418,7 +447,9 @@
         let passengerMarker = null, passengerCircle = null;
         let passengerPos = null, watchId = null;
         let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
-        let selectedRouteKey = 'todas';
+        
+        // Rota padrão definida como Rota de Plantão
+        let selectedRouteKey = 'plantao';
 
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
@@ -465,7 +496,7 @@
                         if (alarmEnabled) {
                             if (!passengerCircle) {
                                 passengerCircle = L.circle(passengerPos, {
-                                    radius: 1000, color: '#1a73e8', fillColor: '#1a73e8', fillOpacity: 0.08, weight: 1.5
+                                    radius: 1000, color: '#007aff', fillColor: '#007aff', fillOpacity: 0.08, weight: 1.5
                                 }).addTo(map);
                             } else {
                                 passengerCircle.setLatLng(passengerPos);
@@ -554,7 +585,7 @@
 
                 if (passengerPos) {
                     passengerCircle = L.circle(passengerPos, {
-                        radius: 1000, color: '#1a73e8', fillColor: '#1a73e8', fillOpacity: 0.08, weight: 1.5
+                        radius: 1000, color: '#007aff', fillColor: '#007aff', fillOpacity: 0.08, weight: 1.5
                     }).addTo(map);
                 }
                 iniciarGeolocalizacao();
@@ -657,7 +688,7 @@
             if (onibusEmCirculacao === 0) {
                 infoEl.innerHTML = selectedRouteKey === 'todas' 
                     ? "Nenhum ônibus em rota no momento." 
-                    : "Esta rota está Offline no momento.";
+                    : "Esta rota está offline no momento.";
                 infoEl.classList.remove('alert-active');
                 return;
             }
