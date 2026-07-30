@@ -33,7 +33,6 @@
             touch-action: manipulation;
         }
 
-        
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
@@ -112,7 +111,6 @@
             background: rgba(255, 255, 255, 0.22);
         }
 
-        
         .beta-badge {
             position: absolute;
             top: 16px;
@@ -133,7 +131,6 @@
             pointer-events: none;
         }
 
-        
         .user-location-dot {
             width: 16px;
             height: 16px;
@@ -161,7 +158,6 @@
             100% { transform: scale(1.8); opacity: 0; }
         }
 
-        
         .info-box {
             position: absolute;
             top: 52px;
@@ -209,7 +205,6 @@
             to { transform: translateX(-50%) scale(1.02); }
         }
 
-        
         .bus-pin-wrapper {
             position: relative;
             width: 42px;
@@ -362,7 +357,6 @@
             object-fit: contain;
         }
 
-        
         .route-modal {
             display: none;
             position: absolute;
@@ -439,12 +433,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 </head>
 <body>
 
-    
     <div class="welcome-modal-overlay" id="welcomeModal">
         <div class="welcome-modal-box">
             <div class="welcome-modal-title" id="customModalTitle">🧪 Aplicativo em Fase de Testes</div>
@@ -463,10 +455,6 @@
         <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
         <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15)</button>
-        <!-- Demais rotas ocultas temporariamente
-        <button class="route-option" data-value="todas">🚌 Exibir Todas</button>
-        <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
-        -->
     </div>
 
     <div class="right-nav-buttons">
@@ -495,7 +483,6 @@
     <div id="map"></div>
 
     <script>
-        
         window.alert = function(msg) {
             const welcomeModal = document.getElementById('welcomeModal');
             document.getElementById('customModalTitle').innerText = "";
@@ -505,7 +492,6 @@
             welcomeModal.style.opacity = '1';
         };
 
-        
         document.getElementById('closeWelcomeBtn').addEventListener('click', function() {
             const welcomeModal = document.getElementById('welcomeModal');
             welcomeModal.style.opacity = '0';
@@ -538,7 +524,6 @@
             }
         });
 
-        
         const map = L.map('map', { 
             doubleClickZoom: false,
             rotate: true,
@@ -565,7 +550,6 @@
             iconAnchor: [11, 11]
         });
 
-        
         const pontosPlantao = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -646,7 +630,6 @@
                 .addTo(pontosRota02Group);
         });
 
-        
         const busIcon = L.divIcon({
             className: 'bus-pin-marker',
             html: `
@@ -764,7 +747,7 @@
         function obterPontosDaRotaAtual() {
             if (selectedRouteKey === 'rota_01') return pontosRota01;
             if (selectedRouteKey === 'rota_02') return pontosRota02;
-            return pontosPlantao; // Padrão
+            return pontosPlantao;
         }
 
         function obterPontoMaisProximo(coords) {
@@ -781,7 +764,6 @@
             return { index: indiceProximo, distanciaKm: menorDist, ponto: listaPontos[indiceProximo] };
         }
 
-        
         document.getElementById('focusBusBtn').addEventListener('click', () => {
             const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
@@ -880,7 +862,6 @@
         }
 
         function atualizarExibicaoGeral() {
-            
             if (selectedRouteKey === 'plantao') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
@@ -915,7 +896,6 @@
                         busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
                             .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
                     } else {
-                        // Apenas atualiza as coordenadas do pino sem mover/recentralizar o mapa
                         busMarkers[key].setLatLng([bus.lat, bus.lng]);
                         if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
                     }
@@ -928,11 +908,14 @@
 
             if (onibusEmCirculacao === 0) {
                 infoEl.innerHTML = selectedRouteKey === 'todas' 
-                    ? "Nenhum ônibus em rota." 
+                    ? "Nenhuma rota ativa no momento." 
                     : "Esta rota está offline.";
                 infoEl.classList.remove('alert-active');
                 return;
             }
+
+            
+            let textoStatusRota = `🟢 <b>${onibusEmCirculacao} ${onibusEmCirculacao === 1 ? 'rota ativa' : 'rotas ativas'} no momento</b>`;
 
             if (selectedRouteKey !== 'todas' && busData[selectedRouteKey] && busData[selectedRouteKey].ativo) {
                 const bus = busData[selectedRouteKey];
@@ -951,7 +934,7 @@
                     velMedicaKmh = 5;
                 }
 
-                let texto = `🚌 <b>${bus.nome || selectedRouteKey}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
+                let texto = `${textoStatusRota}<br>🚌 <b>${bus.nome || selectedRouteKey}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
 
                 if (passengerPos && !bus.ocorrenciaManual && bus.lat && bus.lng) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
@@ -967,7 +950,7 @@
 
                 infoEl.innerHTML = texto;
             } else {
-                infoEl.innerHTML = `🚌 <b>${onibusEmCirculacao} ônibus</b> em circulação.`;
+                infoEl.innerHTML = textoStatusRota;
             }
 
             checarProximidade();
