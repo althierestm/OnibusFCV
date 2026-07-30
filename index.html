@@ -168,36 +168,36 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1000;
-            background: rgba(25, 25, 25, 0.65);
+            background: rgba(25, 25, 25, 0.75);
             -webkit-backdrop-filter: blur(16px) saturate(180%);
             backdrop-filter: blur(16px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.18);
             color: #ffffff;
-            padding: 12px 18px;
-            border-radius: 20px;
-            font-size: 13px;
-            line-height: 1.45;
+            padding: 8px 14px;
+            border-radius: 18px;
+            font-size: 12px;
+            line-height: 1.35;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
             text-align: center;
-            width: 88%;
-            max-width: 380px;
+            width: auto;
+            max-width: 280px;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             box-sizing: border-box;
         }
 
         .badge-status {
             display: inline-block;
-            padding: 3px 9px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 2px 7px;
+            border-radius: 10px;
+            font-size: 10px;
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         .status-normal { background-color: rgba(52, 199, 89, 0.85); color: #fff; }
         .status-lento { background-color: rgba(255, 149, 0, 0.85); color: #fff; }
         .status-parado { background-color: rgba(255, 59, 48, 0.85); color: #fff; }
-        .status-emergencia { background-color: rgba(255, 45, 85, 0.9); color: #fff; font-size: 12px; padding: 5px 10px; }
+        .status-emergencia { background-color: rgba(255, 45, 85, 0.9); color: #fff; font-size: 11px; padding: 4px 8px; }
 
         .alert-active {
             background: rgba(255, 59, 48, 0.75) !important;
@@ -207,6 +207,47 @@
         @keyframes pulse {
             from { transform: translateX(-50%) scale(1); }
             to { transform: translateX(-50%) scale(1.02); }
+        }
+
+        
+        .bus-pin-wrapper {
+            position: relative;
+            width: 42px;
+            height: 52px;
+        }
+
+        .bus-pin-bubble {
+            width: 42px;
+            height: 42px;
+            background: #ffffff;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #0a84ff;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 2;
+        }
+
+        .bus-pin-img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+
+        .bus-pin-pointer {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #0a84ff;
+            position: absolute;
+            bottom: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1;
         }
 
         .controls {
@@ -398,6 +439,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 </head>
 <body>
 
@@ -495,7 +538,13 @@
             }
         });
 
-        const map = L.map('map', { doubleClickZoom: false }).setView([-21.128, -42.370], 14);
+        
+        const map = L.map('map', { 
+            doubleClickZoom: false,
+            rotate: true,
+            touchRotate: true,
+            rotateControl: false
+        }).setView([-21.128, -42.370], 14);
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap © CARTO',
@@ -597,11 +646,20 @@
                 .addTo(pontosRota02Group);
         });
 
-        const busIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png',
-            iconSize: [38, 38],
-            iconAnchor: [19, 19],
-            popupAnchor: [0, -19]
+        
+        const busIcon = L.divIcon({
+            className: 'bus-pin-marker',
+            html: `
+                <div class="bus-pin-wrapper">
+                    <div class="bus-pin-bubble">
+                        <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png" class="bus-pin-img" alt="Ônibus">
+                    </div>
+                    <div class="bus-pin-pointer"></div>
+                </div>
+            `,
+            iconSize: [42, 52],
+            iconAnchor: [21, 52],
+            popupAnchor: [0, -52]
         });
 
         let busData = {};
@@ -723,6 +781,7 @@
             return { index: indiceProximo, distanciaKm: menorDist, ponto: listaPontos[indiceProximo] };
         }
 
+        
         document.getElementById('focusBusBtn').addEventListener('click', () => {
             const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
@@ -856,6 +915,7 @@
                         busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
                             .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
                     } else {
+                        // Apenas atualiza as coordenadas do pino sem mover/recentralizar o mapa
                         busMarkers[key].setLatLng([bus.lat, bus.lng]);
                         if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
                     }
@@ -868,8 +928,8 @@
 
             if (onibusEmCirculacao === 0) {
                 infoEl.innerHTML = selectedRouteKey === 'todas' 
-                    ? "Nenhum ônibus em rota no momento." 
-                    : "Esta rota está offline no momento.";
+                    ? "Nenhum ônibus em rota." 
+                    : "Esta rota está offline.";
                 infoEl.classList.remove('alert-active');
                 return;
             }
@@ -907,7 +967,7 @@
 
                 infoEl.innerHTML = texto;
             } else {
-                infoEl.innerHTML = `🚌 <b>${onibusEmCirculacao} ônibus</b> em circulação no momento.`;
+                infoEl.innerHTML = `🚌 <b>${onibusEmCirculacao} ônibus</b> em circulação.`;
             }
 
             checarProximidade();
