@@ -33,16 +33,16 @@
             touch-action: manipulation;
         }
 
-        /* Modal/Pop-up Inicial de Aviso e Substituição do Alert Nativo */
+        /* Modal/Pop-up Inicial de Aviso e Substituição do Alert Nativo - Estilo iOS Glassmorphism */
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            -webkit-backdrop-filter: blur(8px);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.4);
+            -webkit-backdrop-filter: blur(15px);
+            backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -54,59 +54,62 @@
         }
 
         .welcome-modal-box {
-            background: rgba(30, 30, 30, 0.85);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px;
-            padding: 24px 20px 20px 20px;
-            max-width: 320px;
+            background: rgba(35, 35, 35, 0.65);
+            -webkit-backdrop-filter: blur(30px) saturate(200%);
+            backdrop-filter: blur(30px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            padding: 22px 18px 16px 18px;
+            max-width: 290px;
             width: 100%;
             text-align: center;
             color: #ffffff;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+            animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.2);
         }
 
         @keyframes modalPop {
-            from { transform: scale(0.85); opacity: 0; }
+            from { transform: scale(0.9); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
         .welcome-modal-title {
-            font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
+            color: #ffffff;
         }
 
         .welcome-modal-body {
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.4;
             color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .welcome-modal-btn {
             width: 100%;
-            background: rgba(0, 122, 255, 0.9);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 12px;
-            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #0a84ff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 11px;
+            border-radius: 12px;
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s ease, transform 0.1s ease;
             touch-action: manipulation;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
         }
 
         .welcome-modal-btn:active {
-            transform: scale(0.96);
-            background: rgba(0, 122, 255, 1);
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.22);
         }
 
         /* Selo BETA reposicionado */
@@ -312,6 +315,12 @@
 
         .btn-floating:active { transform: scale(0.92); }
 
+        .btn-floating-icon {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+
         /* Modal Seleção de Rota iOS */
         .route-modal {
             display: none;
@@ -419,7 +428,9 @@
 
     <div class="right-nav-buttons">
         <button id="toggleRouteBtn" class="btn-floating" title="Selecionar Rota">🗺️</button>
-        <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">🚌</button>
+        <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png" alt="Ônibus" class="btn-floating-icon">
+        </button>
         <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
     </div>
 
@@ -441,10 +452,11 @@
     <div id="map"></div>
 
     <script>
-        // Sobrescreve o alert nativo do navegador para evitar "althierestm.github.io diz..." no Android
+        // Sobrescreve o alert nativo para exibir somente a mensagem direta no pop-up customizado
         window.alert = function(msg) {
             const welcomeModal = document.getElementById('welcomeModal');
-            document.getElementById('customModalTitle').innerText = "Rotas FCV - Colaborador diz:";
+            document.getElementById('customModalTitle').innerText = "";
+            document.getElementById('customModalTitle').style.display = "none";
             document.getElementById('customModalBody').innerText = msg;
             welcomeModal.style.display = 'flex';
             welcomeModal.style.opacity = '1';
