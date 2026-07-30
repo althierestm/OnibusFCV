@@ -476,7 +476,7 @@
             font-size: 11px; color: #444;
         }
 
-        /* --- MODAIS CUSTOMIZADOS (SUBSTITUEM ALERT E CONFIRM NO ANDROID) --- */
+        /* --- MODAIS CUSTOMIZADOS --- */
         .custom-dialog-overlay {
             position: fixed;
             top: 0;
@@ -574,7 +574,6 @@
     <div class="container">
         <div class="top-bar">
             <div class="top-bar-left">
-                <!-- SELO BETA NO CANTO ESQUERDO -->
                 <span class="beta-badge">BETA</span>
                 <h2>Motorista</h2>
             </div>
@@ -584,14 +583,14 @@
             </button>
         </div>
 
-        <!-- SELEÇÃO DE ROTA -->
+        <!-- SELEÇÃO DE ROTA (ATUALIZADA) -->
         <div class="route-selection-box">
             <label for="routeSelect">ROTA DE HOJE:</label>
             <select id="routeSelect" class="route-select">
-                <option value="plantao" data-nome="Rota de Plantão" data-placa="FCV">Rota de Plantão</option>
-                <option value="rota_01" data-nome="Rota 01" data-placa="GSH-5A89"> Rota 01 (GSH-5A89)</option>
-                <option value="rota_02" data-nome="Rota 02" data-placa="GFH-8D02"> Rota 02 (GFH-8D02)</option>
-                <option value="rota_03" data-nome="Rota 03" data-placa="GFH-8D01"> Rota 03 (GFH-8D01)</option>
+                <option value="plantao" data-nome="Rota de Plantão" data-hora="Especial">Rota de Plantão (Especial)</option>
+                <option value="rota_01" data-nome="Rota 01" data-hora="06:00">Rota 01 - 06:00</option>
+                <option value="rota_02" data-nome="Rota 02" data-hora="06:00">Rota 02 - 06:00</option>
+                <option value="rota_05" data-nome="Rota 05" data-hora="17:00">Rota 05 - 17:00</option>
             </select>
         </div>
 
@@ -662,7 +661,7 @@
     </div>
 
     <script>
-        // --- FUNÇÕES DE SUBS TITO DE ALERT E CONFIRM ---
+        // --- FUNÇÕES DE SUBSTITUTO DE ALERT E CONFIRM ---
         function customAlert(mensagem) {
             document.getElementById('customAlertMsg').innerText = mensagem;
             document.getElementById('customAlertModal').style.display = 'flex';
@@ -766,14 +765,14 @@
                 const key = opt.value;
                 const dadosRota = rotasStatus[key];
                 const nomeBase = opt.getAttribute('data-nome');
-                const placaBase = opt.getAttribute('data-placa');
+                const horaBase = opt.getAttribute('data-hora');
 
                 if (dadosRota && (dadosRota.ativo || dadosRota.emUso) && key !== currentRouteKey) {
                     opt.disabled = true;
-                    opt.innerText = `(EM ROTA) ${nomeBase} (${placaBase})`;
+                    opt.innerText = `(EM ROTA) ${nomeBase} - ${horaBase}`;
                 } else {
                     opt.disabled = false;
-                    opt.innerText = `${nomeBase} (${placaBase})`;
+                    opt.innerText = `${nomeBase} - ${horaBase}`;
                 }
             });
         });
@@ -964,7 +963,7 @@
 
                 currentRouteKey = routeSelect.value;
                 const routeName = optionSelected.getAttribute('data-nome');
-                const routePlaca = optionSelected.getAttribute('data-placa');
+                const routeHora = optionSelected.getAttribute('data-hora');
 
                 routeSelect.disabled = true;
                 tempoInicioViagem = Date.now();
@@ -994,7 +993,7 @@
                         inicio: firebase.database.ServerValue.TIMESTAMP,
                         rotaKey: currentRouteKey,
                         rotaNome: routeName,
-                        placa: routePlaca,
+                        hora: routeHora,
                         codigoViagem: codigoFormatado
                     });
 
@@ -1023,11 +1022,10 @@
                     if (speedKmh < 5) statusTransito = "parado";
                     else if (speedKmh < 18) statusTransito = "lento";
 
-                    // Envia a cada 8 segundos para manter a rota precisa no mapa ou quando aciona ocorrência
                     if (agora - ultimoTempoEnvio >= 8000 || ocorrenciaAtual) {
                         db.ref(`onibus/${currentRouteKey}`).set({
                             nome: routeName,
-                            placa: routePlaca,
+                            hora: routeHora,
                             lat: lat,
                             lng: lng,
                             velocidade: speedKmh,
@@ -1038,7 +1036,6 @@
                             ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                         });
 
-                        // GRAVA O PONTO DO TRAJETO COM A OCORRÊNCIA PARA O PAINEL DE GESTÃO
                         if (viagemAtualId) {
                             db.ref(`historico_viagens/${viagemAtualId}/pontosTrajeto`).push({
                                 lat: lat,
@@ -1053,7 +1050,7 @@
                     }
 
                     statusText.innerHTML = `
-                        <b>${routeName} (${routePlaca})</b><br>
+                        <b>${routeName} - ${routeHora}</b><br>
                         Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
                         Velocidade: <b>${speedKmh} km/h</b>
                         <div class="timer-display"><span id="liveTimer">${atualizarCronometroLocal()}</span></div>
@@ -1132,8 +1129,9 @@
         function ativarAOD() {
             const optionSelected = routeSelect.options[routeSelect.selectedIndex];
             const routeName = optionSelected.getAttribute('data-nome');
+            const routeHora = optionSelected.getAttribute('data-hora');
             
-            document.getElementById('aodRouteName').innerText = routeName;
+            document.getElementById('aodRouteName').innerText = `${routeName} - ${routeHora}`;
             document.getElementById('aodOverlay').style.display = 'flex';
 
             atualizarRelogioAOD();
@@ -1154,7 +1152,6 @@
             const minutos = String(agora.getMinutes()).padStart(2, '0');
             document.getElementById('aodClock').innerText = `${horas}:${minutos}`;
 
-            // Pequeno deslocamento suave a cada minuto para prevenção de burn-in em telas OLED
             const aodContent = document.getElementById('aodContent');
             const offset = agora.getMinutes() % 5;
             aodContent.style.transform = `translateY(${offset}px)`;
