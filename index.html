@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Onibus FCV Colaborador</title>
+    <title>Rotas FCV - Colaborador</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#121212">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Onibus FCV Colaborador">
+    <meta name="apple-mobile-web-app-title" content="Rotas FCV - Colaborador">
     
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
@@ -33,7 +33,7 @@
             touch-action: manipulation;
         }
 
-        /* Modal/Pop-up Inicial de Aviso */
+        /* Modal/Pop-up Inicial de Aviso e Substituição do Alert Nativo */
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
@@ -392,11 +392,11 @@
 </head>
 <body>
 
-    <!-- Pop-up Inicial de Testes -->
+    <!-- Pop-up Inicial de Testes / Avisos Customizados -->
     <div class="welcome-modal-overlay" id="welcomeModal">
         <div class="welcome-modal-box">
-            <div class="welcome-modal-title">🧪 Aplicativo em Fase de Testes</div>
-            <div class="welcome-modal-body">
+            <div class="welcome-modal-title" id="customModalTitle">🧪 Aplicativo em Fase de Testes</div>
+            <div class="welcome-modal-body" id="customModalBody">
                 Os horários, rotas e previsões de chegada podem apresentar oscilações ou instabilidades enquanto finalizamos os ajustes do sistema.
             </div>
             <button class="welcome-modal-btn" id="closeWelcomeBtn">Entendi</button>
@@ -441,6 +441,15 @@
     <div id="map"></div>
 
     <script>
+        // Sobrescreve o alert nativo do navegador para evitar "althierestm.github.io diz..." no Android
+        window.alert = function(msg) {
+            const welcomeModal = document.getElementById('welcomeModal');
+            document.getElementById('customModalTitle').innerText = "Rotas FCV - Colaborador diz:";
+            document.getElementById('customModalBody').innerText = msg;
+            welcomeModal.style.display = 'flex';
+            welcomeModal.style.opacity = '1';
+        };
+
         // Lógica do Pop-up Inicial
         document.getElementById('closeWelcomeBtn').addEventListener('click', function() {
             const welcomeModal = document.getElementById('welcomeModal');
