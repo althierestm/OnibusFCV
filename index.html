@@ -233,6 +233,32 @@
             touch-action: manipulation;
         }
 
+        /* BOTÃO DE SOLICITAR PARADA */
+        .btn-stop-request {
+            display: none;
+            background: rgba(255, 59, 48, 0.9);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 15px;
+            font-weight: bold;
+            animation: pulseStopBtn 1s infinite alternate;
+        }
+
+        .btn-stop-request:disabled {
+            background: rgba(100, 100, 100, 0.6) !important;
+            color: #aaaaaa !important;
+            animation: none !important;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes pulseStopBtn {
+            from { transform: scale(1); box-shadow: 0 0 10px rgba(255, 59, 48, 0.5); }
+            to { transform: scale(1.03); box-shadow: 0 0 20px rgba(255, 59, 48, 0.9); }
+        }
+
         .btn-alarm { 
             background: rgba(0, 122, 255, 0.85);
             -webkit-backdrop-filter: blur(12px);
@@ -424,6 +450,7 @@
     </div>
 
     <div class="controls">
+        <button id="requestStopBtn" class="btn btn-stop-request">🛑 SOLICITAR PARADA</button>
         <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de Proximidade</button>
         <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
         <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
@@ -590,10 +617,13 @@
         let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
         
         let selectedRouteKey = 'plantao';
+        let isStopBlocked = false;
+        let stopCooldownTimer = null;
 
         const infoEl = document.getElementById('info');
         const alarmBtn = document.getElementById('alarmBtn');
         const soundBtn = document.getElementById('soundBtn');
+        const requestStopBtn = document.getElementById('requestStopBtn');
         const toggleRouteBtn = document.getElementById('toggleRouteBtn');
         const routeModal = document.getElementById('routeModal');
         const routeOptions = document.querySelectorAll('.route-option');
@@ -645,6 +675,7 @@
 
                         if (centralizar) map.setView(passengerPos, 16);
                         checarProximidade();
+                        verificarProximidadeEBotaoParada();
                     }, (err) => {
                         console.warn("Erro ao obter localização: ", err);
                     }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
@@ -681,6 +712,61 @@
                       Math.sin(dLon/2) * Math.sin(dLon/2);
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
+
+        // --- LÓGICA DO BOTÃO DE SOLICITAÇÃO DE PARADA (A 5 METROS DO ÔNIBUS) ---
+        function verificarProximidadeEBotaoParada() {
+            if (!passengerPos || selectedRouteKey === 'todas') {
+                requestStopBtn.style.display = 'none';
+                return;
+            }
+
+            const bus = busData[selectedRouteKey];
+            if (bus && bus.ativo && bus.lat && bus.lng) {
+                const distKm = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
+                const distMetros = distKm * 1000;
+
+                if (distMetros <= 5) {
+                    requestStopBtn.style.display = 'block';
+                } else {
+                    requestStopBtn.style.display = 'none';
+                }
+            } else {
+                requestStopBtn.style.display = 'none';
+            }
+        }
+
+        requestStopBtn.addEventListener('click', () => {
+            if (isStopBlocked) return;
+
+            if (selectedRouteKey && selectedRouteKey !== 'todas') {
+                db.ref(`onibus/${selectedRouteKey}/solicitacaoParada`).set({
+                    ativo: true,
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
+
+                alert("Solicitação de parada enviada ao motorista!");
+
+                // Bloqueia o botão por 2 minutos (120s)
+                isStopBlocked = true;
+                requestStopBtn.disabled = true;
+                let tempoRestante = 120;
+
+                requestStopBtn.innerText = `⏳ AGUARDE (${tempoRestante}s)`;
+
+                stopCooldownTimer = setInterval(() => {
+                    tempoRestante--;
+                    if (tempoRestante > 0) {
+                        requestStopBtn.innerText = `⏳ AGUARDE (${tempoRestante}s)`;
+                    } else {
+                        clearInterval(stopCooldownTimer);
+                        isStopBlocked = false;
+                        requestStopBtn.disabled = false;
+                        requestStopBtn.innerText = "🛑 SOLICITAR PARADA";
+                        verificarProximidadeEBotaoParada();
+                    }
+                }, 1000);
+            }
+        });
 
         function obterPontosDaRotaAtual() {
             if (selectedRouteKey === 'rota_01') return pontosRota01;
@@ -850,6 +936,7 @@
                     ? "Nenhum ônibus em rota no momento." 
                     : "Esta rota está offline no momento.";
                 infoEl.classList.remove('alert-active');
+                verificarProximidadeEBotaoParada();
                 return;
             }
 
@@ -890,6 +977,7 @@
             }
 
             checarProximidade();
+            verificarProximidadeEBotaoParada();
         }
 
         db.ref('onibus').on('value', (snapshot) => {
