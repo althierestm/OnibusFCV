@@ -485,7 +485,7 @@
     <!-- OVERLAY TELA DE LOGIN -->
     <div id="loginOverlay">
         <div class="login-header">
-            <img src="" alt="Logo FCV" class="login-logo">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
             <div class="login-title">
                 <span class="beta-badge">BETA</span> Motorista
             </div>
@@ -541,11 +541,11 @@
         </div>
 
         <div class="online-app-box">
-            📱 Passageiros com o App Aberto: <span id="onlinePassCount">0</span>
+            Passageiros com o App Aberto: <span id="onlinePassCount">0</span>
         </div>
 
-        <button id="toggleBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
-        <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">🌙 Modo Economia (AOD)</button>
+        <button id="toggleBtn" class="btn btn-start">Iniciar Transmissão</button>
+        <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button>
 
         <div class="incident-section">
             <div class="incident-title">Relatar Ocorrência:</div>
@@ -659,11 +659,10 @@
 
                 if (dadosRota && (dadosRota.ativo || dadosRota.emUso) && key !== currentRouteKey) {
                     opt.disabled = true;
-                    opt.innerText = `🔴 (EM ROTA) ${nomeBase} (${placaBase})`;
+                    opt.innerText = `(EM ROTA) ${nomeBase} (${placaBase})`;
                 } else {
                     opt.disabled = false;
-                    const icone = key === 'plantao' ? '📍' : '🚌';
-                    opt.innerText = `${icone} ${nomeBase} (${placaBase})`;
+                    opt.innerText = `${nomeBase} (${placaBase})`;
                 }
             });
         });
@@ -782,8 +781,8 @@
                     const tempoAtualStr = atualizarCronometroLocal();
                     itemHtml = `
                         <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
-                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
+                            <b>${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b class="badge-live">EM ANDAMENTO</b> (desde ${inicio})<br>
+                            Duração: <b id="histCronometro">${tempoAtualStr}</b>
                         </div>
                     `;
                 } else {
@@ -792,7 +791,7 @@
                     const duracaoStr = formatarTempo(duracaoSeg);
                     itemHtml = `
                         <div class="history-item">
-                            <b>📅 ${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
+                            <b>${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>${inicio} às ${fim}</b> (${duracaoStr})
                         </div>
                     `;
                 }
@@ -943,14 +942,14 @@
                         <b>${routeName} (${routePlaca})</b><br>
                         Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
                         Velocidade: <b>${speedKmh} km/h</b>
-                        <div class="timer-display">⏱️ <span id="liveTimer">${atualizarCronometroLocal()}</span></div>
+                        <div class="timer-display"><span id="liveTimer">${atualizarCronometroLocal()}</span></div>
                     `;
                 }, (err) => {
                     alert("Erro ao obter localização: " + err.message);
                 }, { enableHighAccuracy: true });
 
                 isTransmitting = true;
-                toggleBtn.innerText = "⏹ Parar Transmissão";
+                toggleBtn.innerText = "Parar Transmissão";
                 toggleBtn.classList.remove('btn-start');
                 toggleBtn.classList.add('btn-stop');
                 btnAOD.style.display = 'block';
@@ -1001,7 +1000,7 @@
             routeSelect.disabled = false;
 
             statusText.innerHTML = `Status: <b style="color: #f44336;">OFFLINE</b>`;
-            toggleBtn.innerText = "▶ Iniciar Transmissão";
+            toggleBtn.innerText = "Iniciar Transmissão";
             toggleBtn.classList.remove('btn-stop');
             toggleBtn.classList.add('btn-start');
             btnAOD.style.display = 'none';
