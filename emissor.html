@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Painel do Motorista - FCV</title>
+    <title>Rotas FCV - Motorista</title>
     
     <!-- Suporte a WebApp (PWA) -->
     <link rel="manifest" href="manifest-motorista.json">
@@ -475,6 +475,65 @@
             position: absolute; bottom: 30px;
             font-size: 11px; color: #444;
         }
+
+        /* --- MODAIS CUSTOMIZADOS (SUBSTITUEM ALERT E CONFIRM NO ANDROID) --- */
+        .custom-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999999;
+        }
+
+        .custom-dialog-box {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        .custom-dialog-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        .custom-dialog-msg {
+            font-size: 14px;
+            color: var(--text-color);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .custom-dialog-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .custom-dialog-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-dialog-ok { background-color: var(--accent-color); color: #ffffff; }
+        .btn-dialog-cancel { background-color: var(--box-bg); color: var(--text-color); border: 1px solid var(--border-color); }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -579,7 +638,59 @@
         <div class="aod-hint">Toque em qualquer lugar para sair do modo economia</div>
     </div>
 
+    <!-- MODAL CUSTOMIZADO PARA ALERTAS -->
+    <div id="customAlertModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
+            <div id="customAlertMsg" class="custom-dialog-msg"></div>
+            <div class="custom-dialog-buttons">
+                <button class="custom-dialog-btn btn-dialog-ok" onclick="fecharCustomAlert()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOMIZADO PARA CONFIRMAÇÕES -->
+    <div id="customConfirmModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
+            <div id="customConfirmMsg" class="custom-dialog-msg"></div>
+            <div class="custom-dialog-buttons">
+                <button class="custom-dialog-btn btn-dialog-cancel" id="customConfirmBtnCancel">Cancelar</button>
+                <button class="custom-dialog-btn btn-dialog-ok" id="customConfirmBtnOk">OK</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // --- FUNÇÕES DE SUBS TITO DE ALERT E CONFIRM ---
+        function customAlert(mensagem) {
+            document.getElementById('customAlertMsg').innerText = mensagem;
+            document.getElementById('customAlertModal').style.display = 'flex';
+        }
+
+        function fecharCustomAlert() {
+            document.getElementById('customAlertModal').style.display = 'none';
+        }
+
+        function customConfirm(mensagem, onConfirm) {
+            document.getElementById('customConfirmMsg').innerText = mensagem;
+            const modal = document.getElementById('customConfirmModal');
+            const btnOk = document.getElementById('customConfirmBtnOk');
+            const btnCancel = document.getElementById('customConfirmBtnCancel');
+
+            modal.style.display = 'flex';
+
+            btnOk.onclick = () => {
+                modal.style.display = 'none';
+                onConfirm(true);
+            };
+
+            btnCancel.onclick = () => {
+                modal.style.display = 'none';
+                onConfirm(false);
+            };
+        }
+
         // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
         const loginOverlay = document.getElementById('loginOverlay');
         const loginForm = document.getElementById('loginForm');
@@ -733,7 +844,7 @@
         function resetarInatividadeTimer() {
             if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
             lastSignalTimeout = setTimeout(() => {
-                alert("Sem sinal de GPS há 5 minutos. A corrida foi finalizada automaticamente.");
+                customAlert("Sem sinal de GPS há 5 minutos. A corrida foi finalizada automaticamente.");
                 pararTransmissao();
             }, 300000);
         }
@@ -824,14 +935,17 @@
             if (ocorrenciaAtual === tipo) {
                 ocorrenciaAtual = null;
                 botao.classList.remove('active');
+                atualizarDadosFirebase();
             } else {
-                if (!confirm(mensagemConfirmacao)) return;
-                ocorrenciaAtual = tipo;
-                btnAccident.classList.remove('active');
-                btnBroken.classList.remove('active');
-                botao.classList.add('active');
+                customConfirm(mensagemConfirmacao, (confirmado) => {
+                    if (!confirmado) return;
+                    ocorrenciaAtual = tipo;
+                    btnAccident.classList.remove('active');
+                    btnBroken.classList.remove('active');
+                    botao.classList.add('active');
+                    atualizarDadosFirebase();
+                });
             }
-            atualizarDadosFirebase();
         }
 
         toggleBtn.addEventListener('click', () => {
@@ -844,7 +958,7 @@
                 const optionSelected = routeSelect.options[routeSelect.selectedIndex];
                 
                 if (optionSelected.disabled) {
-                    alert("Esta rota já está sendo utilizada por outro motorista no momento!");
+                    customAlert("Esta rota já está sendo utilizada por outro motorista no momento!");
                     return;
                 }
 
@@ -945,7 +1059,7 @@
                         <div class="timer-display"><span id="liveTimer">${atualizarCronometroLocal()}</span></div>
                     `;
                 }, (err) => {
-                    alert("Erro ao obter localização: " + err.message);
+                    customAlert("Erro ao obter localização: " + err.message);
                 }, { enableHighAccuracy: true });
 
                 isTransmitting = true;
@@ -954,7 +1068,7 @@
                 toggleBtn.classList.add('btn-stop');
                 btnAOD.style.display = 'block';
             } else {
-                alert("Geolocalização não é suportada neste navegador.");
+                customAlert("Geolocalização não é suportada neste navegador.");
             }
         }
 
