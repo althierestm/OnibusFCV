@@ -861,6 +861,13 @@
             }
         }
 
+        function obterNomeFormatadoRota(key) {
+            if (key === 'plantao') return "Rota de Plantão";
+            if (key === 'rota_01') return "Rota 01";
+            if (key === 'rota_02') return "Rota 02";
+            return "Rota";
+        }
+
         function atualizarExibicaoGeral() {
             if (selectedRouteKey === 'plantao') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
@@ -906,19 +913,19 @@
                 }
             });
 
+            // Se não houver ônibus ativos na rota selecionada (ou no sistema todo)
             if (onibusEmCirculacao === 0) {
+                const nomeRota = obterNomeFormatadoRota(selectedRouteKey);
                 infoEl.innerHTML = selectedRouteKey === 'todas' 
-                    ? "Nenhuma rota ativa no momento." 
-                    : "Esta rota está offline.";
+                    ? "🔴 <b>Nenhuma rota ativa no momento</b>" 
+                    : `🔴 <b>${nomeRota} está offline no momento</b>`;
                 infoEl.classList.remove('alert-active');
                 return;
             }
 
-            
-            let textoStatusRota = `🟢 <b>${onibusEmCirculacao} ${onibusEmCirculacao === 1 ? 'rota ativa' : 'rotas ativas'} no momento</b>`;
+            let bus = busData[selectedRouteKey];
 
-            if (selectedRouteKey !== 'todas' && busData[selectedRouteKey] && busData[selectedRouteKey].ativo) {
-                const bus = busData[selectedRouteKey];
+            if (selectedRouteKey !== 'todas' && bus && bus.ativo) {
                 let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
                 let velMedicaKmh = 25;
 
@@ -934,7 +941,7 @@
                     velMedicaKmh = 5;
                 }
 
-                let texto = `${textoStatusRota}<br>🚌 <b>${bus.nome || selectedRouteKey}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
+                let texto = `🚌 <b>${bus.nome || obterNomeFormatadoRota(selectedRouteKey)}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
 
                 if (passengerPos && !bus.ocorrenciaManual && bus.lat && bus.lng) {
                     const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
@@ -950,7 +957,7 @@
 
                 infoEl.innerHTML = texto;
             } else {
-                infoEl.innerHTML = textoStatusRota;
+                infoEl.innerHTML = `🟢 <b>${onibusEmCirculacao} ${onibusEmCirculacao === 1 ? 'rota ativa' : 'rotas ativas'} no momento</b>`;
             }
 
             checarProximidade();
