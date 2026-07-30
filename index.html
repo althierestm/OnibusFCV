@@ -33,7 +33,7 @@
             touch-action: manipulation;
         }
 
-        
+        /* Modal de Boas-Vindas */
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
@@ -112,7 +112,7 @@
             background: rgba(255, 255, 255, 0.22);
         }
 
-        
+        /* Badge Beta */
         .beta-badge {
             position: absolute;
             top: 16px;
@@ -133,7 +133,7 @@
             pointer-events: none;
         }
 
-        
+        /* Posição do Usuário */
         .user-location-dot {
             width: 16px;
             height: 16px;
@@ -161,7 +161,7 @@
             100% { transform: scale(1.8); opacity: 0; }
         }
 
-        
+        /* Caixa de Informações Superior */
         .info-box {
             position: absolute;
             top: 52px;
@@ -209,7 +209,7 @@
             to { transform: translateX(-50%) scale(1.02); }
         }
 
-        
+        /* Ícone do Ônibus */
         .bus-pin-wrapper {
             position: relative;
             width: 42px;
@@ -362,7 +362,7 @@
             object-fit: contain;
         }
 
-        
+        /* Modal Seletor de Rota */
         .route-modal {
             display: none;
             position: absolute;
@@ -444,7 +444,6 @@
 </head>
 <body>
 
-    
     <div class="welcome-modal-overlay" id="welcomeModal">
         <div class="welcome-modal-box">
             <div class="welcome-modal-title" id="customModalTitle">🧪 Aplicativo em Fase de Testes</div>
@@ -463,6 +462,7 @@
         <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
         <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15)</button>
+        <button class="route-option" data-value="rota_05">🚌 Rota 05 (17h15)</button>
         <!-- Demais rotas ocultas temporariamente
         <button class="route-option" data-value="todas">🚌 Exibir Todas</button>
         <button class="route-option" data-value="rota_03">🚌 Rota 03 (GFH-8D01)</button>
@@ -495,7 +495,6 @@
     <div id="map"></div>
 
     <script>
-        
         window.alert = function(msg) {
             const welcomeModal = document.getElementById('welcomeModal');
             document.getElementById('customModalTitle').innerText = "";
@@ -505,7 +504,6 @@
             welcomeModal.style.opacity = '1';
         };
 
-        
         document.getElementById('closeWelcomeBtn').addEventListener('click', function() {
             const welcomeModal = document.getElementById('welcomeModal');
             welcomeModal.style.opacity = '0';
@@ -538,7 +536,6 @@
             }
         });
 
-        
         const map = L.map('map', { 
             doubleClickZoom: false,
             rotate: true,
@@ -565,7 +562,6 @@
             iconAnchor: [11, 11]
         });
 
-        
         const pontosPlantao = [
             { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
@@ -625,6 +621,16 @@
             { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
         ];
 
+        const pontosRota05 = [
+            { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] },
+            { nome: "2º Ponto - BR-356", desc: "Próximo ao Vitrines", coords: [-21.128447, -42.364497] },
+            { nome: "3º Ponto - BR-356 - PORTO", desc: "Mamão Car", coords: [-21.128819, -42.358430] },
+            { nome: "4º Ponto - BR-356 - PORTO", desc: "Após o trevo do Porto - Raia da Malha", coords: [-21.125805, -42.352453] },
+            { nome: "5º Ponto - BR-356 - MARAMBAIA", desc: "Entrada do Bairro Marambaia - Em frente ao Posto Ipiranga", coords: [-21.128651, -42.347335] },
+            { nome: "6º Ponto - BR-356 - PADRE TIAGO", desc: "Entrada do Bairro Padre Tiago", coords: [-21.128071, -42.345930] },
+            { nome: "7º Ponto - BR-356", desc: "Em frente ao SESC", coords: [-21.126578, -42.341012] }
+        ];
+
         const pontosPlantaoGroup = L.layerGroup();
         pontosPlantao.forEach(ponto => {
             L.marker(ponto.coords, { icon: fcvPointIcon })
@@ -646,7 +652,13 @@
                 .addTo(pontosRota02Group);
         });
 
-        
+        const pontosRota05Group = L.layerGroup();
+        pontosRota05.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                .addTo(pontosRota05Group);
+        });
+
         const busIcon = L.divIcon({
             className: 'bus-pin-marker',
             html: `
@@ -764,6 +776,7 @@
         function obterPontosDaRotaAtual() {
             if (selectedRouteKey === 'rota_01') return pontosRota01;
             if (selectedRouteKey === 'rota_02') return pontosRota02;
+            if (selectedRouteKey === 'rota_05') return pontosRota05;
             return pontosPlantao; // Padrão
         }
 
@@ -781,7 +794,6 @@
             return { index: indiceProximo, distanciaKm: menorDist, ponto: listaPontos[indiceProximo] };
         }
 
-        
         document.getElementById('focusBusBtn').addEventListener('click', () => {
             const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
             if (keysAtivas.length > 0) {
@@ -880,27 +892,36 @@
         }
 
         function atualizarExibicaoGeral() {
-            
             if (selectedRouteKey === 'plantao') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_01') {
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_02') {
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+            } else if (selectedRouteKey === 'rota_05') {
+                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
+                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
+                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
             } else if (selectedRouteKey === 'todas') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
+                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             }
 
             let onibusEmCirculacao = 0;
@@ -915,7 +936,6 @@
                         busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
                             .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
                     } else {
-                        // Apenas atualiza as coordenadas do pino sem mover/recentralizar o mapa
                         busMarkers[key].setLatLng([bus.lat, bus.lng]);
                         if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
                     }
