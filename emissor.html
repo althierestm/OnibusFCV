@@ -238,26 +238,6 @@
             gap: 5px;
         }
 
-        /* ALERTA DE PARADA NO PAINEL DO MOTORISTA */
-        .stop-alert-box {
-            display: none;
-            background-color: #ff3b30;
-            color: #ffffff;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            animation: blinkAlert 0.8s infinite alternate;
-            box-shadow: 0 0 15px rgba(255, 59, 48, 0.8);
-        }
-
-        @keyframes blinkAlert {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0.7; transform: scale(0.98); }
-        }
-
         /* SELEÇÃO DE ROTA */
         .route-selection-box {
             background-color: var(--box-bg);
@@ -545,11 +525,6 @@
             </button>
         </div>
 
-        <!-- ALERTA DE SOLICITAÇÃO DE PARADA -->
-        <div id="stopAlertBox" class="stop-alert-box">
-            🛑 SOLICITAÇÃO DE PARADA!
-        </div>
-
         <!-- SELEÇÃO DE ROTA -->
         <div class="route-selection-box">
             <label for="routeSelect">ROTA DE HOJE:</label>
@@ -657,7 +632,6 @@
         let wakeLock = null;
 
         let ultimoTempoEnvio = 0;
-        let stopAlertTimeout = null;
 
         const toggleBtn = document.getElementById('toggleBtn');
         const btnAOD = document.getElementById('btnAOD');
@@ -672,42 +646,6 @@
         const oldHistoryListEl = document.getElementById('oldHistoryList');
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
-        const stopAlertBox = document.getElementById('stopAlertBox');
-
-        // --- EMISSÃO DE BEEP PARA PARADA ---
-        function playStopBeep() {
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = "square";
-                osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 1.2);
-            } catch (e) {}
-        }
-
-        // --- MONITORAMENTO DE SOLICITAÇÃO DE PARADA ESPECÍFICA DESTA ROTA ---
-        function monitorarSolicitacaoParada() {
-            if (!currentRouteKey) return;
-            db.ref(`onibus/${currentRouteKey}/solicitacaoParada`).on('value', (snapshot) => {
-                const req = snapshot.val();
-                if (req && req.ativo && (Date.now() - (req.timestamp || 0) < 120000)) {
-                    stopAlertBox.style.display = 'block';
-                    playStopBeep();
-
-                    if (stopAlertTimeout) clearTimeout(stopAlertTimeout);
-                    stopAlertTimeout = setTimeout(() => {
-                        stopAlertBox.style.display = 'none';
-                    }, 15000); // Exibe alerta visual no painel por 15 segundos
-                } else {
-                    stopAlertBox.style.display = 'none';
-                }
-            });
-        }
 
         // --- MONITORAMENTO DE ROTAS EM USO ---
         db.ref('onibus').on('value', (snapshot) => {
@@ -919,7 +857,6 @@
                 ultimoTempoEnvio = 0;
 
                 requestWakeLock();
-                monitorarSolicitacaoParada();
 
                 db.ref(`onibus/${currentRouteKey}`).update({
                     ativo: true,
@@ -974,7 +911,7 @@
 
                     // Envia a cada 8 segundos para manter a rota precisa no mapa ou quando aciona ocorrência
                     if (agora - ultimoTempoEnvio >= 8000 || ocorrenciaAtual) {
-                        db.ref(`onibus/${currentRouteKey}`).update({
+                        db.ref(`onibus/${currentRouteKey}`).set({
                             nome: routeName,
                             placa: routePlaca,
                             lat: lat,
@@ -1025,10 +962,6 @@
             releaseWakeLock();
             desativarAOD();
 
-            if (currentRouteKey) {
-                db.ref(`onibus/${currentRouteKey}/solicitacaoParada`).off();
-            }
-
             if (watchId !== null) {
                 navigator.geolocation.clearWatch(watchId);
                 watchId = null;
@@ -1058,12 +991,10 @@
                 
                 db.ref(`onibus/${currentRouteKey}`).update({
                     ativo: false,
-                    emUso: false,
-                    solicitacaoParada: null
+                    emUso: false
                 });
             }
 
-            stopAlertBox.style.display = 'none';
             isTransmitting = false;
             tempoInicioViagem = null;
             routeSelect.disabled = false;
