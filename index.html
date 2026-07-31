@@ -4,16 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rotas FCV - Colaborador</title>
-    
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Rotas FCV - Colaborador">
-    
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
 
+    <meta name="theme-color" content="#121212">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { 
@@ -299,32 +291,6 @@
         }
         .btn-sound.muted { background: rgba(75, 75, 75, 0.8); color: #ffcc00; }
 
-        .btn-install { 
-            display: none; 
-            background: rgba(0, 122, 255, 0.85); 
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            color: white; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .ios-install-box {
-            display: none;
-            background: rgba(25, 25, 25, 0.65);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            backdrop-filter: blur(16px) saturate(180%);
-            color: #ffffff;
-            padding: 12px 16px;
-            border-radius: 18px;
-            font-size: 13px;
-            line-height: 1.4;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
         .right-nav-buttons {
             position: absolute;
             right: 16px;
@@ -439,7 +405,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
     <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 </head>
 <body>
@@ -476,11 +441,6 @@
     <div class="controls">
         <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de Proximidade</button>
         <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
-        <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
-        
-        <div id="iosInstallBox" class="ios-install-box">
-            📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
-        </div>
 
         <div class="footer">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
@@ -773,7 +733,7 @@
             if (selectedRouteKey === 'rota_01') return pontosRota01;
             if (selectedRouteKey === 'rota_02') return pontosRota02;
             if (selectedRouteKey === 'rota_05') return pontosRota05;
-            return pontosPlantao; // Padrão
+            return pontosPlantao;
         }
 
         function obterPontoMaisProximo(coords) {
@@ -1023,25 +983,6 @@
             const data = snapshot.val();
             busData = data || {};
             atualizarExibicaoGeral();
-        });
-
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
-
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        
-        if (isIOS && !isStandalone) document.getElementById('iosInstallBox').style.display = 'block';
-
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
-        });
-
-        document.getElementById('installBtn').addEventListener('click', (e) => {
-            e.target.style.display = 'none';
-            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
         });
     </script>
 </body>
