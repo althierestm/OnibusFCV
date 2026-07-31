@@ -3,483 +3,533 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rotas FCV - Colaborador</title>
+    <title>Painel do Motorista - FCV</title>
     
+    <!-- Suporte a WebApp (PWA) -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Rotas FCV - Colaborador">
-    
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png">
+    <meta name="theme-color" content="#0077b6">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        :root {
+            --bg-color: #000000; /* Super OLED Pure Black */
+            --container-bg: #0d0d0d;
+            --text-color: #ffffff;
+            --box-bg: #161616;
+            --border-color: #262626;
+            --accent-color: #00a6fb;
+            --fcv-blue: #005691;
+            --fcv-blue-dark: #003a63;
+        }
+
+        body.light-mode {
+            --bg-color: #f4f6f9;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --box-bg: #eef2f5;
+            --border-color: #cccccc;
+            --accent-color: #0077b6;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s ease, color 0.3s ease;
             touch-action: manipulation;
             -webkit-user-select: none;
             user-select: none;
-            background-color: #000;
         }
 
-        #map { 
-            height: 100vh; 
-            width: 100%; 
-            touch-action: manipulation;
-        }
-
-        /* Modal de Boas-Vindas */
-        .welcome-modal-overlay {
+        /* --- TELA DE LOGIN (OVERLAY AZUL FCV) --- */
+        #loginOverlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            -webkit-backdrop-filter: blur(15px);
-            backdrop-filter: blur(15px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-        }
-
-        .welcome-modal-box {
-            background: rgba(35, 35, 35, 0.65);
-            -webkit-backdrop-filter: blur(30px) saturate(200%);
-            backdrop-filter: blur(30px) saturate(200%);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
-            padding: 22px 18px 16px 18px;
-            max-width: 290px;
-            width: 100%;
-            text-align: center;
-            color: #ffffff;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-            animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-        }
-
-        @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .welcome-modal-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            color: #ffffff;
-        }
-
-        .welcome-modal-body {
-            font-size: 13px;
-            line-height: 1.4;
-            color: rgba(255, 255, 255, 0.85);
-            margin-bottom: 18px;
-        }
-
-        .welcome-modal-btn {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.12);
-            color: #0a84ff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 11px;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s ease, transform 0.1s ease;
-            touch-action: manipulation;
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-        }
-
-        .welcome-modal-btn:active {
-            transform: scale(0.97);
-            background: rgba(255, 255, 255, 0.22);
-        }
-
-        /* Badge Beta */
-        .beta-badge {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            z-index: 1001;
-            background: rgba(26, 115, 232, 0.75);
-            -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 12px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            pointer-events: none;
-        }
-
-        /* Posição do Usuário */
-        .user-location-dot {
-            width: 16px;
-            height: 16px;
-            background-color: #007aff;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 8px rgba(0,0,0,0.3);
-            position: relative;
-        }
-
-        .user-location-pulse {
-            position: absolute;
-            top: -6px;
-            left: -6px;
-            width: 28px;
-            height: 28px;
-            background-color: rgba(0, 122, 255, 0.35);
-            border-radius: 50%;
-            animation: gpsPulse 2s infinite ease-out;
-            pointer-events: none;
-        }
-
-        @keyframes gpsPulse {
-            0% { transform: scale(0.6); opacity: 0.8; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
-
-        /* Caixa de Informações Superior */
-        .info-box {
-            position: absolute;
-            top: 52px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            background: rgba(25, 25, 25, 0.75);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            backdrop-filter: blur(16px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            color: #ffffff;
-            padding: 8px 14px;
-            border-radius: 18px;
-            font-size: 12px;
-            line-height: 1.35;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-            text-align: center;
-            width: auto;
-            max-width: 280px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-sizing: border-box;
-        }
-
-        .badge-status {
-            display: inline-block;
-            padding: 2px 7px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-top: 3px;
-        }
-
-        .status-normal { background-color: rgba(52, 199, 89, 0.85); color: #fff; }
-        .status-lento { background-color: rgba(255, 149, 0, 0.85); color: #fff; }
-        .status-parado { background-color: rgba(255, 59, 48, 0.85); color: #fff; }
-        .status-emergencia { background-color: rgba(255, 45, 85, 0.9); color: #fff; font-size: 11px; padding: 4px 8px; }
-
-        .alert-active {
-            background: rgba(255, 59, 48, 0.75) !important;
-            animation: pulse 1s infinite alternate;
-        }
-
-        @keyframes pulse {
-            from { transform: translateX(-50%) scale(1); }
-            to { transform: translateX(-50%) scale(1.02); }
-        }
-
-        /* Ícone do Ônibus */
-        .bus-pin-wrapper {
-            position: relative;
-            width: 42px;
-            height: 52px;
-        }
-
-        .bus-pin-bubble {
-            width: 42px;
-            height: 42px;
-            background: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #0a84ff;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 2;
-        }
-
-        .bus-pin-img {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-        }
-
-        .bus-pin-pointer {
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 12px solid #0a84ff;
-            position: absolute;
-            bottom: 0px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1;
-        }
-
-        .controls {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
+            background: linear-gradient(135deg, #003a63 0%, #0077b6 100%);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            justify-content: space-between;
             align-items: center;
-            width: 90%;
-            max-width: 340px;
+            z-index: 9999;
+            padding: 30px 20px;
+            box-sizing: border-box;
+        }
+
+        .login-header {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .login-logo {
+            max-width: 140px;
+            height: auto;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
+        }
+
+        .login-title {
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 20px 20px;
+            border-radius: 18px;
+            width: 100%;
+            max-width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        .login-input-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        .login-input-group label {
+            display: block;
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.25);
+            color: #ffffff;
+            font-size: 14px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .login-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .login-input:focus {
+            border-color: #00a6fb;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: #00a6fb;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 8px;
+            box-shadow: 0 4px 15px rgba(0, 166, 251, 0.4);
+            transition: transform 0.1s ease, background 0.2s ease;
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+            background: #0084ca;
+        }
+
+        .login-error {
+            color: #ff5252;
+            font-size: 13px;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+            display: none;
+            background: rgba(255, 0, 0, 0.15);
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .login-footer {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .login-footer-logo {
+            max-width: 110px;
+            height: auto;
+            opacity: 0.9;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        /* --- PAINEL PRINCIPAL --- */
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background-color: var(--container-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+            box-sizing: border-box;
+            text-align: center;
+            position: relative;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        h2 { margin: 0; color: #4caf50; font-size: 20px; }
+
+        .btn-theme {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* IDENTIFICAÇÃO DISCRETA DO USUÁRIO SELECIONADO */
+        .user-tag {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-bottom: 12px;
+            text-align: right;
+        }
+
+        /* SELEÇÃO DE ROTA */
+        .route-selection-box {
+            background-color: var(--box-bg);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        .route-selection-box label {
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .route-select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--container-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+            font-weight: bold;
+            outline: none;
+        }
+
+        .status-box {
+            background-color: var(--box-bg);
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid var(--border-color);
+        }
+
+        .timer-display {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ff9800;
+            margin-top: 5px;
+        }
+
+        .online-app-box {
+            background-color: #051923;
+            border: 1px solid #003554;
+            color: #00a6fb;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        .passengers-details summary {
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .passengers-inside-list {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #003554;
+            font-size: 11px;
+            color: #ffffff;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .passenger-item {
+            padding: 3px 0;
+            display: flex;
+            justify-content: space-between;
         }
 
         .btn {
             width: 100%;
+            padding: 15px;
             border: none;
-            padding: 12px 20px;
-            border-radius: 22px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
+            margin-bottom: 12px;
             transition: all 0.2s ease;
-            touch-action: manipulation;
         }
 
-        .btn-alarm { 
-            background: rgba(0, 122, 255, 0.85);
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            color: #ffffff; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .btn-alarm.active { 
-            background: rgba(255, 59, 48, 0.85); 
-            color: #fff; 
-        }
+        .btn-start { background-color: #2e7d32; color: white; }
+        .btn-stop { background-color: #c62828; color: white; }
 
-        .btn-sound { 
-            background: rgba(45, 45, 45, 0.7); 
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            color: #ffffff; 
-            display: none; 
-            border: 1px solid rgba(255, 255, 255, 0.15); 
-        }
-        .btn-sound.muted { background: rgba(75, 75, 75, 0.8); color: #ffcc00; }
-
-        .btn-install { 
-            display: none; 
-            background: rgba(0, 122, 255, 0.85); 
-            -webkit-backdrop-filter: blur(12px);
-            backdrop-filter: blur(12px);
-            color: white; 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .ios-install-box {
-            display: none;
-            background: rgba(25, 25, 25, 0.65);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            backdrop-filter: blur(16px) saturate(180%);
-            color: #ffffff;
-            padding: 12px 16px;
-            border-radius: 18px;
+        .incident-section { margin-top: 10px; }
+        .incident-title { font-size: 13px; opacity: 0.8; margin-bottom: 8px; text-align: left; }
+        
+        .btn-incident {
+            background-color: var(--box-bg);
+            color: var(--text-color);
+            padding: 10px;
             font-size: 13px;
-            line-height: 1.4;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            width: 100%;
-            box-sizing: border-box;
+            border: 1px solid var(--border-color);
         }
 
-        .right-nav-buttons {
-            position: absolute;
-            right: 16px;
-            bottom: 120px;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .btn-incident.active {
+            background-color: #ff9800;
+            color: #000;
         }
 
-        .btn-floating {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.75);
-            -webkit-backdrop-filter: blur(16px);
-            backdrop-filter: blur(16px);
-            color: #1c1c1e;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            transition: transform 0.2s ease, background-color 0.2s ease;
-            touch-action: manipulation;
-        }
-
-        .btn-floating:active { transform: scale(0.92); }
-
-        .btn-floating-icon {
-            width: 26px;
-            height: 26px;
-            object-fit: contain;
-        }
-
-        /* Modal Seletor de Rota */
-        .route-modal {
-            display: none;
-            position: absolute;
-            bottom: 120px;
-            right: 72px;
-            z-index: 1001;
-            background: rgba(25, 25, 25, 0.75);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px;
-            padding: 8px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-            width: 220px;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .route-modal.active { display: flex; }
-
-        .route-option {
-            background: rgba(255, 255, 255, 0.06);
-            color: #fff;
-            border: 1px solid transparent;
-            padding: 10px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
+        .history-section {
+            margin-top: 25px;
             text-align: left;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background: var(--box-bg);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
         }
 
-        .route-option:active, .route-option.selected {
-            background: rgba(0, 122, 255, 0.85);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.3);
+        .history-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: var(--accent-color);
+        }
+
+        .history-item {
+            font-size: 11px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            line-height: 1.4;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .badge-live {
+            color: #4caf50;
+            font-weight: bold;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.4; }
+        }
+
+        details.history-details {
+            margin-top: 10px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+
+        details.history-details summary {
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-color);
+            opacity: 0.85;
+            outline: none;
+            padding: 4px 0;
+            user-select: none;
+        }
+
+        details.history-details summary:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+
+        .history-expanded-list {
+            max-height: 180px;
+            overflow-y: auto;
+            margin-top: 8px;
+            padding-top: 5px;
+            border-top: 1px solid var(--border-color);
         }
 
         .footer {
-            margin-top: 5px;
+            margin-top: 25px;
+            padding-top: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             text-align: center;
-            width: 100%;
+            border-top: 1px solid var(--border-color);
         }
 
         .footer-logo {
-            max-width: 85px;
+            max-width: 100px;
             height: auto;
             opacity: 0.85;
             transition: opacity 0.3s ease;
         }
 
-        .footer-logo:hover { opacity: 1; }
+        .footer-logo:hover {
+            opacity: 1;
+        }
 
         .footer-credit {
             font-size: 8px;
-            color: #ffffff;
-            opacity: 0.6;
-            margin-top: 2px;
+            color: var(--text-color);
+            opacity: 0.4;
+            margin-top: 3px;
             text-transform: none;
             text-align: center;
             letter-spacing: 0.3px;
-            text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.8);
         }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <script src="https://unpkg.com/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 </head>
 <body>
 
-    <div class="welcome-modal-overlay" id="welcomeModal">
-        <div class="welcome-modal-box">
-            <div class="welcome-modal-title" id="customModalTitle">🧪 Aplicativo em Fase de Testes</div>
-            <div class="welcome-modal-body" id="customModalBody">
-                Os horários, rotas e previsões de chegada podem apresentar oscilações ou instabilidades enquanto finalizamos os ajustes do sistema.
+    <!-- OVERLAY TELA DE LOGIN -->
+    <div id="loginOverlay">
+        <div class="login-header">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
+            <div class="login-title">Painel do Motorista</div>
+        </div>
+
+        <form class="login-card" id="loginForm" onsubmit="return false;">
+            <div class="login-input-group">
+                <label for="personNameInput">Seu Nome (Opcional)</label>
+                <input type="text" id="personNameInput" class="login-input" placeholder="Digite seu nome">
             </div>
-            <button class="welcome-modal-btn" id="closeWelcomeBtn">Entendi</button>
+
+            <div class="login-input-group">
+                <label for="usernameInput">Usuário</label>
+                <input type="text" id="usernameInput" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
+            </div>
+            
+            <div class="login-input-group">
+                <label for="passwordInput">Senha</label>
+                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
+            <div id="loginError" class="login-error">Usuário ou senha incorretos!</div>
+        </form>
+
+        <div class="login-footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella - Pela Vida" class="login-footer-logo">
         </div>
     </div>
 
-    <div class="beta-badge">BETA</div>
+    <!-- CONTEÚDO PRINCIPAL DO PAINEL -->
+    <div class="container">
+        <div class="top-bar">
+            <h2>🚌 Motorista</h2>
+            <button id="themeBtn" class="btn-theme">
+                <span>💡</span>
+                <span id="themeText">Super OLED</span>
+            </button>
+        </div>
 
-    <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
+        <div class="user-tag" id="userTagDisplay">Usuário: Convidado</div>
 
-    <div class="route-modal" id="routeModal">
-        <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
-        <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
-        <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15)</button>
-        <button class="route-option" data-value="rota_05">🚌 Rota 05 (17h15)</button>
-    </div>
+        <!-- SELEÇÃO DE ROTA -->
+        <div class="route-selection-box">
+            <label for="routeSelect">📍 ROTA DE HOJE:</label>
+            <select id="routeSelect" class="route-select">
+                <option value="plantao" data-nome="Rota de Plantão" data-placa="FCV">📍 Rota de Plantão</option>
+                <option value="rota_01" data-nome="Rota 01" data-placa="GSH-5A89">🚌 Rota 01 (GSH-5A89)</option>
+                <option value="rota_02" data-nome="Rota 02" data-placa="GFH-8D02">🚌 Rota 02 (GFH-8D02)</option>
+                <option value="rota_03" data-nome="Rota 03" data-placa="GFH-8D01">🚌 Rota 03 (GFH-8D01)</option>
+            </select>
+        </div>
 
-    <div class="right-nav-buttons">
-        <button id="toggleRouteBtn" class="btn-floating" title="Selecionar Rota">🗺️</button>
-        <button id="focusBusBtn" class="btn-floating" title="Ir até o Ônibus">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png" alt="Ônibus" class="btn-floating-icon">
-        </button>
-        <button id="focusUserBtn" class="btn-floating" title="Ir até Minha Localização">📍</button>
-    </div>
+        <div class="status-box" id="statusText">
+            Status: <b style="color: #f44336;">OFFLINE</b>
+        </div>
 
-    <div class="controls">
-        <button id="alarmBtn" class="btn btn-alarm">🔔 Ativar Alerta de Proximidade</button>
-        <button id="soundBtn" class="btn btn-sound">🔊 Som: ATIVADO (Clique para mutar)</button>
-        <button id="installBtn" class="btn btn-install">📲 Instalar App no Celular</button>
-        
-        <div id="iosInstallBox" class="ios-install-box">
-            📲 <b>Instalar no iPhone:</b> Toque no botão de <b>Compartilhar</b> <span style="font-size: 16px;">⎋</span> do Safari e selecione <b>"Adicionar à Tela de Início"</b>.
+        <div class="online-app-box">
+            <details class="passengers-details">
+                <summary>
+                    <span>📱 No ônibus (<5m): <span id="insidePassCount">0</span></span>
+                    <span style="font-size: 11px; opacity: 0.7;">🔍 Ver lista</span>
+                </summary>
+                <div class="passengers-inside-list" id="passengersInsideList">
+                    <i>Nenhum passageiro detectado a menos de 5m.</i>
+                </div>
+            </details>
+        </div>
+
+        <button id="toggleBtn" class="btn btn-start">▶ Iniciar Transmissão</button>
+
+        <div class="incident-section">
+            <div class="incident-title">Relatar Ocorrência:</div>
+            <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
+            <button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">📜 Viagens de Hoje</div>
+            <div id="todayHistoryList">Carregando viagens do dia...</div>
+
+            <details class="history-details" id="oldHistoryDetails" style="display: none;">
+                <summary>📁 Ver histórico de dias anteriores (<span id="oldHistoryCount">0</span>)</summary>
+                <div class="history-expanded-list" id="oldHistoryList"></div>
+            </details>
         </div>
 
         <div class="footer">
@@ -488,26 +538,56 @@
         </div>
     </div>
 
-    <div id="map"></div>
-
     <script>
-        window.alert = function(msg) {
-            const welcomeModal = document.getElementById('welcomeModal');
-            document.getElementById('customModalTitle').innerText = "";
-            document.getElementById('customModalTitle').style.display = "none";
-            document.getElementById('customModalBody').innerText = msg;
-            welcomeModal.style.display = 'flex';
-            welcomeModal.style.opacity = '1';
-        };
+        // --- FILTRO DISCRETO DE NOMES EXPLICITOS / PALAVRÕES ---
+        const palavrasProibidas = ["palavrao1", "palavrao2", "porra", "caralho", "merda", "puta", "fdp", "cacete"]; 
+        
+        function censurarNome(nome) {
+            if (!nome) return "Passageiro Anônimo";
+            let nomeLimpo = nome.trim();
+            palavrasProibidas.forEach(p => {
+                const regex = new RegExp(`\\b${p}\\b`, 'gi');
+                nomeLimpo = nomeLimpo.replace(regex, '***');
+            });
+            return nomeLimpo;
+        }
 
-        document.getElementById('closeWelcomeBtn').addEventListener('click', function() {
-            const welcomeModal = document.getElementById('welcomeModal');
-            welcomeModal.style.opacity = '0';
-            setTimeout(() => { welcomeModal.style.display = 'none'; }, 300);
+        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('usernameInput');
+        const passwordInput = document.getElementById('passwordInput');
+        const personNameInput = document.getElementById('personNameInput');
+        const loginError = document.getElementById('loginError');
+        const userTagDisplay = document.getElementById('userTagDisplay');
+
+        let meuNomeCadastrado = sessionStorage.getItem('fcv_nome_usuario') || "Convidado";
+        userTagDisplay.innerText = `Usuário: ${meuNomeCadastrado}`;
+
+        if (sessionStorage.getItem('fcv_motorista_autenticado') === 'true') {
+            loginOverlay.style.display = 'none';
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const usuarioDigitado = usernameInput.value.trim();
+            const senhaDigitada = passwordInput.value.trim();
+            const nomeDigitado = censurarNome(personNameInput.value);
+
+            if (usuarioDigitado === "motorista" && senhaDigitada === "@FCVMotorista") {
+                loginError.style.display = 'none';
+                sessionStorage.setItem('fcv_motorista_autenticado', 'true');
+                sessionStorage.setItem('fcv_nome_usuario', nomeDigitado);
+                meuNomeCadastrado = nomeDigitado;
+                userTagDisplay.innerText = `Usuário: ${meuNomeCadastrado}`;
+                loginOverlay.style.display = 'none';
+            } else {
+                loginError.style.display = 'block';
+                passwordInput.value = '';
+            }
         });
 
-        document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
-        document.addEventListener('gesturestart', function(e) { e.preventDefault(); }, { passive: false });
+        // ------------------------------------
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
@@ -522,527 +602,413 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        const sessionPassageiroId = db.ref('passageiros_online').push().key;
-        const minhaConexaoRef = db.ref(`passageiros_online/${sessionPassageiroId}`);
-
-        db.ref('.info/connected').on('value', (snapshot) => {
-            if (snapshot.val() === true) {
-                minhaConexaoRef.onDisconnect().remove();
-                minhaConexaoRef.set({ ativoEm: firebase.database.ServerValue.TIMESTAMP });
-            }
-        });
-
-        const map = L.map('map', { 
-            doubleClickZoom: false,
-            rotate: true,
-            touchRotate: true,
-            rotateControl: false
-        }).setView([-21.128, -42.370], 14);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap © CARTO',
-            maxZoom: 19
-        }).addTo(map);
-
-        const fcvPointIcon = L.icon({
-            iconUrl: 'https://raw.githubusercontent.com/althierestm/OnibusFCV/main/Icone%20App%20FCV.png',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-            popupAnchor: [0, -14]
-        });
-
-        const userLocationIcon = L.divIcon({
-            className: 'user-location-marker',
-            html: '<div class="user-location-pulse"></div><div class="user-location-dot"></div>',
-            iconSize: [22, 22],
-            iconAnchor: [11, 11]
-        });
-
-        const pontosPlantao = [
-            { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
-            { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
-            { nome: "Ponto 3", desc: "Trevo Chevrolet", coords: [-21.124339, -42.381411] },
-            { nome: "Ponto 4", desc: "Viaduto Bahamas", coords: [-21.126903, -42.369898] },
-            { nome: "Ponto 5", desc: "Vitrines", coords: [-21.128478, -42.364518] },
-            { nome: "Ponto 6", desc: "Mamão Car", coords: [-21.128883, -42.358430] },
-            { nome: "Ponto 7", desc: "Porto", coords: [-21.126512, -42.354167] },
-            { nome: "Ponto 8", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129501, -42.357890] },
-            { nome: "Ponto 9", desc: "Centro - Juscelino Kubitscheck", coords: [-21.130203, -42.361406] },
-            { nome: "Ponto 10", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129459, -42.364093] },
-            { nome: "Ponto 11", desc: "Centro - Em frente à PatoLab", coords: [-21.129295, -42.366361] },
-            { nome: "Ponto 12", desc: "Armação - Em frente ao Supermercado Armação", coords: [-21.131572, -42.369898] },
-            { nome: "Ponto 13", desc: "Rua Santa Rita", coords: [-21.132698, -42.370226] },
-            { nome: "Ponto 14", desc: "Em frente ao antigo CEM", coords: [-21.135450, -42.371829] },
-            { nome: "Ponto 15", desc: "Safira - Em frente à Veggi", coords: [-21.136084, -42.373685] },
-            { nome: "Ponto 16", desc: "Safira - Em frente à Escola Mun. Sebastião Laviola", coords: [-21.132534, -42.377801] },
-            { nome: "Ponto 17", desc: "Rua Tiradentes - Em frente ao Mercado Bazinho", coords: [-21.130625, -42.376847] },
-            { nome: "Ponto 18", desc: "Barra - Em frente à ANB Academia", coords: [-21.128571, -42.376218] },
-            { nome: "Ponto 19", desc: "Barra - Em frente ao IF Sudeste", coords: [-21.127701, -42.378948] },
-            { nome: "Ponto 20", desc: "Barra - Em frente à Pão Chic", coords: [-21.128060, -42.381262] },
-            { nome: "Ponto 21", desc: "Av. Dante Bruno", coords: [-21.130188, -42.393765] },
-            { nome: "Ponto 22", desc: "Praça do Dornelas - Em frente à We Training", coords: [-21.130458, -42.393329] },
-            { nome: "Ponto 23", desc: "Avenida Rio Bahia", coords: [-21.126405, -42.383132] }
-        ];
-
-        const pontosRota01 = [
-            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126556, -42.353724] },
-            { nome: "2º Ponto - Encoberta", desc: "Rua Antônio Pereira Galvão - Próximo ao CAIC", coords: [-21.132664, -42.351878] },
-            { nome: "3º Ponto - Encoberta", desc: "Rua Newton Resende - Esquina com Rua Antônio Pereira Galvão", coords: [-21.133063, -42.354558] },
-            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: [-21.133274, -42.360006] },
-            { nome: "5º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: [-21.134801, -42.356162] },
-            { nome: "6º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: [-21.137114, -42.354694] },
-            { nome: "7º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: [-21.136657, -42.356976] },
-            { nome: "8º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: [-21.1354211, -42.3608817] },
-            { nome: "9º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: [-21.138079, -42.362742] },
-            { nome: "10º Ponto - São Gotardo", desc: "Rua Nelson Hastenreiter - Em frente ao nº 205", coords: [-21.140697, -42.364791] },
-            { nome: "11º Ponto - Primavera", desc: "Rua Cecília Meireles, nº 170 - Em frente à caixa d'água da Primavera", coords: [-21.144457, -42.365190] },
-            { nome: "12º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: [-21.143804, -42.369615] },
-            { nome: "13º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: [-21.143559, -42.371816] },
-            { nome: "14º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: [-21.145610, -42.380743] },
-            { nome: "15º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
-        ];
-
-        const pontosRota02 = [
-            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126556, -42.353724] },
-            { nome: "2º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente ao nº 55", coords: [-21.129491, -42.357881] },
-            { nome: "3º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Pauliene", coords: [-21.130199, -42.361421] },
-            { nome: "4º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Dilfar, nº 777", coords: [-21.129444, -42.364152] },
-            { nome: "5º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Patolab", coords: [-21.129143, -42.366186] },
-            { nome: "6º Ponto - Prefeito Hélio Araújo", desc: "Rua Santa Rita, nº 90 - Próximo à Auto Escola Via Brasil", coords: [-21.1325739, -42.369992] },
-            { nome: "7º Ponto - Safira", desc: "Rua Silvério Campos - Confecção do Veggi", coords: [-21.136115, -42.373648] },
-            { nome: "8º Ponto - Safira", desc: "Rua Silvério Campos - Em frente à Escola Sebastião Laviola", coords: [-21.132505, -42.377855] },
-            { nome: "9º Ponto - Safira", desc: "Rua Silas Macedo, nº 18", coords: [-21.134736, -42.378482] },
-            { nome: "10º Ponto - Planalto", desc: "Rua Três - Pracinha do Planalto", coords: [-21.138006, -42.375926] },
-            { nome: "11º Ponto - Barra", desc: "Avenida Rio-Bahia - Antiga Vemasa Mitsubishi", coords: [-21.145680, -42.380753] },
-            { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
-        ];
-
-        const pontosRota05 = [
-            { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] },
-            { nome: "2º Ponto - BR-356", desc: "Próximo ao Vitrines", coords: [-21.128447, -42.364497] },
-            { nome: "3º Ponto - BR-356 - PORTO", desc: "Mamão Car", coords: [-21.128819, -42.358430] },
-            { nome: "4º Ponto - BR-356 - PORTO", desc: "Após o trevo do Porto - Raia da Malha", coords: [-21.125805, -42.352453] },
-            { nome: "5º Ponto - BR-356 - MARAMBAIA", desc: "Entrada do Bairro Marambaia - Em frente ao Posto Ipiranga", coords: [-21.128651, -42.347335] },
-            { nome: "6º Ponto - BR-356 - PADRE TIAGO", desc: "Entrada do Bairro Padre Tiago", coords: [-21.128071, -42.345930] },
-            { nome: "7º Ponto - BR-356", desc: "Em frente ao SESC", coords: [-21.126578, -42.341012] }
-        ];
-
-        const pontosPlantaoGroup = L.layerGroup();
-        pontosPlantao.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosPlantaoGroup);
-        });
-
-        const pontosRota01Group = L.layerGroup();
-        pontosRota01.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota01Group);
-        });
-
-        const pontosRota02Group = L.layerGroup();
-        pontosRota02.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota02Group);
-        });
-
-        const pontosRota05Group = L.layerGroup();
-        pontosRota05.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota05Group);
-        });
-
-        const busIcon = L.divIcon({
-            className: 'bus-pin-marker',
-            html: `
-                <div class="bus-pin-wrapper">
-                    <div class="bus-pin-bubble">
-                        <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/icone%20onibus%201.png" class="bus-pin-img" alt="Ônibus">
-                    </div>
-                    <div class="bus-pin-pointer"></div>
-                </div>
-            `,
-            iconSize: [42, 52],
-            iconAnchor: [21, 52],
-            popupAnchor: [0, -52]
-        });
-
-        let busData = {};
-        let busMarkers = {};
-        let passengerMarker = null, passengerCircle = null;
-        let passengerPos = null, watchId = null;
-        let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
+        let isTransmitting = false;
+        let watchId = null;
+        let ocorrenciaAtual = null;
+        let viagemAtualId = null;
+        let currentRouteKey = null;
         
-        let selectedRouteKey = 'plantao';
+        let timerInterval = null;
+        let tempoInicioViagem = null;
+        let lastSignalTimeout = null;
+        
+        let wakeLock = null;
 
-        const infoEl = document.getElementById('info');
-        const alarmBtn = document.getElementById('alarmBtn');
-        const soundBtn = document.getElementById('soundBtn');
-        const toggleRouteBtn = document.getElementById('toggleRouteBtn');
-        const routeModal = document.getElementById('routeModal');
-        const routeOptions = document.querySelectorAll('.route-option');
+        let ultimaLatEnviada = null;
+        let ultimaLngEnviada = null;
+        let ultimoTempoEnvio = 0;
 
-        toggleRouteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            routeModal.classList.toggle('active');
-        });
+        const toggleBtn = document.getElementById('toggleBtn');
+        const statusText = document.getElementById('statusText');
+        const routeSelect = document.getElementById('routeSelect');
+        const btnAccident = document.getElementById('btnAccident');
+        const btnBroken = document.getElementById('btnBroken');
+        const insidePassCountEl = document.getElementById('insidePassCount');
+        const passengersInsideListEl = document.getElementById('passengersInsideList');
+        const themeBtn = document.getElementById('themeBtn');
+        const themeText = document.getElementById('themeText');
+        const todayHistoryListEl = document.getElementById('todayHistoryList');
+        const oldHistoryListEl = document.getElementById('oldHistoryList');
+        const oldHistoryDetails = document.getElementById('oldHistoryDetails');
+        const oldHistoryCount = document.getElementById('oldHistoryCount');
 
-        document.addEventListener('click', (e) => {
-            if (!routeModal.contains(e.target) && e.target !== toggleRouteBtn) {
-                routeModal.classList.remove('active');
-            }
-        });
-
-        routeOptions.forEach(opt => {
-            opt.addEventListener('click', () => {
-                routeOptions.forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                selectedRouteKey = opt.getAttribute('data-value');
-                routeModal.classList.remove('active');
-                atualizarExibicaoGeral();
-            });
-        });
-
-        function iniciarGeolocalizacao(centralizar = false) {
-            if ("geolocation" in navigator) {
-                if (watchId === null) {
-                    watchId = navigator.geolocation.watchPosition((position) => {
-                        passengerPos = [position.coords.latitude, position.coords.longitude];
-
-                        if (!passengerMarker) {
-                            passengerMarker = L.marker(passengerPos, { icon: userLocationIcon })
-                                .addTo(map)
-                                .bindPopup("<b>Sua Posição</b>");
-                        } else {
-                            passengerMarker.setLatLng(passengerPos);
-                        }
-
-                        if (alarmEnabled) {
-                            if (!passengerCircle) {
-                                passengerCircle = L.circle(passengerPos, {
-                                    radius: 1000, color: '#007aff', fillColor: '#007aff', fillOpacity: 0.08, weight: 1.5
-                                }).addTo(map);
-                            } else {
-                                passengerCircle.setLatLng(passengerPos);
-                            }
-                        }
-
-                        if (centralizar) map.setView(passengerPos, 16);
-                        checarProximidade();
-                    }, (err) => {
-                        console.warn("Erro ao obter localização: ", err);
-                    }, { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 });
-                } else if (passengerPos && centralizar) {
-                    map.setView(passengerPos, 16);
-                }
-            }
-        }
-
-        iniciarGeolocalizacao(false);
-
-        function playBeep() {
-            if (!soundEnabled) return;
-            try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = "sine";
-                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.6);
-            } catch (e) {}
-        }
-
-        function calcularDistancia(lat1, lon1, lat2, lon2) {
-            const R = 6371;
+        // --- CÁLCULO DE DISTÂNCIA (Fórmula de Haversine) ---
+        function calcularDistanciaMetros(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
         }
 
-        function obterPontosDaRotaAtual() {
-            if (selectedRouteKey === 'rota_01') return pontosRota01;
-            if (selectedRouteKey === 'rota_02') return pontosRota02;
-            if (selectedRouteKey === 'rota_05') return pontosRota05;
-            return pontosPlantao; // Padrão
-        }
-
-        function obterPontoMaisProximo(coords) {
-            let listaPontos = obterPontosDaRotaAtual();
-            let menorDist = Infinity;
-            let indiceProximo = -1;
-            listaPontos.forEach((p, idx) => {
-                const d = calcularDistancia(coords[0], coords[1], p.coords[0], p.coords[1]);
-                if (d < menorDist) {
-                    menorDist = d;
-                    indiceProximo = idx;
+        // --- MONITORAR PASSAGEIROS < 5 METROS ---
+        function monitorarPassageirosProximos(busLat, busLng) {
+            db.ref('passageiros_online').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) {
+                    insidePassCountEl.innerText = "0";
+                    passengersInsideListEl.innerHTML = "<i>Nenhum passageiro detectado no ônibus.</i>";
+                    return;
                 }
-            });
-            return { index: indiceProximo, distanciaKm: menorDist, ponto: listaPontos[indiceProximo] };
-        }
 
-        document.getElementById('focusBusBtn').addEventListener('click', () => {
-            const keysAtivas = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && (selectedRouteKey === 'todas' || selectedRouteKey === k));
-            if (keysAtivas.length > 0) {
-                const targetKey = keysAtivas[0];
-                const targetBus = busData[targetKey];
-                map.setView([targetBus.lat, targetBus.lng], 16);
-                if (busMarkers[targetKey]) busMarkers[targetKey].openPopup();
-            } else {
-                alert("Nenhum ônibus em circulação para a rota selecionada.");
-            }
-        });
+                let passageirosNoOnibus = [];
 
-        document.getElementById('focusUserBtn').addEventListener('click', () => {
-            if (passengerPos) { 
-                map.setView(passengerPos, 16); 
-                if (passengerMarker) passengerMarker.openPopup(); 
-            } else { 
-                iniciarGeolocalizacao(true); 
-            }
-        });
-
-        alarmBtn.addEventListener('click', () => {
-            if (!alarmEnabled) {
-                alarmEnabled = true;
-                alarmBtn.innerText = "🔕 Desativar Alerta";
-                alarmBtn.classList.add('active');
-                soundBtn.style.display = 'block';
-
-                if (passengerPos) {
-                    passengerCircle = L.circle(passengerPos, {
-                        radius: 1000, color: '#007aff', fillColor: '#007aff', fillOpacity: 0.08, weight: 1.5
-                    }).addTo(map);
-                }
-                iniciarGeolocalizacao();
-            } else {
-                alarmEnabled = false; alarmTriggered = false;
-                alarmBtn.innerText = "🔔 Ativar Alerta de Proximidade";
-                alarmBtn.classList.remove('active');
-                soundBtn.style.display = 'none';
-
-                if (passengerCircle) {
-                    map.removeLayer(passengerCircle);
-                    passengerCircle = null;
-                }
-                infoEl.classList.remove('alert-active');
-            }
-        });
-
-        soundBtn.addEventListener('click', () => {
-            soundEnabled = !soundEnabled;
-            soundBtn.innerText = soundEnabled ? "🔊 Som: ATIVADO (Clique para mutar)" : "🔇 Som: DESATIVADO";
-            soundBtn.classList.toggle('muted', !soundEnabled);
-        });
-
-        function checarProximidade() {
-            if (!alarmEnabled || !passengerPos) return;
-
-            const pontoPassageiro = obterPontoMaisProximo(passengerPos);
-            let alertaDisparadoPorPontos = false;
-
-            Object.keys(busData).forEach(key => {
-                const bus = busData[key];
-                if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
-                    const pontoOnibus = obterPontoMaisProximo([bus.lat, bus.lng]);
-                    
-                    const diferencaPontos = pontoPassageiro.index - pontoOnibus.index;
-
-                    if (diferencaPontos > 0 && diferencaPontos <= 2) {
-                        alertaDisparadoPorPontos = true;
-                        infoEl.innerHTML = `🚨 <b>ÔNIBUS CHEGANDO!</b><br>Ônibus no <b>${pontoOnibus.ponto.nome}</b><br>Faltam <b>${diferencaPontos} ponto(s)</b> para o seu (${pontoPassageiro.ponto.nome})`;
-                        infoEl.classList.add('alert-active');
-                        if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
-                    }
-                }
-            });
-
-            if (!alertaDisparadoPorPontos) {
-                let menorDistancia = Infinity;
-                Object.keys(busData).forEach(key => {
-                    const bus = busData[key];
-                    if (bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key)) {
-                        const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
-                        if (dist < menorDistancia) menorDistancia = dist;
+                Object.keys(data).forEach(key => {
+                    const pass = data[key];
+                    if (pass.lat && pass.lng) {
+                        const dist = calcularDistanciaMetros(busLat, busLng, pass.lat, pass.lng);
+                        if (dist <= 5) { // Menos de 5 metros de distância
+                            passageirosNoOnibus.push({
+                                nome: censurarNome(pass.nome || "Anônimo"),
+                                dist: Math.round(dist)
+                            });
+                        }
                     }
                 });
 
-                if (menorDistancia <= 1.0) {
-                    infoEl.innerHTML = `🚨 <b>ÔNIBUS PRÓXIMO!</b><br>Distância: <b>${Math.round(menorDistancia * 1000)} metros</b>`;
-                    infoEl.classList.add('alert-active');
-                    if (!alarmTriggered) { playBeep(); setTimeout(playBeep, 800); alarmTriggered = true; }
+                insidePassCountEl.innerText = passageirosNoOnibus.length;
+
+                if (passageirosNoOnibus.length > 0) {
+                    let htmlList = "";
+                    passageirosNoOnibus.forEach(p => {
+                        htmlList += `<div class="passenger-item"><span>👤 ${p.nome}</span> <span>${p.dist}m</span></div>`;
+                    });
+                    passengersInsideListEl.innerHTML = htmlList;
                 } else {
-                    infoEl.classList.remove('alert-active');
-                    alarmTriggered = false;
+                    passengersInsideListEl.innerHTML = "<i>Nenhum passageiro detectado a menos de 5m.</i>";
                 }
+            });
+        }
+
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.error(`Erro Wake Lock: ${err.message}`);
             }
         }
 
-        function obterNomeFormatadoRota(key, bus) {
-            if (bus && bus.nome) return bus.nome;
-            if (key === 'plantao') return 'Rota de Plantão';
-            if (key === 'rota_01') return 'Rota 01';
-            if (key === 'rota_02') return 'Rota 02';
-            if (key === 'rota_05') return 'Rota 05';
-            return key;
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
         }
 
-        function atualizarExibicaoGeral() {
-            if (selectedRouteKey === 'plantao') {
-                if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
-            } else if (selectedRouteKey === 'rota_01') {
-                if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
-            } else if (selectedRouteKey === 'rota_02') {
-                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
-            } else if (selectedRouteKey === 'rota_05') {
-                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-            } else if (selectedRouteKey === 'todas') {
-                if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
-                if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
-                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
-                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
-            } else {
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+        document.addEventListener('visibilitychange', async () => {
+            if (isTransmitting && document.visibilityState === 'visible') {
+                await requestWakeLock();
+            }
+        });
+
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
+        });
+
+        function formatarTempo(segundos) {
+            const h = Math.floor(segundos / 3600).toString().padStart(2, '0');
+            const m = Math.floor((segundos % 3600) / 60).toString().padStart(2, '0');
+            const s = Math.floor(segundos % 60).toString().padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
+        function formatarDataEDiaSemana(timestamp) {
+            if (!timestamp) return '';
+            const data = new Date(timestamp);
+            const dias = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            const diaSemana = dias[data.getDay()];
+            const dia = data.getDate().toString().padStart(2, '0');
+            const mes = (data.getMonth() + 1).toString().padStart(2, '0');
+            return `${diaSemana}, ${dia}/${mes}`;
+        }
+
+        function ehHoje(timestamp) {
+            if (!timestamp) return false;
+            const data = new Date(timestamp);
+            const hoje = new Date();
+            return data.getDate() === hoje.getDate() &&
+                   data.getMonth() === hoje.getMonth() &&
+                   data.getFullYear() === hoje.getFullYear();
+        }
+
+        function atualizarCronometroLocal() {
+            if (!tempoInicioViagem) return "00:00:00";
+            const agora = Date.now();
+            const decorridoSeg = Math.floor((agora - tempoInicioViagem) / 1000);
+            return formatarTempo(decorridoSeg);
+        }
+
+        function resetarInatividadeTimer() {
+            if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
+            lastSignalTimeout = setTimeout(() => {
+                alert("Sem sinal de GPS há 5 minutos. A transmissão foi encerrada automaticamente.");
+                pararTransmissao();
+            }, 300000);
+        }
+
+        function limparHistoricoAntigo(data) {
+            const trintaDiasEmMs = 30 * 24 * 60 * 60 * 1000;
+            const agora = Date.now();
+
+            Object.keys(data).forEach(key => {
+                const item = data[key];
+                const timestampItem = item.inicio || item.fim;
+                if (timestampItem && (agora - timestampItem > trintaDiasEmMs)) {
+                    db.ref(`historico_viagens/${key}`).remove();
+                }
+            });
+        }
+
+        db.ref('historico_viagens').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+                todayHistoryListEl.innerHTML = "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
+                oldHistoryDetails.style.display = "none";
+                return;
             }
 
-            let onibusEmCirculacao = 0;
+            limparHistoricoAntigo(data);
 
-            Object.keys(busData).forEach(key => {
-                const bus = busData[key];
-                const deveserExibido = bus && bus.ativo && bus.lat && bus.lng && (selectedRouteKey === 'todas' || selectedRouteKey === key);
+            let htmlHoje = "";
+            let htmlAnteriores = "";
+            let qtdAnteriores = 0;
 
-                if (deveserExibido) {
-                    onibusEmCirculacao++;
-                    if (!busMarkers[key]) {
-                        busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
-                            .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
-                    } else {
-                        busMarkers[key].setLatLng([bus.lat, bus.lng]);
-                        if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
-                    }
+            const keys = Object.keys(data).reverse();
+
+            keys.forEach(key => {
+                const item = data[key];
+                const dataFormatada = formatarDataEDiaSemana(item.inicio);
+                const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+                const eHoje = ehHoje(item.inicio);
+                const nomeRota = item.rotaNome || "Rota Não Especificada";
+
+                if (!item.fim) {
+                    const tempoAtualStr = atualizarCronometroLocal();
+                    const itemHtml = `
+                        <div class="history-item">
+                            <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b class="badge-live">🟢 EM ANDAMENTO</b> (desde ${inicio})<br>
+                            ⏱️ Duração: <b id="histCronometro">${tempoAtualStr}</b>
+                        </div>
+                    `;
+                    if (eHoje) htmlHoje += itemHtml;
+                    else htmlAnteriores += itemHtml;
                 } else {
-                    if (busMarkers[key] && map.hasLayer(busMarkers[key])) {
-                        map.removeLayer(busMarkers[key]);
+                    const fim = new Date(item.fim).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    const duracaoSeg = Math.floor((item.fim - item.inicio) / 1000);
+                    const duracaoStr = formatarTempo(duracaoSeg);
+                    const itemHtml = `
+                        <div class="history-item">
+                            <b>📅 ${dataFormatada}</b> [${nomeRota}] - <b>🏁 ${inicio} às ${fim}</b> (${duracaoStr})
+                        </div>
+                    `;
+
+                    if (eHoje) {
+                        htmlHoje += itemHtml;
+                    } else {
+                        htmlAnteriores += itemHtml;
+                        qtdAnteriores++;
                     }
                 }
             });
 
-            const rotaSelecionadaAtiva = selectedRouteKey !== 'todas' && busData[selectedRouteKey] && busData[selectedRouteKey].ativo;
+            todayHistoryListEl.innerHTML = htmlHoje || "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
 
-            if (!rotaSelecionadaAtiva && selectedRouteKey !== 'todas') {
-                const rotasAtivasGeral = Object.keys(busData).filter(k => busData[k] && busData[k].ativo && busData[k].lat && busData[k].lng);
-                const qtdRotasAtivas = rotasAtivasGeral.length;
-
-                if (qtdRotasAtivas === 0) {
-                    infoEl.innerHTML = "Nenhuma rota ativa no momento";
-                } else if (qtdRotasAtivas === 1) {
-                    const nomeRota = obterNomeFormatadoRota(rotasAtivasGeral[0], busData[rotasAtivasGeral[0]]);
-                    infoEl.innerHTML = `01 rota ativa no momento (${nomeRota})`;
-                } else {
-                    const nomesRotas = rotasAtivasGeral.map(k => obterNomeFormatadoRota(k, busData[k])).join(', ');
-                    const qtdStr = qtdRotasAtivas < 10 ? `0${qtdRotasAtivas}` : qtdRotasAtivas;
-                    infoEl.innerHTML = `${qtdStr} rotas ativas no momento (${nomesRotas})`;
-                }
-                
-                infoEl.classList.remove('alert-active');
-                return;
+            if (qtdAnteriores > 0) {
+                oldHistoryListEl.innerHTML = htmlAnteriores;
+                oldHistoryCount.innerText = qtdAnteriores;
+                oldHistoryDetails.style.display = "block";
+            } else {
+                oldHistoryDetails.style.display = "none";
             }
+        });
 
-            if (selectedRouteKey === 'todas') {
-                if (onibusEmCirculacao === 0) {
-                    infoEl.innerHTML = "Nenhuma rota ativa no momento";
-                } else {
-                    infoEl.innerHTML = `🚌 <b>${onibusEmCirculacao} ônibus</b> em circulação.`;
-                }
-                infoEl.classList.remove('alert-active');
-                return;
+        btnAccident.addEventListener('click', () => toggleOcorrencia('acidente', btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
+        btnBroken.addEventListener('click', () => toggleOcorrencia('quebrado', btnBroken, "Deseja relatar Ônibus com Defeito?"));
+
+        function toggleOcorrencia(tipo, botao, mensagemConfirmacao) {
+            if (ocorrenciaAtual === tipo) {
+                ocorrenciaAtual = null;
+                botao.classList.remove('active');
+            } else {
+                if (!confirm(mensagemConfirmacao)) return;
+                ocorrenciaAtual = tipo;
+                btnAccident.classList.remove('active');
+                btnBroken.classList.remove('active');
+                botao.classList.add('active');
             }
-
-            if (busData[selectedRouteKey] && busData[selectedRouteKey].ativo) {
-                const bus = busData[selectedRouteKey];
-                let tagStatus = `<span class="badge-status status-normal">🟢 Rota Normal</span>`;
-                let velMedicaKmh = 25;
-
-                if (bus.ocorrenciaManual === 'acidente') {
-                    tagStatus = `<span class="badge-status status-emergencia">⚠️ ALERTA: Acidente</span>`;
-                } else if (bus.ocorrenciaManual === 'quebrado') {
-                    tagStatus = `<span class="badge-status status-emergencia">🔧 ALERTA: Quebrado</span>`;
-                } else if (bus.statusTransito === 'lento') {
-                    tagStatus = `<span class="badge-status status-lento">🟡 Trânsito Lento</span>`;
-                    velMedicaKmh = 12;
-                } else if (bus.statusTransito === 'parado') {
-                    tagStatus = `<span class="badge-status status-parado">🔴 Parado</span>`;
-                    velMedicaKmh = 5;
-                }
-
-                let texto = `🚌 <b>${bus.nome || selectedRouteKey}</b> | <b>${bus.velocidade || 0} km/h</b><br>${tagStatus}`;
-
-                if (passengerPos && !bus.ocorrenciaManual && bus.lat && bus.lng) {
-                    const dist = calcularDistancia(passengerPos[0], passengerPos[1], bus.lat, bus.lng);
-                    let tempoMin = Math.round((dist / velMedicaKmh) * 60);
-                    if (tempoMin < 1) tempoMin = 1;
-
-                    const agora = new Date();
-                    agora.setMinutes(agora.getMinutes() + tempoMin);
-                    const horaChegadaStr = agora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    texto += `<br>Distância: <b>${dist.toFixed(1)} km</b> | Chegada: <b>~${tempoMin} min</b> (${horaChegadaStr})`;
-                }
-
-                infoEl.innerHTML = texto;
-            }
-
-            checarProximidade();
+            atualizarDadosFirebase();
         }
 
-        db.ref('onibus').on('value', (snapshot) => {
-            const data = snapshot.val();
-            busData = data || {};
-            atualizarExibicaoGeral();
+        toggleBtn.addEventListener('click', () => {
+            if (!isTransmitting) iniciarTransmissao();
+            else pararTransmissao();
         });
 
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+        function iniciarTransmissao() {
+            if ("geolocation" in navigator) {
+                const optionSelected = routeSelect.options[routeSelect.selectedIndex];
+                currentRouteKey = routeSelect.value;
+                const routeName = optionSelected.getAttribute('data-nome');
+                const routePlaca = optionSelected.getAttribute('data-placa');
 
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        
-        if (isIOS && !isStandalone) document.getElementById('iosInstallBox').style.display = 'block';
+                routeSelect.disabled = true;
+                tempoInicioViagem = Date.now();
 
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            if (!isStandalone) document.getElementById('installBtn').style.display = 'block';
-        });
+                ultimaLatEnviada = null;
+                ultimaLngEnviada = null;
+                ultimoTempoEnvio = 0;
 
-        document.getElementById('installBtn').addEventListener('click', (e) => {
-            e.target.style.display = 'none';
-            if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
-        });
+                requestWakeLock();
+
+                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
+
+                const novaViagemRef = db.ref('historico_viagens').push();
+                viagemAtualId = novaViagemRef.key;
+                novaViagemRef.set({
+                    inicio: firebase.database.ServerValue.TIMESTAMP,
+                    rotaKey: currentRouteKey,
+                    rotaNome: routeName
+                });
+
+                timerInterval = setInterval(() => {
+                    const tempoStr = atualizarCronometroLocal();
+                    const cronoEl = document.getElementById('liveTimer');
+                    const histCronoEl = document.getElementById('histCronometro');
+                    
+                    if (cronoEl) cronoEl.innerText = tempoStr;
+                    if (histCronoEl) histCronoEl.innerText = tempoStr;
+                }, 1000);
+
+                resetarInatividadeTimer();
+
+                watchId = navigator.geolocation.watchPosition((pos) => {
+                    resetarInatividadeTimer();
+
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
+                    const agora = Date.now();
+
+                    // Monitora proximidade dos passageiros
+                    monitorarPassageirosProximos(lat, lng);
+
+                    let statusTransito = "normal";
+                    if (speedKmh < 5) statusTransito = "parado";
+                    else if (speedKmh < 18) statusTransito = "lento";
+
+                    let deveEnviar = false;
+
+                    if (ultimaLatEnviada === null || ultimaLngEnviada === null) {
+                        deveEnviar = true;
+                    } else {
+                        const distanciaAndada = calcularDistanciaMetros(ultimaLatEnviada, ultimaLngEnviada, lat, lng);
+                        const tempoDecorrido = (agora - ultimoTempoEnvio) / 1000;
+
+                        if (distanciaAndada >= 450 || tempoDecorrido >= 20) {
+                            deveEnviar = true;
+                        }
+                    }
+
+                    if (deveEnviar) {
+                        db.ref(`onibus/${currentRouteKey}`).set({
+                            nome: routeName,
+                            placa: routePlaca,
+                            lat: lat,
+                            lng: lng,
+                            velocidade: speedKmh,
+                            statusTransito: statusTransito,
+                            ocorrenciaManual: ocorrenciaAtual,
+                            ativo: true,
+                            ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
+                        });
+
+                        ultimaLatEnviada = lat;
+                        ultimaLngEnviada = lng;
+                        ultimoTempoEnvio = agora;
+                    }
+
+                    statusText.innerHTML = `
+                        <b>${routeName} (${routePlaca})</b><br>
+                        Status: <b style="color: #4caf50;">TRANSMITINDO</b><br>
+                        Velocidade: <b>${speedKmh} km/h</b>
+                        <div class="timer-display">⏱️ <span id="liveTimer">${atualizarCronometroLocal()}</span></div>
+                    `;
+                }, (err) => {
+                    alert("Erro ao obter localização: " + err.message);
+                }, { enableHighAccuracy: true });
+
+                isTransmitting = true;
+                toggleBtn.innerText = "⏹ Parar Transmissão";
+                toggleBtn.classList.remove('btn-start');
+                toggleBtn.classList.add('btn-stop');
+            } else {
+                alert("Geolocalização não é suportada neste navegador.");
+            }
+        }
+
+        function pararTransmissao() {
+            releaseWakeLock();
+
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            if (lastSignalTimeout) {
+                clearTimeout(lastSignalTimeout);
+                lastSignalTimeout = null;
+            }
+
+            if (viagemAtualId) {
+                db.ref(`historico_viagens/${viagemAtualId}`).update({
+                    fim: firebase.database.ServerValue.TIMESTAMP
+                });
+                viagemAtualId = null;
+            }
+
+            if (currentRouteKey) {
+                db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().cancel();
+                
+                db.ref(`onibus/${currentRouteKey}`).update({
+                    ativo: false
+                });
+            }
+
+            isTransmitting = false;
+            tempoInicioViagem = null;
+            routeSelect.disabled = false;
+
+            statusText.innerHTML = `Status: <b style="color: #f44336;">OFFLINE</b>`;
+            toggleBtn.innerText = "▶ Iniciar Transmissão";
+            toggleBtn.classList.remove('btn-stop');
+            toggleBtn.classList.add('btn-start');
+        }
+
+        function atualizarDadosFirebase() {
+            if (isTransmitting && currentRouteKey) {
+                db.ref(`onibus/${currentRouteKey}`).update({
+                    ocorrenciaManual: ocorrenciaAtual
+                });
+            }
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker do WebApp ativado com sucesso.'))
+                .catch(err => console.error('Erro ao registrar Service Worker:', err));
+        }
     </script>
 </body>
 </html>
