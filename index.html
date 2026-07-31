@@ -45,8 +45,8 @@
             user-select: none;
         }
 
-        /* --- TELA DE LOGIN (OVERLAY AZUL FCV) --- */
-        #loginOverlay {
+        /* --- TELA DE CADASTRO DE NOME (SOLICITADO APENAS UMA VEZ) --- */
+        #nameOverlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -63,7 +63,7 @@
         }
 
         .login-header {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
         }
 
@@ -87,7 +87,7 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 20px 20px;
+            padding: 25px 20px;
             border-radius: 18px;
             width: 100%;
             max-width: 320px;
@@ -96,28 +96,28 @@
         }
 
         .login-input-group {
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             text-align: left;
         }
 
         .login-input-group label {
             display: block;
             color: #ffffff;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .login-input {
             width: 100%;
-            padding: 10px 12px;
+            padding: 12px 14px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.3);
             background: rgba(0, 0, 0, 0.25);
             color: #ffffff;
-            font-size: 14px;
+            font-size: 15px;
             box-sizing: border-box;
             outline: none;
             transition: border-color 0.3s ease;
@@ -134,12 +134,12 @@
 
         .btn-login {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #00a6fb;
             color: #ffffff;
             border: none;
             border-radius: 10px;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 8px;
@@ -150,19 +150,6 @@
         .btn-login:active {
             transform: scale(0.98);
             background: #0084ca;
-        }
-
-        .login-error {
-            color: #ff5252;
-            font-size: 13px;
-            font-weight: bold;
-            margin-top: 10px;
-            text-align: center;
-            display: none;
-            background: rgba(255, 0, 0, 0.15);
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 0, 0, 0.3);
         }
 
         .login-footer {
@@ -213,7 +200,7 @@
             gap: 5px;
         }
 
-        /* IDENTIFICAÇÃO DISCRETA DO USUÁRIO SELECIONADO */
+        /* IDENTIFICAÇÃO DISCRETA DO NOME SALVO */
         .user-tag {
             font-size: 11px;
             opacity: 0.6;
@@ -443,31 +430,20 @@
 </head>
 <body>
 
-    <!-- OVERLAY TELA DE LOGIN -->
-    <div id="loginOverlay">
+    <!-- OVERLAY SOLICITANDO APENAS NOME/APELIDO -->
+    <div id="nameOverlay">
         <div class="login-header">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
-            <div class="login-title">Painel do Motorista</div>
+            <div class="login-title">Bem-vindo(a)!</div>
         </div>
 
-        <form class="login-card" id="loginForm" onsubmit="return false;">
+        <form class="login-card" id="nameForm" onsubmit="return false;">
             <div class="login-input-group">
-                <label for="personNameInput">Seu Nome (Opcional)</label>
-                <input type="text" id="personNameInput" class="login-input" placeholder="Digite seu nome">
+                <label for="personNameInput">Qual é o seu Nome ou Apelido?</label>
+                <input type="text" id="personNameInput" class="login-input" placeholder="Ex: João, Maria..." required autofocus>
             </div>
 
-            <div class="login-input-group">
-                <label for="usernameInput">Usuário</label>
-                <input type="text" id="usernameInput" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
-            </div>
-            
-            <div class="login-input-group">
-                <label for="passwordInput">Senha</label>
-                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
-            </div>
-
-            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
-            <div id="loginError" class="login-error">Usuário ou senha incorretos!</div>
+            <button type="submit" class="btn-login">Salvar e Continuar</button>
         </form>
 
         <div class="login-footer">
@@ -485,7 +461,7 @@
             </button>
         </div>
 
-        <div class="user-tag" id="userTagDisplay">Usuário: Convidado</div>
+        <div class="user-tag" id="userTagDisplay">👤 Passageiro: --</div>
 
         <!-- SELEÇÃO DE ROTA -->
         <div class="route-selection-box">
@@ -552,38 +528,31 @@
             return nomeLimpo;
         }
 
-        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
-        const loginOverlay = document.getElementById('loginOverlay');
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('usernameInput');
-        const passwordInput = document.getElementById('passwordInput');
+        // --- LÓGICA DE SALVAMENTO DE NOME NO LOCALSTORAGE (MEMÓRIA DO APARELHO) ---
+        const nameOverlay = document.getElementById('nameOverlay');
+        const nameForm = document.getElementById('nameForm');
         const personNameInput = document.getElementById('personNameInput');
-        const loginError = document.getElementById('loginError');
         const userTagDisplay = document.getElementById('userTagDisplay');
 
-        let meuNomeCadastrado = sessionStorage.getItem('fcv_nome_usuario') || "Convidado";
-        userTagDisplay.innerText = `Usuário: ${meuNomeCadastrado}`;
+        // Busca o nome salvo na memória permanente do navegador (localStorage)
+        let meuNomeSalvo = localStorage.getItem('fcv_nome_passageiro');
 
-        if (sessionStorage.getItem('fcv_motorista_autenticado') === 'true') {
-            loginOverlay.style.display = 'none';
+        if (meuNomeSalvo) {
+            // Se já existir nome no cache, oculta a tela de solicitação de nome
+            nameOverlay.style.display = 'none';
+            userTagDisplay.innerText = `👤 Passageiro: ${meuNomeSalvo}`;
         }
 
-        loginForm.addEventListener('submit', (e) => {
+        nameForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const usuarioDigitado = usernameInput.value.trim();
-            const senhaDigitada = passwordInput.value.trim();
             const nomeDigitado = censurarNome(personNameInput.value);
 
-            if (usuarioDigitado === "motorista" && senhaDigitada === "@FCVMotorista") {
-                loginError.style.display = 'none';
-                sessionStorage.setItem('fcv_motorista_autenticado', 'true');
-                sessionStorage.setItem('fcv_nome_usuario', nomeDigitado);
-                meuNomeCadastrado = nomeDigitado;
-                userTagDisplay.innerText = `Usuário: ${meuNomeCadastrado}`;
-                loginOverlay.style.display = 'none';
-            } else {
-                loginError.style.display = 'block';
-                passwordInput.value = '';
+            if (nomeDigitado) {
+                // Guarda para sempre no navegador até limpar o cache do app
+                localStorage.setItem('fcv_nome_passageiro', nomeDigitado);
+                meuNomeSalvo = nomeDigitado;
+                userTagDisplay.innerText = `👤 Passageiro: ${meuNomeSalvo}`;
+                nameOverlay.style.display = 'none';
             }
         });
 
@@ -896,7 +865,7 @@
                     const speedKmh = Math.round((pos.coords.speed || 0) * 3.6);
                     const agora = Date.now();
 
-                    // Monitora proximidade dos passageiros
+                    // Monitora a proximidade dos passageiros ao redor do ônibus
                     monitorarPassageirosProximos(lat, lng);
 
                     let statusTransito = "normal";
