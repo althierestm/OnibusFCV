@@ -25,6 +25,7 @@
             touch-action: manipulation;
         }
 
+        /* Modal de Boas-Vindas */
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
@@ -103,6 +104,7 @@
             background: rgba(255, 255, 255, 0.22);
         }
 
+        /* Badge Beta */
         .beta-badge {
             position: absolute;
             top: 16px;
@@ -123,6 +125,7 @@
             pointer-events: none;
         }
 
+        /* Posição do Usuário */
         .user-location-dot {
             width: 16px;
             height: 16px;
@@ -150,6 +153,7 @@
             100% { transform: scale(1.8); opacity: 0; }
         }
 
+        /* Caixa de Informações Superior */
         .info-box {
             position: absolute;
             top: 52px;
@@ -197,6 +201,7 @@
             to { transform: translateX(-50%) scale(1.02); }
         }
 
+        /* Ícone do Ônibus */
         .bus-pin-wrapper {
             position: relative;
             width: 42px;
@@ -323,6 +328,7 @@
             object-fit: contain;
         }
 
+        /* Modal Seletor de Rota */
         .route-modal {
             display: none;
             position: absolute;
@@ -421,6 +427,7 @@
         <button class="route-option selected" data-value="plantao">📍 Rota de Plantão</button>
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
         <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15)</button>
+        <button class="route-option" data-value="rota_03">🚌 Rota 03 (6h15)</button>
         <button class="route-option" data-value="rota_05">🚌 Rota 05 (17h15)</button>
     </div>
 
@@ -571,6 +578,29 @@
             { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
         ];
 
+        const pontosRota03 = [
+            { nome: "1º Ponto - Cardoso de Melo", desc: "Rua Claudina de Carvalho Melo, nº 20 - Próximo à oficina de lanternagem e pintura", coords: [-21.127892, -42.400068] },
+            { nome: "2º Ponto - Cardoso de Melo", desc: "Rua Elón Carneiro de Melo, nº 115 - Após descer o morro", coords: [-21.1272479, -42.4003467] },
+            { nome: "3º Ponto - Santana", desc: "Rua Dr. Nilo Pacheco Medeiros - Acesso ao Bairro Santana - Padaria em frente ao Mercado Lourenção", coords: [-21.132238, -42.399904] },
+            { nome: "4º Ponto - Santana", desc: "Rua Dr. Nilo Pacheco Medeiros - Mercado Bitarães - Padaria em frente ao Mercado Lourenção", coords: [-21.132971, -42.404348] },
+            { nome: "5º Ponto - Santana", desc: "Rua Hermes Almeida, nº 45 - Pracinha do Santana - Nilo Pacheco, nº 60", coords: [-21.136336, -42.404307] },
+            { nome: "6º Ponto - José Cirilo", desc: "Rua Altino Rodrigues Pereira - Entrada do Bairro Joanópolis - Esquina com a Av. Antônio Tureta", coords: [-21.135833, -42.400445] },
+            { nome: "7º Ponto - José Cirilo", desc: "Rua Altino Rodrigues Pereira - Após o Posto de Saúde - Em frente ao nº 11", coords: [-21.133618, -42.398047] },
+            { nome: "8º Ponto - José Cirilo", desc: "Rua Altino Rodrigues Pereira - Padaria Casa dos Pães", coords: [-21.131618, -42.394390] },
+            { nome: "9º Ponto - Dornelas", desc: "Avenida Dante Bruno - Pracinha do Dornelas - em frente a We Training", coords: [-21.130430, -42.393274] },
+            { nome: "10º Ponto - Dornelas", desc: "Final da Avenida Dante Bruno - Premoldados", coords: [-21.130490, -42.387390] },
+            { nome: "11º Ponto - Barra", desc: "Rua Marechal Floriano, nº 350 - Esquina com a Rua Vitório Dala Paula", coords: [-21.130045, -42.384819] },
+            { nome: "12º Ponto - Barra", desc: "Praça Coronel Tibúrcio - Em frente à Padaria Pão Chic", coords: [-21.128288, -42.381106] },
+            { nome: "13º Ponto - Barra", desc: "Rua Benedito Valadares - Bar do Trota", coords: [-21.130375, -42.377058] },
+            { nome: "14º Ponto - Barra", desc: "Rua Getúlio Vargas - Em frente à loja Itaqui", coords: [-21.129936, -42.370540] },
+            { nome: "15º Ponto - Centro", desc: "Avenida Constantino Pinto - Em frente ao Supermercado Armação", coords: [-21.131539, -42.369893] },
+            { nome: "16º Ponto - Centro", desc: "Praça São Paulo - Academia Center Fit", coords: [-21.135371, -42.364983] },
+            { nome: "17º Ponto - Centro", desc: "Rua Coronel Pinheiro de Barros - Ponto de ônibus do Top Center", coords: [-21.130746, -42.3636223] },
+            { nome: "18º Ponto - BR 356", desc: "Trevo subida para o Rodrigão", coords: [-21.128326, -42.363322] },
+            { nome: "19º Ponto - BR 356", desc: "Toyota Osaka", coords: [-21.127164, -42.368471] },
+            { nome: "20º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111352, -42.384065] }
+        ];
+
         const pontosRota05 = [
             { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] },
             { nome: "2º Ponto - BR-356", desc: "Próximo ao Vitrines", coords: [-21.128447, -42.364497] },
@@ -600,6 +630,13 @@
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
                 .addTo(pontosRota02Group);
+        });
+
+        const pontosRota03Group = L.layerGroup();
+        pontosRota03.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                .addTo(pontosRota03Group);
         });
 
         const pontosRota05Group = L.layerGroup();
@@ -726,6 +763,7 @@
         function obterPontosDaRotaAtual() {
             if (selectedRouteKey === 'rota_01') return pontosRota01;
             if (selectedRouteKey === 'rota_02') return pontosRota02;
+            if (selectedRouteKey === 'rota_03') return pontosRota03;
             if (selectedRouteKey === 'rota_05') return pontosRota05;
             return pontosPlantao;
         }
@@ -846,6 +884,7 @@
             if (key === 'plantao') return 'Rota de Plantão';
             if (key === 'rota_01') return 'Rota 01';
             if (key === 'rota_02') return 'Rota 02';
+            if (key === 'rota_03') return 'Rota 03';
             if (key === 'rota_05') return 'Rota 05';
             return key;
         }
@@ -855,31 +894,43 @@
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_01') {
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_02') {
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+            } else if (selectedRouteKey === 'rota_03') {
+                if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
+                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
+                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_05') {
                 if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
             } else if (selectedRouteKey === 'todas') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
+                if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
                 if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             }
 
