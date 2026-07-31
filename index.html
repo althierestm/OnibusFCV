@@ -428,6 +428,7 @@
         <button class="route-option" data-value="rota_01">🚌 Rota 01 (6h15)</button>
         <button class="route-option" data-value="rota_02">🚌 Rota 02 (6h15)</button>
         <button class="route-option" data-value="rota_03">🚌 Rota 03 (6h15)</button>
+        <button class="route-option" data-value="rota_04">🚌 Rota 04 (17h15)</button>
         <button class="route-option" data-value="rota_05">🚌 Rota 05 (17h15)</button>
     </div>
 
@@ -601,6 +602,25 @@
             { nome: "20º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111352, -42.384065] }
         ];
 
+        const pontosRota04 = [
+            { nome: "1º Ponto - BR-116", desc: "Concessionária Man Caminhões - Antiga Ford", coords: [-21.119007, -42.380156] },
+            { nome: "2º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126646, -42.353768] },
+            { nome: "3º Ponto - Porto", desc: "Rua Coronel Francisco Vermelho, nº 145 - Supermercado Pioneiro do Porto", coords: [-21.127445, -42.354615] },
+            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Esquina da Rua Procesa Isabel com a Travessa Edson F. de Oliveira - Próximo ao morro da Bucaina, subida para o Bairro Santa Terezinha", coords: [-21.132175, -42.356737] },
+            { nome: "5º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: [-21.133328, -42.360092] },
+            { nome: "6º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: [-21.134871, -42.356084] },
+            { nome: "7º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: [-21.137186, -42.355127] },
+            { nome: "8º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: [-21.136654, -42.356951] },
+            { nome: "9º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: [-21.1353442, -42.3610351] },
+            { nome: "10º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: [-21.138047, -42.362673] },
+            { nome: "11º Ponto - São Gotardo", desc: "Rua Helson Hastenreiter - Em frente ao nº 205", coords: [-21.140553, -42.364718] },
+            { nome: "12º Ponto - Primavera", desc: "Rua Cecília Meirelles, nº 170 - Em frente à caixa d'água da Primavera", coords: [-21.144632, -42.365304] },
+            { nome: "13º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: [-21.1437827, -42.3696644] },
+            { nome: "14º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: [-21.143926, -42.371520] },
+            { nome: "15º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: [-21.145537, -42.380726] },
+            { nome: "16º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
+        ];
+
         const pontosRota05 = [
             { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] },
             { nome: "2º Ponto - BR-356", desc: "Próximo ao Vitrines", coords: [-21.128447, -42.364497] },
@@ -637,6 +657,13 @@
             L.marker(ponto.coords, { icon: fcvPointIcon })
                 .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
                 .addTo(pontosRota03Group);
+        });
+
+        const pontosRota04Group = L.layerGroup();
+        pontosRota04.forEach(ponto => {
+            L.marker(ponto.coords, { icon: fcvPointIcon })
+                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                .addTo(pontosRota04Group);
         });
 
         const pontosRota05Group = L.layerGroup();
@@ -764,6 +791,7 @@
             if (selectedRouteKey === 'rota_01') return pontosRota01;
             if (selectedRouteKey === 'rota_02') return pontosRota02;
             if (selectedRouteKey === 'rota_03') return pontosRota03;
+            if (selectedRouteKey === 'rota_04') return pontosRota04;
             if (selectedRouteKey === 'rota_05') return pontosRota05;
             return pontosPlantao;
         }
@@ -885,6 +913,7 @@
             if (key === 'rota_01') return 'Rota 01';
             if (key === 'rota_02') return 'Rota 02';
             if (key === 'rota_03') return 'Rota 03';
+            if (key === 'rota_04') return 'Rota 04';
             if (key === 'rota_05') return 'Rota 05';
             return key;
         }
@@ -895,24 +924,35 @@
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
                 if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_01') {
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
                 if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_02') {
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_03') {
                 if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
+                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+            } else if (selectedRouteKey === 'rota_04') {
+                if (!map.hasLayer(pontosRota04Group)) map.addLayer(pontosRota04Group);
+                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
+                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
+                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
+                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             } else if (selectedRouteKey === 'rota_05') {
                 if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
@@ -920,17 +960,20 @@
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
                 if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
             } else if (selectedRouteKey === 'todas') {
                 if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
                 if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
                 if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
                 if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
+                if (!map.hasLayer(pontosRota04Group)) map.addLayer(pontosRota04Group);
                 if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
             } else {
                 if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
                 if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
                 if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
                 if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
+                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
                 if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
             }
 
