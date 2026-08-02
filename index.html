@@ -206,6 +206,7 @@
             position: relative;
             width: 42px;
             height: 52px;
+            transition: transform 0.1s linear;
         }
 
         .bus-pin-bubble {
@@ -691,6 +692,7 @@
 
         let busData = {};
         let busMarkers = {};
+        let busAnimFrames = {};
         let passengerMarker = null, passengerCircle = null;
         let passengerPos = null, watchId = null;
         let alarmEnabled = false, soundEnabled = true, alarmTriggered = false;
@@ -786,6 +788,39 @@
                       Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
                       Math.sin(dLon/2) * Math.sin(dLon/2);
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function animarMarcadorBus(key, novaLat, novaLng, duracao = 1000) {
+            const marker = busMarkers[key];
+            if (!marker) return;
+
+            const posInicio = marker.getLatLng();
+            const latInicio = posInicio.lat;
+            const lngInicio = posInicio.lng;
+
+            if (latInicio === novaLat && lngInicio === novaLng) return;
+
+            if (busAnimFrames[key]) {
+                cancelAnimationFrame(busAnimFrames[key]);
+            }
+
+            const tempoInicio = performance.now();
+
+            function passoAnima(tempoAtual) {
+                const decorrido = tempoAtual - tempoInicio;
+                const progresso = Math.min(decorrido / duracao, 1);
+
+                const latAtual = latInicio + (novaLat - latInicio) * progresso;
+                const lngAtual = lngInicio + (novaLng - lngInicio) * progresso;
+
+                marker.setLatLng([latAtual, lngAtual]);
+
+                if (progresso < 1) {
+                    busAnimFrames[key] = requestAnimationFrame(passoAnima);
+                }
+            }
+
+            busAnimFrames[key] = requestAnimationFrame(passoAnima);
         }
 
         function obterPontosDaRotaAtual() {
@@ -990,7 +1025,7 @@
                         busMarkers[key] = L.marker([bus.lat, bus.lng], { icon: busIcon }).addTo(map)
                             .bindPopup(`<b>${bus.nome || key}</b><br>Placa: ${bus.placa || 'FCV'}`);
                     } else {
-                        busMarkers[key].setLatLng([bus.lat, bus.lng]);
+                        animarMarcadorBus(key, bus.lat, bus.lng, 1000);
                         if (!map.hasLayer(busMarkers[key])) busMarkers[key].addTo(map);
                     }
                 } else {
