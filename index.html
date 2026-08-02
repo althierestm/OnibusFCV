@@ -522,14 +522,29 @@
             iconAnchor: [11, 11]
         });
 
+        // Coordenadas Unificadas de Pontos Compartilhados
+        const COORDS_PORTO_PADARIA = [-21.126556, -42.353724];
+        const COORDS_POSTO_IPIRANGA = [-21.133274, -42.360006];
+        const COORDS_SAO_CRISTOVAO = [-21.134801, -42.356162];
+        const COORDS_SANTO_ANTONIO_2 = [-21.137114, -42.354694];
+        const COORDS_SANTO_ANTONIO_MERCADO = [-21.136657, -42.356976];
+        const COORDS_PRACINHA_BROA = [-21.1354211, -42.3608817];
+        const COORDS_CHURRASCARIA_VEREDAS = [-21.138079, -42.362742];
+        const COORDS_SAO_GOTARDO = [-21.140697, -42.364791];
+        const COORDS_PRIMAVERA_CAIXA_AGUA = [-21.144457, -42.365190];
+        const COORDS_JOAO_23_1 = [-21.143804, -42.369615];
+        const COORDS_JOAO_23_2 = [-21.143559, -42.371816];
+        const COORDS_BARRA_VEMASA = [-21.145610, -42.380743];
+        const COORDS_FCV = [-21.111616, -42.383649];
+
         const pontosPlantao = [
-            { nome: "Ponto 1", desc: "Início e Final", coords: [-21.111615, -42.383600] },
+            { nome: "Ponto 1", desc: "Início e Final", coords: COORDS_FCV },
             { nome: "Ponto 2", desc: "BR-116 DAF Caminhões", coords: [-21.118763, -42.380412] },
             { nome: "Ponto 3", desc: "Trevo Chevrolet", coords: [-21.124339, -42.381411] },
             { nome: "Ponto 4", desc: "Viaduto Bahamas", coords: [-21.126903, -42.369898] },
             { nome: "Ponto 5", desc: "Vitrines", coords: [-21.128478, -42.364518] },
             { nome: "Ponto 6", desc: "Mamão Car", coords: [-21.128883, -42.358430] },
-            { nome: "Ponto 7", desc: "Porto", coords: [-21.126512, -42.354167] },
+            { nome: "Ponto 7", desc: "Porto", coords: COORDS_PORTO_PADARIA },
             { nome: "Ponto 8", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129501, -42.357890] },
             { nome: "Ponto 9", desc: "Centro - Juscelino Kubitscheck", coords: [-21.130203, -42.361406] },
             { nome: "Ponto 10", desc: "Centro - Juscelino Kubitscheck", coords: [-21.129459, -42.364093] },
@@ -549,25 +564,25 @@
         ];
 
         const pontosRota01 = [
-            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126556, -42.353724] },
+            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: COORDS_PORTO_PADARIA },
             { nome: "2º Ponto - Encoberta", desc: "Rua Antônio Pereira Galvão - Próximo ao CAIC", coords: [-21.132664, -42.351878] },
             { nome: "3º Ponto - Encoberta", desc: "Rua Newton Resende - Esquina com Rua Antônio Pereira Galvão", coords: [-21.133063, -42.354558] },
-            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: [-21.133274, -42.360006] },
-            { nome: "5º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: [-21.134801, -42.356162] },
-            { nome: "6º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: [-21.137114, -42.354694] },
-            { nome: "7º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: [-21.136657, -42.356976] },
-            { nome: "8º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: [-21.1354211, -42.3608817] },
-            { nome: "9º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: [-21.138079, -42.362742] },
-            { nome: "10º Ponto - São Gotardo", desc: "Rua Nelson Hastenreiter - Em frente ao nº 205", coords: [-21.140697, -42.364791] },
-            { nome: "11º Ponto - Primavera", desc: "Rua Cecília Meireles, nº 170 - Em frente à caixa d'água da Primavera", coords: [-21.144457, -42.365190] },
-            { nome: "12º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: [-21.143804, -42.369615] },
-            { nome: "13º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: [-21.143559, -42.371816] },
-            { nome: "14º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: [-21.145610, -42.380743] },
-            { nome: "15º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
+            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: COORDS_POSTO_IPIRANGA },
+            { nome: "5º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: COORDS_SAO_CRISTOVAO },
+            { nome: "6º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: COORDS_SANTO_ANTONIO_2 },
+            { nome: "7º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: COORDS_SANTO_ANTONIO_MERCADO },
+            { nome: "8º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: COORDS_PRACINHA_BROA },
+            { nome: "9º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: COORDS_CHURRASCARIA_VEREDAS },
+            { nome: "10º Ponto - São Gotardo", desc: "Rua Nelson Hastenreiter - Em frente ao nº 205", coords: COORDS_SAO_GOTARDO },
+            { nome: "11º Ponto - Primavera", desc: "Rua Cecília Meireles, nº 170 - Em frente à caixa d'água da Primavera", coords: COORDS_PRIMAVERA_CAIXA_AGUA },
+            { nome: "12º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: COORDS_JOAO_23_1 },
+            { nome: "13º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: COORDS_JOAO_23_2 },
+            { nome: "14º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: COORDS_BARRA_VEMASA },
+            { nome: "15º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV }
         ];
 
         const pontosRota02 = [
-            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126556, -42.353724] },
+            { nome: "1º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: COORDS_PORTO_PADARIA },
             { nome: "2º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente ao nº 55", coords: [-21.129491, -42.357881] },
             { nome: "3º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Pauliene", coords: [-21.130199, -42.361421] },
             { nome: "4º Ponto - Centro", desc: "Avenida Juscelino Kubitscheck - Em frente à Dilfar, nº 777", coords: [-21.129444, -42.364152] },
@@ -577,8 +592,8 @@
             { nome: "8º Ponto - Safira", desc: "Rua Silvério Campos - Em frente à Escola Sebastião Laviola", coords: [-21.132505, -42.377855] },
             { nome: "9º Ponto - Safira", desc: "Rua Silas Macedo, nº 18", coords: [-21.134736, -42.378482] },
             { nome: "10º Ponto - Planalto", desc: "Rua Três - Pracinha do Planalto", coords: [-21.138006, -42.375926] },
-            { nome: "11º Ponto - Barra", desc: "Avenida Rio-Bahia - Antiga Vemasa Mitsubishi", coords: [-21.145680, -42.380753] },
-            { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
+            { nome: "11º Ponto - Barra", desc: "Avenida Rio-Bahia - Antiga Vemasa Mitsubishi", coords: COORDS_BARRA_VEMASA },
+            { nome: "12º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV }
         ];
 
         const pontosRota03 = [
@@ -601,30 +616,30 @@
             { nome: "17º Ponto - Centro", desc: "Rua Coronel Pinheiro de Barros - Ponto de ônibus do Top Center", coords: [-21.130746, -42.3636223] },
             { nome: "18º Ponto - BR 356", desc: "Trevo subida para o Rodrigão", coords: [-21.128326, -42.363322] },
             { nome: "19º Ponto - BR 356", desc: "Toyota Osaka", coords: [-21.127164, -42.368471] },
-            { nome: "20º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111352, -42.384065] }
+            { nome: "20º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV }
         ];
 
         const pontosRota04 = [
             { nome: "1º Ponto - BR-116", desc: "Concessionária Man Caminhões - Antiga Ford", coords: [-21.119007, -42.380156] },
-            { nome: "2º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: [-21.126646, -42.353768] },
+            { nome: "2º Ponto - Porto", desc: "Rua Coronel Pereira Sobrinho - Padaria do Porto", coords: COORDS_PORTO_PADARIA },
             { nome: "3º Ponto - Porto", desc: "Rua Coronel Francisco Vermelho, nº 145 - Supermercado Pioneiro do Porto", coords: [-21.127445, -42.354615] },
-            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Esquina da Rua Procesa Isabel com a Travessa Edson F. de Oliveira - Próximo ao morro da Bucaina, subida para o Bairro Santa Terezinha", coords: [-21.132175, -42.356737] },
-            { nome: "5º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: [-21.133328, -42.360092] },
-            { nome: "6º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: [-21.134871, -42.356084] },
-            { nome: "7º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: [-21.137186, -42.355127] },
-            { nome: "8º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: [-21.136654, -42.356951] },
-            { nome: "9º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: [-21.1353442, -42.3610351] },
-            { nome: "10º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: [-21.138047, -42.362673] },
-            { nome: "11º Ponto - São Gotardo", desc: "Rua Helson Hastenreiter - Em frente ao nº 205", coords: [-21.140553, -42.364718] },
-            { nome: "12º Ponto - Primavera", desc: "Rua Cecília Meirelles, nº 170 - Em frente à caixa d'água da Primavera", coords: [-21.144632, -42.365304] },
-            { nome: "13º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: [-21.1437827, -42.3696644] },
-            { nome: "14º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: [-21.143926, -42.371520] },
-            { nome: "15º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: [-21.145537, -42.380726] },
-            { nome: "16º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] }
+            { nome: "4º Ponto - Centro", desc: "Rua Newton Resende - Esquina da Rua Procesa Isabel com a Travessa Edson F. de Oliveira", coords: [-21.132175, -42.356737] },
+            { nome: "5º Ponto - Centro", desc: "Rua Newton Resende - Posto Ipiranga", coords: COORDS_POSTO_IPIRANGA },
+            { nome: "6º Ponto - São Cristóvão", desc: "Praça do São Cristóvão - Lanchonete Campbell", coords: COORDS_SAO_CRISTOVAO },
+            { nome: "7º Ponto - Santo Antônio II", desc: "Rua Três - Início da descida do morro Santo Antônio II, próximo ao nº 4", coords: COORDS_SANTO_ANTONIO_2 },
+            { nome: "8º Ponto - Santo Antônio", desc: "Rua Santo Antônio - Mercado Santo Antônio", coords: COORDS_SANTO_ANTONIO_MERCADO },
+            { nome: "9º Ponto - Centro", desc: "Rua Gusman, nº 8 - Próximo à Pracinha do Broa", coords: COORDS_PRACINHA_BROA },
+            { nome: "10º Ponto - São Francisco", desc: "Rua Geraldo Starling - Churrascaria próxima ao Posto Veredas", coords: COORDS_CHURRASCARIA_VEREDAS },
+            { nome: "11º Ponto - São Gotardo", desc: "Rua Helson Hastenreiter - Em frente ao nº 205", coords: COORDS_SAO_GOTARDO },
+            { nome: "12º Ponto - Primavera", desc: "Rua Cecília Meirelles, nº 170 - Em frente à caixa d'água da Primavera", coords: COORDS_PRIMAVERA_CAIXA_AGUA },
+            { nome: "13º Ponto - João XXIII", desc: "Rua Francisco Vicente Moreira - Em frente ao nº 101", coords: COORDS_JOAO_23_1 },
+            { nome: "14º Ponto - João XXIII", desc: "Rua Maximiano Fraga - Antiga Capotaria Chaia", coords: COORDS_JOAO_23_2 },
+            { nome: "15º Ponto - Barra", desc: "Avenida Rio-Bahia - BR-116 - Antiga Vemasa Mitsubishi", coords: COORDS_BARRA_VEMASA },
+            { nome: "16º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV }
         ];
 
         const pontosRota05 = [
-            { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: [-21.111616, -42.383649] },
+            { nome: "1º Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV },
             { nome: "2º Ponto - BR-356", desc: "Próximo ao Vitrines", coords: [-21.128447, -42.364497] },
             { nome: "3º Ponto - BR-356 - PORTO", desc: "Mamão Car", coords: [-21.128819, -42.358430] },
             { nome: "4º Ponto - BR-356 - PORTO", desc: "Após o trevo do Porto - Raia da Malha", coords: [-21.125805, -42.352453] },
@@ -633,46 +648,55 @@
             { nome: "7º Ponto - BR-356", desc: "Em frente ao SESC", coords: [-21.126578, -42.341012] }
         ];
 
-        const pontosPlantaoGroup = L.layerGroup();
-        pontosPlantao.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosPlantaoGroup);
+        function criarLayerGroup(pontos) {
+            const group = L.layerGroup();
+            pontos.forEach(ponto => {
+                L.marker(ponto.coords, { icon: fcvPointIcon })
+                    .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
+                    .addTo(group);
+            });
+            return group;
+        }
+
+        const pontosPlantaoGroup = criarLayerGroup(pontosPlantao);
+        const pontosRota01Group = criarLayerGroup(pontosRota01);
+        const pontosRota02Group = criarLayerGroup(pontosRota02);
+        const pontosRota03Group = criarLayerGroup(pontosRota03);
+        const pontosRota04Group = criarLayerGroup(pontosRota04);
+        const pontosRota05Group = criarLayerGroup(pontosRota05);
+
+        // Grupo especial deduplicado para "Todas as Rotas"
+        const pontosTodasRotasGroup = L.layerGroup();
+        const mapaPontosUnificados = new Map();
+
+        const todasAsRotasLista = [
+            { rotaNome: "Plantão", lista: pontosPlantao },
+            { rotaNome: "Rota 01 (6h15)", lista: pontosRota01 },
+            { rotaNome: "Rota 02 (6h15)", lista: pontosRota02 },
+            { rotaNome: "Rota 03 (6h15)", lista: pontosRota03 },
+            { rotaNome: "Rota 04 (17h15)", lista: pontosRota04 },
+            { rotaNome: "Rota 05 (17h15)", lista: pontosRota05 }
+        ];
+
+        todasAsRotasLista.forEach(r => {
+            r.lista.forEach(p => {
+                const key = `${p.coords[0].toFixed(6)},${p.coords[1].toFixed(6)}`;
+                if (!mapaPontosUnificados.has(key)) {
+                    mapaPontosUnificados.set(key, { coords: p.coords, desc: p.desc, rotas: [r.rotaNome] });
+                } else {
+                    const existente = mapaPontosUnificados.get(key);
+                    if (!existente.rotas.includes(r.rotaNome)) {
+                        existente.rotas.push(r.rotaNome);
+                    }
+                }
+            });
         });
 
-        const pontosRota01Group = L.layerGroup();
-        pontosRota01.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota01Group);
-        });
-
-        const pontosRota02Group = L.layerGroup();
-        pontosRota02.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota02Group);
-        });
-
-        const pontosRota03Group = L.layerGroup();
-        pontosRota03.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota03Group);
-        });
-
-        const pontosRota04Group = L.layerGroup();
-        pontosRota04.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota04Group);
-        });
-
-        const pontosRota05Group = L.layerGroup();
-        pontosRota05.forEach(ponto => {
-            L.marker(ponto.coords, { icon: fcvPointIcon })
-                .bindPopup(`<b>${ponto.nome}</b><br><span style="font-size:12px; color:#555;">${ponto.desc}</span>`)
-                .addTo(pontosRota05Group);
+        mapaPontosUnificados.forEach((item) => {
+            const rotasStr = item.rotas.map(r => `• ${r}`).join('<br>');
+            L.marker(item.coords, { icon: fcvPointIcon })
+                .bindPopup(`<b>Ponto Compartilhado</b><br><span style="font-size:12px; color:#555;">${item.desc}</span><hr style="margin:6px 0; border:0; border-top:1px solid #ddd;"><b style="font-size:11px;">Atende às rotas:</b><br><span style="font-size:11px; color:#007aff;">${rotasStr}</span>`)
+                .addTo(pontosTodasRotasGroup);
         });
 
         const busIcon = L.divIcon({
@@ -955,62 +979,26 @@
         }
 
         function atualizarExibicaoGeral() {
-            if (selectedRouteKey === 'plantao') {
-                if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+            // Limpa todos os grupos
+            [pontosPlantaoGroup, pontosRota01Group, pontosRota02Group, pontosRota03Group, pontosRota04Group, pontosRota05Group, pontosTodasRotasGroup].forEach(g => {
+                if (map.hasLayer(g)) map.removeLayer(g);
+            });
+
+            // Adiciona o grupo correspondente
+            if (selectedRouteKey === 'todas') {
+                map.addLayer(pontosTodasRotasGroup);
+            } else if (selectedRouteKey === 'plantao') {
+                map.addLayer(pontosPlantaoGroup);
             } else if (selectedRouteKey === 'rota_01') {
-                if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+                map.addLayer(pontosRota01Group);
             } else if (selectedRouteKey === 'rota_02') {
-                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+                map.addLayer(pontosRota02Group);
             } else if (selectedRouteKey === 'rota_03') {
-                if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+                map.addLayer(pontosRota03Group);
             } else if (selectedRouteKey === 'rota_04') {
-                if (!map.hasLayer(pontosRota04Group)) map.addLayer(pontosRota04Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+                map.addLayer(pontosRota04Group);
             } else if (selectedRouteKey === 'rota_05') {
-                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-            } else if (selectedRouteKey === 'todas') {
-                if (!map.hasLayer(pontosPlantaoGroup)) map.addLayer(pontosPlantaoGroup);
-                if (!map.hasLayer(pontosRota01Group)) map.addLayer(pontosRota01Group);
-                if (!map.hasLayer(pontosRota02Group)) map.addLayer(pontosRota02Group);
-                if (!map.hasLayer(pontosRota03Group)) map.addLayer(pontosRota03Group);
-                if (!map.hasLayer(pontosRota04Group)) map.addLayer(pontosRota04Group);
-                if (!map.hasLayer(pontosRota05Group)) map.addLayer(pontosRota05Group);
-            } else {
-                if (map.hasLayer(pontosPlantaoGroup)) map.removeLayer(pontosPlantaoGroup);
-                if (map.hasLayer(pontosRota01Group)) map.removeLayer(pontosRota01Group);
-                if (map.hasLayer(pontosRota02Group)) map.removeLayer(pontosRota02Group);
-                if (map.hasLayer(pontosRota03Group)) map.removeLayer(pontosRota03Group);
-                if (map.hasLayer(pontosRota04Group)) map.removeLayer(pontosRota04Group);
-                if (map.hasLayer(pontosRota05Group)) map.removeLayer(pontosRota05Group);
+                map.addLayer(pontosRota05Group);
             }
 
             let onibusEmCirculacao = 0;
