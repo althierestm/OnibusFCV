@@ -413,6 +413,7 @@
             justify-content: center;
             text-align: center;
             border-top: 1px solid var(--border-color);
+            cursor: pointer;
         }
 
         .footer-logo {
@@ -623,7 +624,8 @@
             </details>
         </div>
 
-        <div class="footer">
+        <!-- DUPLO CLIQUE NO RODAPÉ RESETA TODAS AS ROTAS EM EMERGÊNCIA -->
+        <div class="footer" id="resetFooter" ondblclick="limparTodasRotasEmergencia()">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
             <div class="footer-credit">by Althieres Dias</div>
         </div>
@@ -758,6 +760,47 @@
         const oldHistoryListEl = document.getElementById('oldHistoryList');
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
+
+        // --- SISTEMA ANTI-ÔNIBUS FANTASMA (VERIFICA SINAL A CADA 30 SEGUNDOS) ---
+        setInterval(() => {
+            db.ref('onibus').once('value', (snapshot) => {
+                const rotas = snapshot.val() || {};
+                const agora = Date.now();
+                const limiteSemSinalMs = 90000; // 90 segundos sem atualização = ônibus fantasma
+
+                Object.keys(rotas).forEach(key => {
+                    const bus = rotas[key];
+                    if (bus && (bus.ativo || bus.emUso) && key !== currentRouteKey) {
+                        const ultimaAtu = bus.ultimaAtualizacao || 0;
+                        if (agora - ultimaAtu > limiteSemSinalMs) {
+                            // Desativa automaticamente o ônibus no banco de dados
+                            db.ref(`onibus/${key}`).update({
+                                ativo: false,
+                                emUso: false
+                            });
+                        }
+                    }
+                });
+            });
+        }, 30000);
+
+        // --- FUNÇÃO PARA LIMPAR TODAS AS ROTAS PRESAS (DUPLO CLIQUE NO RODAPÉ) ---
+        function limparTodasRotasEmergencia() {
+            customConfirm("Deseja encerrar e remover do mapa TODOS os ônibus ativos no momento?", (confirmado) => {
+                if (confirmado) {
+                    db.ref('onibus').once('value', (snapshot) => {
+                        const rotas = snapshot.val() || {};
+                        Object.keys(rotas).forEach(key => {
+                            db.ref(`onibus/${key}`).update({
+                                ativo: false,
+                                emUso: false
+                            });
+                        });
+                        customAlert("Todas as rotas foram desativadas e removidas do mapa!");
+                    });
+                }
+            });
+        }
 
         // --- MONITORAMENTO DE ROTAS EM USO ---
         db.ref('onibus').on('value', (snapshot) => {
@@ -975,7 +1018,8 @@
 
                 db.ref(`onibus/${currentRouteKey}`).update({
                     ativo: true,
-                    emUso: true
+                    emUso: true,
+                    ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                 });
 
                 db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
@@ -1122,7 +1166,8 @@
         function atualizarDadosFirebase() {
             if (isTransmitting && currentRouteKey) {
                 db.ref(`onibus/${currentRouteKey}`).update({
-                    ocorrenciaManual: ocorrenciaAtual
+                    ocorrenciaManual: ocorrenciaAtual,
+                    ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                 });
             }
         }
