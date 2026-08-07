@@ -372,6 +372,46 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
+        /* Dica de Seleção de Rota (Tooltip Flutuante) */
+        .route-guide-tooltip {
+            position: absolute;
+            bottom: 236px;
+            right: 16px;
+            z-index: 1002;
+            background: rgba(0, 122, 255, 0.92);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            max-width: 180px;
+            text-align: right;
+            display: none;
+            animation: bounceGuide 1.5s infinite ease-in-out;
+            cursor: pointer;
+        }
+
+        .route-guide-tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 18px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid rgba(0, 122, 255, 0.92);
+        }
+
+        @keyframes bounceGuide {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
         .footer {
             margin-top: 5px;
             display: flex;
@@ -424,6 +464,11 @@
 
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
+    <!-- Dica/Orientação Visual de Seleção de Rota -->
+    <div class="route-guide-tooltip" id="routeGuideTooltip" onclick="fecharOrientacaoRota()">
+        👉 Toque aqui para escolher a sua rota!
+    </div>
+
     <div class="route-modal" id="routeModal">
         <button class="route-option selected" data-value="todas">🌐 Todas as Rotas</button>
         <button class="route-option" data-value="plantao">📍 Rota de Plantão</button>
@@ -467,7 +512,10 @@
         document.getElementById('closeWelcomeBtn').addEventListener('click', function() {
             const welcomeModal = document.getElementById('welcomeModal');
             welcomeModal.style.opacity = '0';
-            setTimeout(() => { welcomeModal.style.display = 'none'; }, 300);
+            setTimeout(() => { 
+                welcomeModal.style.display = 'none'; 
+                exibirOrientacaoRotaSeNecessario();
+            }, 300);
         });
 
         document.addEventListener('dblclick', function(e) { e.preventDefault(); }, { passive: false });
@@ -729,9 +777,28 @@
         const toggleRouteBtn = document.getElementById('toggleRouteBtn');
         const routeModal = document.getElementById('routeModal');
         const routeOptions = document.querySelectorAll('.route-option');
+        const routeGuideTooltip = document.getElementById('routeGuideTooltip');
+
+        function exibirOrientacaoRotaSeNecessario() {
+            // Exibe apenas na primeira vez que a pessoa usa
+            const jaViuGuia = localStorage.getItem('fcv_orientacao_rota_vista');
+            if (!jaViuGuia) {
+                routeGuideTooltip.style.display = 'block';
+                // Oculta automaticamente após 6 segundos
+                setTimeout(() => {
+                    fecharOrientacaoRota();
+                }, 6000);
+            }
+        }
+
+        function fecharOrientacaoRota() {
+            routeGuideTooltip.style.display = 'none';
+            localStorage.setItem('fcv_orientacao_rota_vista', 'true');
+        }
 
         toggleRouteBtn.addEventListener('click', (e) => {
             e.stopPropagation();
+            fecharOrientacaoRota();
             routeModal.classList.toggle('active');
         });
 
@@ -743,6 +810,7 @@
 
         routeOptions.forEach(opt => {
             opt.addEventListener('click', () => {
+                fecharOrientacaoRota();
                 routeOptions.forEach(o => o.classList.remove('selected'));
                 opt.classList.add('selected');
                 selectedRouteKey = opt.getAttribute('data-value');
