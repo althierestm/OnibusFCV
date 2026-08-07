@@ -372,11 +372,11 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Dica de Seleção de Rota (Tooltip Flutuante) */
+        /* Dica de Seleção de Rota (Tooltip Flutuante Apontando para o Mapa 🗺️) */
         .route-guide-tooltip {
             position: absolute;
-            bottom: 236px;
-            right: 16px;
+            bottom: 232px;
+            right: 72px;
             z-index: 1002;
             background: rgba(0, 122, 255, 0.92);
             -webkit-backdrop-filter: blur(12px);
@@ -388,7 +388,7 @@
             font-weight: 600;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.25);
-            max-width: 180px;
+            max-width: 170px;
             text-align: right;
             display: none;
             animation: bounceGuide 1.5s infinite ease-in-out;
@@ -398,18 +398,18 @@
         .route-guide-tooltip::after {
             content: '';
             position: absolute;
-            bottom: -8px;
-            right: 18px;
+            bottom: 14px;
+            right: -8px;
             width: 0;
             height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 8px solid rgba(0, 122, 255, 0.92);
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent;
+            border-left: 8px solid rgba(0, 122, 255, 0.92);
         }
 
         @keyframes bounceGuide {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-6px); }
         }
 
         .footer {
@@ -464,9 +464,9 @@
 
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
-    <!-- Dica/Orientação Visual de Seleção de Rota -->
+    <!-- Dica de Orientação de Rota Apontando para o Botão do Mapa (🗺️) -->
     <div class="route-guide-tooltip" id="routeGuideTooltip" onclick="fecharOrientacaoRota()">
-        👉 Toque aqui para escolher a sua rota!
+        👈 Toque aqui para escolher a sua rota!
     </div>
 
     <div class="route-modal" id="routeModal">
@@ -583,7 +583,7 @@
         const COORDS_JOAO_23_1 = [-21.143804, -42.369615];
         const COORDS_JOAO_23_2 = [-21.143559, -42.371816];
         const COORDS_BARRA_VEMASA = [-21.145610, -42.380743];
-        const COORDS_FCV = [-21.111616, -42.383649]; // Ponto Final FCV Unificado
+        const COORDS_FCV = [-21.111616, -42.383649];
 
         const pontosPlantao = [
             { nome: "Ponto - Universitário", desc: "Fundação Cristiano Varella", coords: COORDS_FCV },
@@ -780,14 +780,9 @@
         const routeGuideTooltip = document.getElementById('routeGuideTooltip');
 
         function exibirOrientacaoRotaSeNecessario() {
-            // Exibe apenas na primeira vez que a pessoa usa
             const jaViuGuia = localStorage.getItem('fcv_orientacao_rota_vista');
             if (!jaViuGuia) {
                 routeGuideTooltip.style.display = 'block';
-                // Oculta automaticamente após 6 segundos
-                setTimeout(() => {
-                    fecharOrientacaoRota();
-                }, 6000);
             }
         }
 
