@@ -129,12 +129,12 @@
             letter-spacing: 0.5px;
         }
 
-        .login-input {
+        .login-input, .login-select {
             width: 100%;
             padding: 12px 15px;
             border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.35);
             color: #ffffff;
             font-size: 15px;
             box-sizing: border-box;
@@ -142,13 +142,18 @@
             transition: border-color 0.3s ease;
         }
 
+        .login-select option {
+            background-color: #003a63;
+            color: #ffffff;
+        }
+
         .login-input::placeholder {
             color: rgba(255, 255, 255, 0.5);
         }
 
-        .login-input:focus {
+        .login-input:focus, .login-select:focus {
             border-color: #00a6fb;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
         }
 
         .btn-login {
@@ -236,6 +241,28 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+
+        .driver-info-badge {
+            font-size: 12px;
+            color: var(--accent-color);
+            background: var(--box-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-logout {
+            background: none;
+            border: none;
+            color: #ff5252;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11px;
         }
 
         /* SELEÇÃO DE ROTA */
@@ -542,7 +569,7 @@
 </head>
 <body>
 
-    <!-- OVERLAY TELA DE LOGIN -->
+    <!-- OVERLAY TELA DE LOGIN COM SELEÇÃO DE MOTORISTA -->
     <div id="loginOverlay">
         <div class="login-header">
             <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
@@ -553,17 +580,24 @@
 
         <form class="login-card" id="loginForm" onsubmit="return false;">
             <div class="login-input-group">
-                <label for="usernameInput">Usuário</label>
-                <input type="text" id="usernameInput" class="login-input" placeholder="Digite seu usuário" required autocomplete="username">
+                <label for="driverSelect">Selecione seu Nome</label>
+                <select id="driverSelect" class="login-select" required>
+                    <option value="" disabled selected>Escolha o motorista...</option>
+                    <option value="mot_01">Carlos Silva</option>
+                    <option value="mot_02">Roberto Oliveira</option>
+                    <option value="mot_03">Marcos Souza</option>
+                    <option value="mot_04">João Pereira</option>
+                    <option value="mot_05">Luiz Fernando</option>
+                </select>
             </div>
             
             <div class="login-input-group">
-                <label for="passwordInput">Senha</label>
+                <label for="passwordInput">Senha de Acesso</label>
                 <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
             </div>
 
             <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
-            <div id="loginError" class="login-error">Usuário ou senha incorretos!</div>
+            <div id="loginError" class="login-error">Motorista ou senha incorretos!</div>
         </form>
 
         <div class="login-footer">
@@ -582,6 +616,11 @@
                 <span>💡</span>
                 <span id="themeText">Super OLED</span>
             </button>
+        </div>
+
+        <div class="driver-info-badge">
+            <span>👤 <b id="displayDriverName">Motorista</b></span>
+            <button class="btn-logout" onclick="fazerTrocaMotorista()">Trocar</button>
         </div>
 
         <!-- SELEÇÃO DE ROTA (COM MINUTOS 06:15 e 17:15) -->
@@ -665,6 +704,15 @@
     </div>
 
     <script>
+        // --- BASE DE DADOS DOS MOTORISTAS E SENHAS ---
+        const motoristasCadastrados = {
+            "mot_01": { nome: "Carlos Silva", senha: "@FCVMotorista" },
+            "mot_02": { nome: "Roberto Oliveira", senha: "@FCVMotorista" },
+            "mot_03": { nome: "Marcos Souza", senha: "@FCVMotorista" },
+            "mot_04": { nome: "João Pereira", senha: "@FCVMotorista" },
+            "mot_05": { nome: "Luiz Fernando", senha: "@FCVMotorista" }
+        };
+
         // --- FUNÇÕES DE SUBSTITUTO DE ALERT E CONFIRM ---
         function customAlert(mensagem) {
             document.getElementById('customAlertMsg').innerText = mensagem;
@@ -694,31 +742,55 @@
             };
         }
 
-        // --- LÓGICA DE VALIDAÇÃO DE LOGIN ---
+        // --- LÓGICA DE VALIDAÇÃO DE LOGIN POR MOTORISTA ---
         const loginOverlay = document.getElementById('loginOverlay');
         const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('usernameInput');
+        const driverSelect = document.getElementById('driverSelect');
         const passwordInput = document.getElementById('passwordInput');
         const loginError = document.getElementById('loginError');
+        const displayDriverName = document.getElementById('displayDriverName');
 
-        if (sessionStorage.getItem('fcv_motorista_autenticado') === 'true') {
-            loginOverlay.style.display = 'none';
+        let motoristaLogado = null;
+
+        function carregarSessaoMotorista() {
+            const motoristaSalvo = sessionStorage.getItem('fcv_motorista_dados');
+            if (motoristaSalvo) {
+                motoristaLogado = JSON.parse(motoristaSalvo);
+                displayDriverName.innerText = motoristaLogado.nome;
+                loginOverlay.style.display = 'none';
+            }
         }
+
+        carregarSessaoMotorista();
 
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const usuarioDigitado = usernameInput.value.trim();
+            const idMotorista = driverSelect.value;
             const senhaDigitada = passwordInput.value.trim();
 
-            if (usuarioDigitado === "admin" && senhaDigitada === "motorista") {
+            const cadastro = motoristasCadastrados[idMotorista];
+
+            if (cadastro && cadastro.senha === senhaDigitada) {
                 loginError.style.display = 'none';
-                sessionStorage.setItem('fcv_motorista_autenticado', 'true');
+                motoristaLogado = { id: idMotorista, nome: cadastro.nome };
+                sessionStorage.setItem('fcv_motorista_dados', JSON.stringify(motoristaLogado));
+                displayDriverName.innerText = cadastro.nome;
                 loginOverlay.style.display = 'none';
             } else {
                 loginError.style.display = 'block';
                 passwordInput.value = '';
             }
         });
+
+        function fazerTrocaMotorista() {
+            if (isTransmitting) {
+                customAlert("Finalize a transmissão atual antes de trocar de motorista!");
+                return;
+            }
+            sessionStorage.removeItem('fcv_motorista_dados');
+            motoristaLogado = null;
+            loginOverlay.style.display = 'flex';
+        }
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
@@ -761,19 +833,18 @@
         const oldHistoryDetails = document.getElementById('oldHistoryDetails');
         const oldHistoryCount = document.getElementById('oldHistoryCount');
 
-        // --- SISTEMA ANTI-ÔNIBUS FANTASMA (VERIFICA SINAL A CADA 30 SEGUNDOS) ---
+        // --- SISTEMA ANTI-ÔNIBUS FANTASMA ---
         setInterval(() => {
             db.ref('onibus').once('value', (snapshot) => {
                 const rotas = snapshot.val() || {};
                 const agora = Date.now();
-                const limiteSemSinalMs = 90000; // 90 segundos sem atualização = ônibus fantasma
+                const limiteSemSinalMs = 90000;
 
                 Object.keys(rotas).forEach(key => {
                     const bus = rotas[key];
                     if (bus && (bus.ativo || bus.emUso) && key !== currentRouteKey) {
                         const ultimaAtu = bus.ultimaAtualizacao || 0;
                         if (agora - ultimaAtu > limiteSemSinalMs) {
-                            // Desativa automaticamente o ônibus no banco de dados
                             db.ref(`onibus/${key}`).update({
                                 ativo: false,
                                 emUso: false
@@ -784,7 +855,6 @@
             });
         }, 30000);
 
-        // --- FUNÇÃO PARA LIMPAR TODAS AS ROTAS PRESAS (DUPLO CLIQUE NO RODAPÉ) ---
         function limparTodasRotasEmergencia() {
             customConfirm("Deseja encerrar e remover do mapa TODOS os ônibus ativos no momento?", (confirmado) => {
                 if (confirmado) {
@@ -928,6 +998,7 @@
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                 const eHoje = ehHoje(item.inicio);
                 const nomeRota = item.rotaNome || "Rota Não Especificada";
+                const nomeMot = item.motoristaNome ? ` (${item.motoristaNome})` : '';
                 const codigoCorrida = item.codigoViagem ? `#${item.codigoViagem}` : '';
 
                 let itemHtml = "";
@@ -937,7 +1008,7 @@
                     itemHtml = `
                         <div class="history-item">
                             <b>${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b class="badge-live">EM ANDAMENTO</b> (desde ${inicio})<br>
-                            Duração: <b id="histCronometro">${tempoAtualStr}</b>
+                            👤 Motorista: <b>${item.motoristaNome || 'N/I'}</b> | Duração: <b id="histCronometro">${tempoAtualStr}</b>
                         </div>
                     `;
                 } else {
@@ -946,7 +1017,8 @@
                     const duracaoStr = formatarTempo(duracaoSeg);
                     itemHtml = `
                         <div class="history-item">
-                            <b>${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>${inicio} às ${fim}</b> (${duracaoStr})
+                            <b>${dataFormatada}</b> [${nomeRota}] <span style="color:var(--accent-color); font-weight:bold;">${codigoCorrida}</span> - <b>${inicio} às ${fim}</b> (${duracaoStr})<br>
+                            👤 Motorista: <b>${item.motoristaNome || 'N/I'}</b>
                         </div>
                     `;
                 }
@@ -1019,13 +1091,14 @@
                 db.ref(`onibus/${currentRouteKey}`).update({
                     ativo: true,
                     emUso: true,
+                    motoristaNome: motoristaLogado ? motoristaLogado.nome : "Não Informado",
                     ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                 });
 
                 db.ref(`onibus/${currentRouteKey}/ativo`).onDisconnect().set(false);
                 db.ref(`onibus/${currentRouteKey}/emUso`).onDisconnect().set(false);
 
-                // --- GERAR CÓDIGO DA CORRIDA E HISTÓRICO ---
+                // --- GERAR CÓDIGO DA CORRIDA E HISTÓRICO COM NOME DO MOTORISTA ---
                 db.ref('contador_corridas').transaction((atual) => {
                     return (atual || 0) + 1;
                 }, (error, committed, snapshot) => {
@@ -1040,7 +1113,9 @@
                         rotaKey: currentRouteKey,
                         rotaNome: routeName,
                         hora: routeHora,
-                        codigoViagem: codigoFormatado
+                        codigoViagem: codigoFormatado,
+                        motoristaId: motoristaLogado ? motoristaLogado.id : "mot_anonimo",
+                        motoristaNome: motoristaLogado ? motoristaLogado.nome : "Motorista Não Identificado"
                     });
 
                     db.ref(`historico_viagens/${viagemAtualId}/fim`).onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
@@ -1079,6 +1154,7 @@
                             ocorrenciaManual: ocorrenciaAtual,
                             ativo: true,
                             emUso: true,
+                            motoristaNome: motoristaLogado ? motoristaLogado.nome : "Não Informado",
                             ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
                         });
 
