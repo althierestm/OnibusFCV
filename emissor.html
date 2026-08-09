@@ -583,11 +583,11 @@
                 <label for="driverSelect">Selecione seu Nome</label>
                 <select id="driverSelect" class="login-select" required>
                     <option value="" disabled selected>Escolha o motorista...</option>
-                    <option value="mot_01">Carlos Silva</option>
-                    <option value="mot_02">Roberto Oliveira</option>
-                    <option value="mot_03">Marcos Souza</option>
-                    <option value="mot_04">João Pereira</option>
-                    <option value="mot_05">Luiz Fernando</option>
+                    <option value="mot_01">Motorista 01</option>
+                    <option value="mot_02">Motorista 02</option>
+                    <option value="mot_03">Motorista 03</option>
+                    <option value="mot_04">Motorista 04</option>
+                    <option value="mot_05">Motorista 05</option>
                 </select>
             </div>
             
@@ -998,7 +998,6 @@
                 const inicio = item.inicio ? new Date(item.inicio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                 const eHoje = ehHoje(item.inicio);
                 const nomeRota = item.rotaNome || "Rota Não Especificada";
-                const nomeMot = item.motoristaNome ? ` (${item.motoristaNome})` : '';
                 const codigoCorrida = item.codigoViagem ? `#${item.codigoViagem}` : '';
 
                 let itemHtml = "";
