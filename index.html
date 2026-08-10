@@ -25,7 +25,6 @@
             touch-action: manipulation;
         }
 
-        /* Modal de Boas-Vindas */
         .welcome-modal-overlay {
             position: fixed;
             top: 0;
@@ -104,7 +103,6 @@
             background: rgba(255, 255, 255, 0.22);
         }
 
-        /* Badge Beta */
         .beta-badge {
             position: absolute;
             top: 16px;
@@ -125,7 +123,6 @@
             pointer-events: none;
         }
 
-        /* Posição do Usuário */
         .user-location-dot {
             width: 16px;
             height: 16px;
@@ -153,7 +150,6 @@
             100% { transform: scale(1.8); opacity: 0; }
         }
 
-        /* Caixa de Informações Superior */
         .info-box {
             position: absolute;
             top: 52px;
@@ -201,7 +197,6 @@
             to { transform: translateX(-50%) scale(1.02); }
         }
 
-        /* Ícone do Ônibus */
         .bus-pin-wrapper {
             position: relative;
             width: 42px;
@@ -329,7 +324,6 @@
             object-fit: contain;
         }
 
-        /* Modal Seletor de Rota */
         .route-modal {
             display: none;
             position: absolute;
@@ -372,7 +366,6 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
-        /* Dica de Seleção de Rota (Tooltip Flutuante Apontando para o Mapa 🗺️) */
         .route-guide-tooltip {
             position: absolute;
             bottom: 232px;
@@ -464,7 +457,6 @@
 
     <div class="info-box" id="info">Aguardando sinal dos ônibus...</div>
 
-    <!-- Dica de Orientação de Rota Apontando para o Botão do Mapa (🗺️) -->
     <div class="route-guide-tooltip" id="routeGuideTooltip" onclick="fecharOrientacaoRota()">
         👈 Toque aqui para escolher a sua rota!
     </div>
