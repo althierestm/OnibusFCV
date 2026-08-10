@@ -366,7 +366,6 @@
     </div>
 
     <div class="main-container" id="mainContainer">
-        <!-- BARRA LATERAL COM BOTÃO MASTER E GRUPOS DE DATAS -->
         <div class="sidebar" id="sidebar">
             <button class="btn-finish-all" onclick="encerrarTodasRotas()">
                 🛑 ENCERRAR TODAS AS ROTAS EM ANDAMENTO
@@ -378,7 +377,6 @@
             </div>
         </div>
 
-        <!-- ÁREA DO MAPA E ESTATÍSTICAS -->
         <div class="content-area" id="contentArea">
             <div id="map"></div>
             
@@ -410,293 +408,18 @@
         </div>
     </div>
 
-    <!-- JANELA MODAL PARA ROTAS DO DIA SELECIONADO -->
     <div class="modal-overlay" id="routesModal">
         <div class="modal-box">
             <div class="modal-header">
                 <h4 id="modalTitle">Rotas do Dia</h4>
                 <button class="btn-close-modal" onclick="fecharModal()">✕</button>
             </div>
-            <div class="modal-body" id="modalRoutesList">
-                <!-- Rotas serão inseridas aqui dinamicamente -->
-            </div>
+            <div class="modal-body" id="modalRoutesList"></div>
         </div>
     </div>
 
     <script>
-        function autenticarAdmin() {
-            if (document.getElementById('adminUser').value === "Althieres" && document.getElementById('adminPass').value === "admin123") {
-                sessionStorage.setItem('fcv_admin', 'true');
-                document.getElementById('loginOverlay').style.display = 'none';
-            } else {
-                document.getElementById('adminError').style.display = 'block';
-            }
-        }
-        if (sessionStorage.getItem('fcv_admin') === 'true') document.getElementById('loginOverlay').style.display = 'none';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
-            authDomain: "rotasfcv.firebaseapp.com",
-            databaseURL: "https://rotasfcv-default-rtdb.firebaseio.com",
-            projectId: "rotasfcv",
-            storageBucket: "rotasfcv.firebasestorage.app",
-            messagingSenderId: "235141426187",
-            appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        let map = null;
-        let trajetoLayerGroup = null;
-        let todasViagensAgrupadas = {};
-
-        function inicializarMapa() {
-            if (!map) {
-                map = L.map('map', { zoomControl: false }).setView([-20.7933, -42.3683], 13);
-                L.control.zoom({ position: 'topright' }).addTo(map);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-                trajetoLayerGroup = L.layerGroup().addTo(map);
-            }
-        }
-
-        // ESCOUTA EM TEMPO REAL E AGRUPA POR DATA
-        db.ref('historico_viagens').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const dateGroupsEl = document.getElementById('dateGroupsList');
-            dateGroupsEl.innerHTML = "";
-            todasViagensAgrupadas = {};
-
-            if (!data) {
-                dateGroupsEl.innerHTML = "Nenhuma viagem registrada.";
-                return;
-            }
-
-            // Separar as viagens pelas suas datas de início
-            Object.keys(data).forEach(key => {
-                const viagem = data[key];
-                viagem.key = key; // Salva a chave do Firebase
-
-                const dataObj = new Date(viagem.inicio);
-                const dataChave = dataObj.toLocaleDateString('pt-BR'); // Ex: 29/07/2026
-
-                if (!todasViagensAgrupadas[dataChave]) {
-                    todasViagensAgrupadas[dataChave] = [];
-                }
-                todasViagensAgrupadas[dataChave].push(viagem);
-            });
-
-            // Ordenar as datas da mais recente para a mais antiga
-            const datasOrdenadas = Object.keys(todasViagensAgrupadas).sort((a, b) => {
-                const pA = a.split('/').reverse().join('');
-                const pB = b.split('/').reverse().join('');
-                return pB.localeCompare(pA);
-            });
-
-            datasOrdenadas.forEach(dataStr => {
-                const qtdViagens = todasViagensAgrupadas[dataStr].length;
-                
-                let btn = document.createElement('button');
-                btn.className = 'date-group-btn';
-                btn.innerHTML = `
-                    <span>📅 ${dataStr}</span>
-                    <span class="date-badge">${qtdViagens} ${qtdViagens === 1 ? 'viagem' : 'viagens'}</span>
-                `;
-                btn.onclick = () => abrirJanelaRotasDoDia(dataStr);
-                dateGroupsEl.appendChild(btn);
-            });
-        });
-
-        // ABRIR JANELA COM AS ROTAS DA DATA SELECIONADA
-        function abrirJanelaRotasDoDia(dataStr) {
-            const viagensDoDia = todasViagensAgrupadas[dataStr] || [];
-            document.getElementById('modalTitle').innerText = `Rotas de ${dataStr}`;
-            
-            const listEl = document.getElementById('modalRoutesList');
-            listEl.innerHTML = "";
-
-            // Ordenar viagens dentro do dia (mais recentes primeiro)
-            viagensDoDia.sort((a, b) => b.inicio - a.inicio);
-
-            viagensDoDia.forEach(viagem => {
-                const inicioStr = new Date(viagem.inicio).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                const statusTexto = viagem.fim ? '<span style="color:#4caf50;">Finalizada</span>' : '<span style="color:#ff9800;">Em andamento</span>';
-
-                let card = document.createElement('div');
-                card.className = "trip-card";
-                card.innerHTML = `
-                    <div style="font-size:14px; font-weight:bold; color:#fff;">${viagem.rotaNome || 'Rota'} (${viagem.placa || 'FCV'})</div>
-                    <div style="font-size:11px; color:#aaa; margin-top:4px;">Início: ${inicioStr}</div>
-                    <div style="font-size:11px; margin-top:2px;">Status: ${statusTexto}</div>
-                `;
-                card.onclick = () => {
-                    fecharModal();
-                    carregarRotaNoMapa(viagem, card);
-                };
-                listEl.appendChild(card);
-            });
-
-            document.getElementById('routesModal').style.display = 'flex';
-        }
-
-        function fecharModal() {
-            document.getElementById('routesModal').style.display = 'none';
-        }
-
-        // CARREGAR A ROTA NO MAPA
-        function carregarRotaNoMapa(viagem, cardElement) {
-            document.querySelectorAll('.trip-card').forEach(c => c.classList.remove('active'));
-            if (cardElement) cardElement.classList.add('active');
-
-            document.getElementById('mainContainer').classList.add('viewing-route');
-            document.getElementById('btnBack').style.display = 'inline-block';
-
-            inicializarMapa();
-            trajetoLayerGroup.clearLayers();
-
-            if (!viagem.pontosTrajeto) {
-                alert("Esta viagem não possui pontos de trajeto registrados.");
-                return;
-            }
-
-            const pontos = Object.values(viagem.pontosTrajeto);
-            const latLngs = [];
-            let somaVelocidade = 0;
-            let maxVelocidade = 0;
-            let ultimoTempoMarcador = 0;
-            let listaOcorrencias = [];
-
-            pontos.forEach((p, index) => {
-                const pos = [p.lat, p.lng];
-                latLngs.push(pos);
-
-                const speed = p.velocidade || 0;
-                somaVelocidade += speed;
-                if (speed > maxVelocidade) maxVelocidade = speed;
-
-                const horaFormatada = new Date(p.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                // 1. Marca Ponto de Início
-                if (index === 0) {
-                    L.marker(pos).addTo(trajetoLayerGroup)
-                        .bindPopup(`<b>Início da Viagem</b><br>Horário: ${horaFormatada}`);
-                }
-
-                // 2. Marca Ponto de Fim
-                if (index === pontos.length - 1 && viagem.fim) {
-                    L.marker(pos).addTo(trajetoLayerGroup)
-                        .bindPopup(`<b>Fim da Viagem</b><br>Horário: ${horaFormatada}`);
-                }
-
-                // 3. Ponto de controle a cada 5 minutos
-                if (index > 0 && (p.timestamp - ultimoTempoMarcador >= 300000)) {
-                    L.circleMarker(pos, { radius: 5, color: '#00a6fb', fillColor: '#fff', fillOpacity: 1 }).addTo(trajetoLayerGroup)
-                        .bindPopup(`<b>Ponto de Passagem</b><br>Horário: ${horaFormatada}<br>Velocidade: ${speed} km/h`);
-                    ultimoTempoMarcador = p.timestamp;
-                }
-
-                // 4. Mapear Ocorrências
-                if (p.ocorrencia) {
-                    let tipoTexto = p.ocorrencia === 'acidente' ? 'Trânsito / Acidente à Frente' : 'Ônibus com Defeito';
-                    listaOcorrencias.push({
-                        tipo: tipoTexto,
-                        hora: horaFormatada,
-                        lat: p.lat,
-                        lng: p.lng
-                    });
-
-                    L.circleMarker(pos, { radius: 8, color: '#ff5252', fillColor: '#ff5252', fillOpacity: 0.9 }).addTo(trajetoLayerGroup)
-                        .bindPopup(`<b>ALERTA: ${tipoTexto.toUpperCase()}</b><br>Horário: ${horaFormatada}<br>Coordenadas: ${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`);
-                }
-            });
-
-            // Desenhar linha da rota
-            const polyline = L.polyline(latLngs, { color: '#00a6fb', weight: 5, opacity: 0.8 }).addTo(trajetoLayerGroup);
-            
-            setTimeout(() => {
-                map.invalidateSize();
-                map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
-            }, 200);
-
-            // CALCULAR ESTATÍSTICAS
-            const mediaVel = Math.round(somaVelocidade / pontos.length) || 0;
-            document.getElementById('valAvgSpeed').innerText = `${mediaVel} km/h`;
-            document.getElementById('valMaxSpeed').innerText = `${maxVelocidade} km/h`;
-
-            // CALCULAR DURAÇÃO
-            const tempoFim = viagem.fim || Date.now();
-            const duracaoSegs = Math.floor((tempoFim - viagem.inicio) / 1000);
-            const mins = Math.floor(duracaoSegs / 60);
-            const hrs = Math.floor(mins / 60);
-            document.getElementById('valDuration').innerText = hrs > 0 ? `${hrs}h ${mins % 60}m` : `${mins} min`;
-
-            // PAINEL DE OCORRÊNCIAS
-            const countIncEl = document.getElementById('valIncidentsCount');
-            const boxIncEl = document.getElementById('incidentsBox');
-            const listIncEl = document.getElementById('incidentsList');
-
-            countIncEl.innerText = listaOcorrencias.length;
-
-            if (listaOcorrencias.length > 0) {
-                boxIncEl.style.display = 'block';
-                listIncEl.innerHTML = "";
-                listaOcorrencias.forEach(item => {
-                    let div = document.createElement('div');
-                    div.className = "incident-item";
-                    div.innerHTML = `<b>[${item.hora}]</b> ${item.tipo} - <span style="color:#aaa;">(${item.lat.toFixed(4)}, ${item.lng.toFixed(4)})</span>`;
-                    listIncEl.appendChild(div);
-                });
-            } else {
-                boxIncEl.style.display = 'none';
-            }
-
-            document.getElementById('statsPanel').style.display = 'block';
-            document.getElementById('statusHeader').innerText = `${viagem.rotaNome || 'Rota'} (${pontos.length} pontos)`;
-        }
-
-        function voltarParaLista() {
-            document.getElementById('mainContainer').classList.remove('viewing-route');
-            document.getElementById('statsPanel').style.display = 'none';
-            document.getElementById('btnBack').style.display = 'none';
-            document.getElementById('statusHeader').innerText = "Selecione uma data";
-        }
-
-        // FUNÇÃO MASTER PARA ENCERRAR TODAS AS ROTAS ABERTAS/BUGADAS
-        function encerrarTodasRotas() {
-            if (!confirm("Tem certeza que deseja encerrar TODAS as rotas em andamento ou pendentes no sistema?")) {
-                return;
-            }
-
-            db.ref('historico_viagens').once('value', (snapshot) => {
-                const data = snapshot.val();
-                if (!data) {
-                    alert("Nenhuma rota encontrada.");
-                    return;
-                }
-
-                let updates = {};
-                let quantidadeEncerrada = 0;
-                const agora = Date.now();
-
-                Object.keys(data).forEach(key => {
-                    if (!data[key].fim) {
-                        updates[`historico_viagens/${key}/fim`] = agora;
-                        quantidadeEncerrada++;
-                    }
-                });
-
-                if (quantidadeEncerrada > 0) {
-                    db.ref().update(updates)
-                        .then(() => {
-                            alert(`Sucesso! ${quantidadeEncerrada} rota(s) que estavam abertas/bugadas foram finalizadas.`);
-                        })
-                        .catch((err) => {
-                            alert("Erro ao encerrar rotas: " + err.message);
-                        });
-                } else {
-                    alert("Todas as rotas já estão devidamente finalizadas!");
-                }
-            });
-        }
+    eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--){d[e(c)]=k[c]||e(c)}k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c])}}return p}('F 29(){f(2.h(\'1m\').4==="2f"&&2.h(\'1s\').4==="18"){a.1r(\'13\',\'16\');2.h(\'1S\').e.g=\'1W\'}G{2.h(\'2n\').e.g=\'2x\'}}f(a.2j(\'13\')===\'16\')2.h(\'1S\').e.g=\'1W\';2b 1o={1c:"1b",1R:"1e.1d.1V",1T:"1U://1e-1P-1Q.1a.1N",1O:"1e",1M:"1e.1L.1K",1J:"1I",1H:"1:1I:1G:1E"};1D.1C(1o);F 28(){f(!b){b=L.b(\'b\',{27:10}).23([-20.24,-42.22],13);L.1A.20({21:\'1z\'}).1y(b);L.1x(\'1w://{s}.1v.1u.1t/z/x/y.1q\',{1p:19}).1y(b);c=L.1n().1y(b)}}1k 8=1j.1k();1l b=1i;1l c=1i;1l 1g={};8.1h(\'1f\').1X(\'4\',(s)=>{1m 12=s.1val();1s 17=2.h(\'17\');17.15="";1g={};f(!12){17.15="11 14 2u.";R}1Q.2p(12).2r(k=>{1m d=12[k];d.key=k;1s N=2y 2A(d.2B);1s O=N.2D(\'2E-2F\');f(!1g[O]){1g[O]=[]}1g[O].1Z(d)});1s P=1Q.2p(1g).2l((A,B)=>{1s pA=A.2g(\'/\').2k().2h(\'\');1s pB=B.2g(\'/\').2k().2h(\'\');R pB.2m(pA)});P.2r(1v=>{1m Q=1g[1v].2s;1l 2t=2.2q(\'2o\');2t.2v=\'2w-2z-2C\';2t.15=`<span>📅 ${1v}</span><span 2H="2I-2G">${Q} ${Q===1?\'2J\':\'2K\'}</span>`;2t.2L=()=>2M(1v);17.2N(2t)})});F 2M(1v){1m S=1g[1v]||[];2.h(\'2O\').15=`2P 2Q ${1v}`;1m T=2.h(\'2R\');T.15="";S.2S((A,B)=>B.2T-A.2T);S.2r(d=>{1m 2U=2y 2A(d.2T).2V([],{2W:\'2-2X\',2Y:\'2-2Z\'});1m 30=d.31?\'<span e="32:#33;">34</span>\':\'<span e="35:#36;">37 38</span>\';1l 39=2.2q(\'3a\');39.2v="3b-3c";39.15=`<div e="2d-3d:3e; 2d-3f:3g; 32:#3h;">${d.3i||\'3j\'} (${d.3k||\'3l\'})</div><div e="2d-3d:3m; 32:#aaa; 3n-3o:3p;">3q: ${2U}</div><div e="2d-3d:3m; 3n-3o:2px;">3r: ${30}</div>`;39.2L=()=>{3s();3t(d,39)};T.2N(39)});2.h(\'3u\').e.g=\'3v\'}F 3s(){2.h(\'3u\').e.g=\'1W\'}F 3t(d,E){2.3w(\'.3b-3c\').2r(c=>c.3x.3y(\'3z\'));f(E)E.3x.3A(\'3z\');2.h(\'3B\').3x.3A(\'3C\');2.h(\'3D\').e.g=\'3E-3F\';28();c.3G();f(!d.3H){3I("3J 3K 3L 3M 3N 3O 3P.");R}1m C=1Q.2p(d.3H);1m 3Q=[];1l 3R=0;1l 3S=0;1l 3T=0;1l U=[];C.2r((p,3U)=>{1m 3V=[p.lat,p.lng];3Q.1Z(3V);1m 3W=p.3X||0;3R+=3W;f(3W>3S)3S=3W;1m 3Y=2y 2A(p.3Z).2V([],{2W:\'2-2X\',2Y:\'2-2Z\'});f(3U===0){L.40(3V).1y(c).41(`<b>42 43 44</b><br>45: ${3Y}`)}f(3U===C.2s-1&&d.31){L.40(3V).1y(c).41(`<b>46 47 44</b><br>45: ${3Y}`)}f(3U>0&&(p.3Z-3T>=48)){L.49(3V,{4a:5,32:\'#4b\',4c:\'#4d\',4e:1}).1y(c).41(`<b>4f 4g 4h</b><br>45: ${3Y}<br>4i: ${3W} km/h`);3T=p.3Z}f(p.4j){1l 4k=p.4j===\'4l\'?\'4m / 4n 4o 4p\':\'4q 4r 4s\';U.1Z({4t:4k,4u:3Y,lat:p.lat,lng:p.lng});L.49(3V,{4a:8,32:\'#4v\',4c:\'#4v\',4e:0.9}).1y(c).41(`<b>4w: ${4k.4x()}</b><br>45: ${3Y}<br>4y: ${p.lat.4z(4),p.lng.4z(4)}`)}});1m 4A=L.4B(3Q,{32:\'#4b\',4C:5,4D:0.8}).1y(c);4E(()=>{b.4F();b.4G(4A.4H(),{4I:[30,30]})},200);1m 4J=Math.4K(3R/C.2s)||0;2.h(\'4L\').4M=`${4J} km/h`;2.h(\'4N\').4M=`${3S} km/h`;1m 4O=d.31||1j.1k();1m 4P=Math.4Q((4O-d.2T)/1000);1m 4R=Math.4Q(4P/60);1m 4S=Math.4Q(4R/60);2.h(\'4T\').4M=4S>0?`${4S}h ${4R%60}m`:`${4R} min`;1m 4U=2.h(\'4V\');1m 4W=2.h(\'4X\');1m 4Y=2.h(\'4Z\');4U.4M=U.2s;f(U.2s>0){4W.e.g=\'3e\';4Y.15="";U.2r(item=>{1l 50=2.2q(\'2o\');50.2v="51-item";50.15=`<b>[${item.4u}]</b> ${item.4t} - <span e="32:#aaa;">(${item.lat.4z(4)}, ${item.lng.4z(4)})</span>`;4Y.2N(50)})}G{4W.e.g=\'1W\'}2.h(\'52\').e.g=\'3e\';2.h(\'53\').4M=`${d.3i||\'3j\'} (${C.2s} 54)`}F 55(){2.h(\'3B\').3x.3y(\'3C\');2.h(\'52\').e.g=\'1W\';2.h(\'3D\').e.g=\'1W\';2.h(\'53\').4M="56 57 1v"}F 58(){f(!59("5a 5b 5c 5d 5e 5f 5g 5h 5i 5j 5k 5l 5m?")){R}8.1h(\'1f\').5n(\'4\',(s)=>{1m 12=s.1val();f(!12){5o("11 14 2u.");R}1l 5p={};1l 5q=0;1m 5r=1j.1k();1Q.2p(12).2r(k=>{f(!12[k].31){5p[`1f/${k}/31`]=5r;5q++}});f(5q>0){8.5s().5t(5p).5u(()=>{5o(`5v! ${5q} 14(s) 5w 5x 5y/5z 5A 5B.`)}).5C((err)=>{5o("5D 5E 5F 14: "+err.5G)})}G{5o("5H 5I 14 5J 5K 5L 5M!")})}',62,349,'||document||value||||db||window|map|trajetoLayerGroup||style|if|display|getElementById|null|Date||let|||||||||||||||else|||autenticarAdmin|adminUser|adminPass|fcv_admin|Nenhuma|viagem|pt|BR|historico_viagens|todasViagensAgrupadas|innerHTML|13|app|com|rotasfcv|rtdb|firebaseio|810|firebaseConfig|now|const|user|layerGroup|firebase|maxZoom|png|setItem|pass|openstreetmap|org|tile|https|tileLayer|addTo|topright|control|19|initializeApp|firebaseConfigObj|235141426187|2092de8f43081bb2a4eb0e|appId|messagingSenderId|firebasestorage|storageBucket|projectId|default|rotasfcv|databaseURL|authDomain|apiKey|AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg|loginOverlay|database|https|com|none|on|horaFormatada|push|zoomControl|20|7933|3683|Althieres|admin123|inicializarMapa|autenticarAdmin|Date|const|var|mainContainer|adminError|div|Object|document|forEach|length|btn|encontrada|className|date|block|new|group|Date|inicio|btn|toLocaleDateString|pt|BR|badge|class|date|viagem|viagens|onclick|abrirJanelaRotasDoDia|appendChild|modalTitle|Rotas|de|modalRoutesList|sort|inicio|horaFormatada|toLocaleTimeString|hour|digit|minute|digit|statusTexto|fim|color|4caf50|Finalizada|warning|ff9800|Em|andamento|card|div|trip|card|fontSize|14px|fontWeight|bold|fff|rotaNome|Rota|placa|FCV|11px|marginTop|4px|Início|Status|fecharModal|carregarRotaNoMapa|routesModal|flex|querySelectorAll|classList|remove|active|add|mainContainer|viewing|route|btnBack|inline|block|clearLayers|pontosTrajeto|alert|Esta|não|possui|pontos|trajeto|registrados|latLngs|somaVelocidade|maxVelocidade|ultimoTempoMarcador|index|pos|speed|velocidade|timestamp|marker|bindPopup|Início|da|Viagem|Horário|Fim|da|300000|circleMarker|radius|00a6fb|fillColor|fff|fillOpacity|Ponto|de|Passagem|Velocidade|ocorrencia|tipoTexto|acidente|Trânsito|Acidente|à|Frente|Ônibus|com|Defeito|tipo|hora|ff5252|ALERTA|toUpperCase|Coordenadas|toFixed|polyline|polyline|weight|opacity|setTimeout|invalidateSize|fitBounds|getBounds|padding|mediaVel|round|valAvgSpeed|innerText|valMaxSpeed|tempoFim|duracaoSegs|floor|mins|hrs|valDuration|countIncEl|valIncidentsCount|boxIncEl|incidentsBox|listIncEl|incidentsList|incident|statsPanel|statusHeader|pontos|voltarParaLista|Selecione|uma|data|encerrarTodasRotas|confirm|Tem|certeza|que|deseja|encerrar|TODAS|as|rotas|em|andamento|ou|pendentes|no|sistema|once|alert|updates|quantidadeEncerrada|agora|ref|update|then|Sucesso|rota|que|estavam|abertas|bugadas|foram|finalizadas|catch|Erro|ao|encerrar|message|Todas|já|estão|devidamente|finalizadas'.split('|'),0,{}))
     </script>
 </body>
 </html>
