@@ -63,7 +63,6 @@
             cursor: pointer; font-size: 15px; margin-top: 10px;
         }
 
-        /* CAIXA DE ERRO EM VERMELHO DETALHADA */
         #adminError {
             color: #ffffff;
             background-color: rgba(255, 82, 82, 0.2);
@@ -254,7 +253,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 10px;
             width: 100%;
             margin-bottom: 10px;
@@ -269,7 +268,7 @@
         }
 
         .stat-card .val {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             color: var(--accent-blue);
             margin-top: 4px;
@@ -386,16 +385,32 @@
             <div class="stats-panel" id="statsPanel">
                 <div class="stats-grid">
                     <div class="stat-card">
+                        <div class="lbl">Motorista</div>
+                        <div class="val" id="valDriver">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Início / Fim</div>
+                        <div class="val" id="valTimes">--:--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Duração</div>
+                        <div class="val" id="valDuration">--:--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">KM Inicial / Final</div>
+                        <div class="val" id="valKmRange">-- / --</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">KM Percorrida</div>
+                        <div class="val" id="valKmDiff" style="color:var(--success-color);">0 km</div>
+                    </div>
+                    <div class="stat-card">
                         <div class="lbl">Média Vel.</div>
                         <div class="val" id="valAvgSpeed">0 km/h</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Máx Vel.</div>
                         <div class="val" id="valMaxSpeed" style="color:var(--warning-color);">0 km/h</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="lbl">Duração</div>
-                        <div class="val" id="valDuration">--:--</div>
                     </div>
                     <div class="stat-card">
                         <div class="lbl">Ocorrências</div>
@@ -446,29 +461,26 @@
                     return;
                 }
 
-                // Aceita "althieres" e a senha "@fcv2026"
                 if (userVal === "althieres" && passVal === "@fcv2026") {
                     sessionStorage.setItem('fcv_admin', 'true');
                     document.getElementById('loginOverlay').style.display = 'none';
                     document.getElementById('adminError').style.display = 'none';
                 } else {
-                    exibirErro("Usuário ou senha incorretos! Verifique os dados digitados.");
+                    exibirErro("Usuário ou senha incorretos!");
                 }
             } catch (e) {
-                exibirErro("Erro ao tentar autenticar: " + e.message);
+                exibirErro("Erro ao autenticar: " + e.message);
             }
         }
 
-        // Verifica se a sessão de admin já está ativa
         try {
             if (sessionStorage.getItem('fcv_admin') === 'true') {
                 document.getElementById('loginOverlay').style.display = 'none';
             }
         } catch (e) {
-            console.warn("Sessão não pôde ser verificada automaticamente.");
+            console.warn("Sessão não verificada.");
         }
 
-        // Inicialização do Firebase com bloco try/catch para exibir erros se falhar
         let db = null;
         try {
             const firebaseConfig = {
@@ -485,7 +497,7 @@
             }
             db = firebase.database();
         } catch (err) {
-            exibirErro("Erro na conexão com o Firebase: " + err.message);
+            exibirErro("Erro no Firebase: " + err.message);
         }
 
         let map = null;
@@ -544,8 +556,6 @@
                     btn.onclick = () => abrirJanelaRotasDoDia(dataStr);
                     dateGroupsEl.appendChild(btn);
                 });
-            }, (error) => {
-                console.error("Erro ao ler banco de dados: ", error);
             });
         }
 
@@ -566,6 +576,7 @@
                 card.className = "trip-card";
                 card.innerHTML = `
                     <div style="font-size:14px; font-weight:bold; color:#fff;">${viagem.rotaNome || 'Rota'} (${viagem.placa || 'FCV'})</div>
+                    <div style="font-size:12px; color:#00a6fb; margin-top:2px;">👨‍✈️ Motorista: ${viagem.motoristaNome || viagem.motorista || 'Não informado'}</div>
                     <div style="font-size:11px; color:#aaa; margin-top:4px;">Início: ${inicioStr}</div>
                     <div style="font-size:11px; margin-top:2px;">Status: ${statusTexto}</div>
                 `;
@@ -651,6 +662,24 @@
                 map.invalidateSize();
                 map.fitBounds(polyline.getBounds(), { padding: [30, 30] });
             }, 200);
+
+            // PREENCHER INFORMAÇÕES DETALHADAS NO PAINEL
+            document.getElementById('valDriver').innerText = viagem.motoristaNome || viagem.motorista || 'N/I';
+
+            const horaInicio = new Date(viagem.inicio).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            const horaFim = viagem.fim ? new Date(viagem.fim).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Em andamento';
+            document.getElementById('valTimes').innerText = `${horaInicio} - ${horaFim}`;
+
+            const kmIni = viagem.kmInicial !== undefined ? viagem.kmInicial : '--';
+            const kmFin = viagem.kmFinal !== undefined ? viagem.kmFinal : '--';
+            document.getElementById('valKmRange').innerText = `${kmIni} / ${kmFin}`;
+
+            if (viagem.kmInicial !== undefined && viagem.kmFinal !== undefined) {
+                const diff = viagem.kmFinal - viagem.kmInicial;
+                document.getElementById('valKmDiff').innerText = `${diff >= 0 ? diff : 0} km`;
+            } else {
+                document.getElementById('valKmDiff').innerText = `--`;
+            }
 
             const mediaVel = Math.round(somaVelocidade / pontos.length) || 0;
             document.getElementById('valAvgSpeed').innerText = `${mediaVel} km/h`;
