@@ -3,691 +3,412 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rotas FCV - Motorista</title>
-    <link rel="manifest" href="manifest-motorista.json">
-    <meta name="theme-color" content="#0077b6">
-    <style>
-        :root { --bg-color: #000000; --container-bg: #0d0d0d; --text-color: #ffffff; --box-bg: #161616; --border-color: #262626; --accent-color: #00a6fb; --fcv-blue: #005691; --fcv-blue-dark: #003a63; }
-        body.light-mode { --bg-color: #f4f6f9; --container-bg: #ffffff; --text-color: #333333; --box-bg: #eef2f5; --border-color: #cccccc; --accent-color: #0077b6; }
-        body { font-family: Arial, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; transition: background 0.3s ease, color 0.3s ease; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-        .beta-badge { background-color: #ff9800; color: #000000; font-size: 10px; font-weight: 900; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.8px; display: inline-block; box-shadow: 0 2px 6px rgba(255, 152, 0, 0.4); }
-        #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #003a63 0%, #0077b6 100%); display: flex; flex-direction: column; justify-content: space-between; align-items: center; z-index: 9999; padding: 30px 20px; box-sizing: border-box; }
-        .login-header { margin-top: 30px; text-align: center; position: relative; }
-        .login-logo { max-width: 160px; height: auto; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3)); }
-        .login-title { color: #ffffff; font-size: 20px; font-weight: bold; margin: 0; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .login-card { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.25); padding: 25px 20px; border-radius: 18px; width: 100%; max-width: 320px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); box-sizing: border-box; }
-        .login-input-group { margin-bottom: 15px; text-align: left; }
-        .login-input-group label { display: block; color: #ffffff; font-size: 12px; font-weight: bold; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .login-input, .login-select { width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(0, 0, 0, 0.35); color: #ffffff; font-size: 15px; box-sizing: border-box; outline: none; transition: border-color 0.3s ease; }
-        .login-select option { background-color: #003a63; color: #ffffff; }
-        .login-input::placeholder { color: rgba(255, 255, 255, 0.5); }
-        .login-input:focus, .login-select:focus { border-color: #00a6fb; background: rgba(0, 0, 0, 0.5); }
-        .btn-login { width: 100%; padding: 14px; background: #00a6fb; color: #ffffff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(0, 166, 251, 0.4); transition: transform 0.1s ease, background 0.2s ease; }
-        .btn-login:active { transform: scale(0.98); background: #0084ca; }
-        .login-error { color: #ff5252; font-size: 13px; font-weight: bold; margin-top: 12px; text-align: center; display: none; background: rgba(255, 0, 0, 0.15); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 0, 0, 0.3); }
-        .login-footer { margin-bottom: 10px; text-align: center; }
-        .login-footer-logo { max-width: 130px; height: auto; opacity: 0.9; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3)); }
-        .container { width: 100%; max-width: 400px; background-color: var(--container-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8); box-sizing: border-box; text-align: center; position: relative; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .top-bar-left { display: flex; align-items: center; gap: 8px; }
-        h2 { margin: 0; color: #4caf50; font-size: 18px; }
-        .btn-theme { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; }
-        .driver-info-badge { font-size: 12px; color: var(--accent-color); background: var(--box-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-logout { background: none; border: none; color: #ff5252; cursor: pointer; font-weight: bold; font-size: 11px; }
-        .route-selection-box { background-color: var(--box-bg); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); text-align: left; }
-        .route-selection-box label { font-size: 12px; font-weight: bold; color: var(--accent-color); display: block; margin-bottom: 6px; }
-        .route-select { width: 100%; padding: 10px; border-radius: 8px; background: var(--container-bg); color: var(--text-color); border: 1px solid var(--border-color); font-size: 14px; font-weight: bold; outline: none; }
-        .status-box { background-color: var(--box-bg); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; line-height: 1.5; border: 1px solid var(--border-color); }
-        .timer-display { font-size: 18px; font-weight: bold; color: #ff9800; margin-top: 5px; }
-        .online-app-box { background-color: #051923; border: 1px solid #003554; color: #00a6fb; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; transition: all 0.2s ease; }
-        .btn-start { background-color: #2e7d32; color: white; }
-        .btn-stop { background-color: #c62828; color: white; }
-        .btn-aod { background-color: var(--box-bg); color: var(--accent-color); border: 1px solid var(--accent-color); display: none; }
-        .incident-section { margin-top: 10px; }
-        .incident-title { font-size: 13px; opacity: 0.8; margin-bottom: 8px; text-align: left; }
-        .btn-incident { background-color: var(--box-bg); color: var(--text-color); padding: 10px; font-size: 13px; border: 1px solid var(--border-color); }
-        .btn-incident.active { background-color: #ff9800; color: #000; }
-        .history-section { margin-top: 25px; text-align: left; background: var(--box-bg); padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); }
-        .history-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: var(--accent-color); }
-        .history-item { font-size: 11px; padding: 6px 0; border-bottom: 1px solid var(--border-color); line-height: 1.4; }
-        .history-item:last-child { border-bottom: none; }
-        .badge-live { color: #4caf50; font-weight: bold; animation: blink 1s infinite alternate; }
-        @keyframes blink { from { opacity: 1; } to { opacity: 0.4; } }
-        details.history-details { margin-top: 10px; background-color: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; font-size: 12px; }
-        details.history-details summary { font-weight: bold; cursor: pointer; color: var(--text-color); opacity: 0.85; outline: none; padding: 4px 0; user-select: none; }
-        details.history-details summary:hover { opacity: 1; color: var(--accent-color); }
-        .history-expanded-list { max-height: 180px; overflow-y: auto; margin-top: 8px; padding-top: 5px; border-top: 1px solid var(--border-color); }
-        .footer { margin-top: 25px; padding-top: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border-top: 1px solid var(--border-color); cursor: pointer; }
-        .footer-logo { max-width: 100px; height: auto; opacity: 0.85; transition: opacity 0.3s ease; }
-        .footer-logo:hover { opacity: 1; }
-        .footer-credit { font-size: 8px; color: var(--text-color); opacity: 0.4; margin-top: 3px; text-transform: none; text-align: center; letter-spacing: 0.3px; }
-        #aodOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #000000; color: #ffffff; z-index: 999999; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; box-sizing: border-box; user-select: none; }
-        .aod-clock { font-size: 60px; font-weight: 300; letter-spacing: 2px; color: #ffffff; }
-        .aod-route { font-size: 18px; color: var(--accent-color); margin: 15px 0 5px 0; font-weight: 600; }
-        .aod-passengers { font-size: 15px; color: #888888; }
-        .aod-hint { position: absolute; bottom: 30px; font-size: 11px; color: #444; }
-        .custom-dialog-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 9999999; }
-        .custom-dialog-box { background-color: var(--container-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .custom-dialog-title { font-size: 16px; font-weight: bold; color: var(--accent-color); margin-bottom: 10px; }
-        .custom-dialog-msg { font-size: 14px; color: var(--text-color); margin-bottom: 20px; line-height: 1.4; }
-        .custom-dialog-buttons { display: flex; gap: 10px; justify-content: center; }
-        .custom-dialog-btn { flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn-dialog-ok { background-color: var(--accent-color); color: #ffffff; }
-        .btn-dialog-cancel { background-color: var(--box-bg); color: var(--text-color); border: 1px solid var(--border-color); }
-    </style>
+    <title>Painel do Gestor - FCV</title>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+            --accent-blue: #00a6fb;
+            --border-color: #333333;
+            --text-main: #ffffff;
+            --text-sub: #aaaaaa;
+            --danger-color: #ff5252;
+            --warning-color: #ff9800;
+            --success-color: #4caf50;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #loginOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #003a63 0%, #0077b6 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 99999; padding: 20px;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            padding: 25px; border-radius: 16px; width: 100%; max-width: 320px;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .login-box input {
+            width: 100%; padding: 12px; margin: 8px 0;
+            border-radius: 8px; border: 1px solid var(--border-color);
+            background: #2a2a2a; color: #fff; font-size: 14px; outline: none;
+        }
+
+        .login-box button {
+            width: 100%; padding: 12px; background: var(--accent-blue);
+            border: none; color: #fff; font-weight: bold; border-radius: 8px;
+            cursor: pointer; font-size: 15px; margin-top: 10px;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            height: 55px;
+            flex-shrink: 0;
+            z-index: 1000;
+        }
+
+        .header h3 { margin: 0; font-size: 16px; color: #fff; }
+
+        .btn-back {
+            background: #2a2a2a;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 55px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 340px;
+            background: #161616;
+            border-right: 1px solid var(--border-color);
+            padding: 15px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-finish-all {
+            width: 100%;
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-finish-all:hover {
+            background: var(--danger-color);
+            color: #fff;
+        }
+
+        .date-group-btn {
+            background: #222222;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .date-group-btn:hover {
+            background: #2d2d2d;
+            border-color: var(--accent-blue);
+        }
+
+        .date-badge {
+            background: var(--accent-blue);
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 450px;
+            max-height: 80vh;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .modal-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #161616;
+        }
+
+        .modal-header h4 { margin: 0; font-size: 15px; color: var(--accent-blue); }
+
+        .btn-close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-sub);
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: #000;
+        }
+
+        .stats-panel {
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 15px;
+            display: none;
+            gap: 10px;
+            flex-shrink: 0;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .stat-card {
+            background: #262626;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        .stat-card .val {
+            font-size: 15px;
+            font-weight: bold;
+            color: var(--accent-blue);
+            margin-top: 4px;
+        }
+
+        .stat-card .lbl {
+            font-size: 10px;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .incidents-detail-box {
+            background: #222;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        .incidents-detail-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--warning-color);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .incident-item {
+            font-size: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid #333;
+            color: var(--text-main);
+        }
+
+        .incident-item:last-child {
+            border-bottom: none;
+        }
+
+        .trip-card {
+            background: #222222;
+            padding: 14px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent-blue);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .trip-card:hover {
+            background: #2a2a2a;
+        }
+
+        .trip-card.active {
+            background: #2d382e;
+            border-left-color: var(--success-color);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: 100%;
+                display: flex !important;
+            }
+
+            .content-area {
+                display: none !important;
+                width: 100%;
+                height: 100%;
+            }
+
+            .main-container.viewing-route .sidebar {
+                display: none !important;
+            }
+
+            .main-container.viewing-route .content-area {
+                display: flex !important;
+            }
+        }
+    </style>
 </head>
 <body>
 
     <div id="loginOverlay">
-        <div class="login-header">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo">
-            <div class="login-title"><span class="beta-badge">BETA</span> Motorista</div>
-        </div>
-        <form class="login-card" id="loginForm" onsubmit="return false;">
-            <div class="login-input-group">
-                <label for="driverSelect">Selecione seu Nome</label>
-                <select id="driverSelect" class="login-select" required>
-                    <option value="" disabled selected>Escolha o motorista...</option>
-                    <option value="mot_adenilson">ADENILSON DA SILVA FREITAS</option>
-                    <option value="mot_anderson">ANDERSON JOSE DA SILVA</option>
-                    <option value="mot_bruno">BRUNO DA SILVA ELBLAUS</option>
-                    <option value="mot_carlos">CARLOS AMERICO PINTO DA SILVA</option>
-                    <option value="mot_claudio">CLAUDIO JOSE DE SOUZA</option>
-                    <option value="mot_guilherme">GUILHERME JOSE DE SOUZA</option>
-                    <option value="mot_jefferson">JEFFERSON ISRAEL DE SOUZA</option>
-                    <option value="mot_jonas">JONAS ELIAS HONORIO</option>
-                    <option value="mot_luis">LUIS FERNANDO DE PINHO VELHO WANDERLEY</option>
-                    <option value="mot_marcio">MARCIO JOSE TAVARES</option>
-                    <option value="mot_rodrigo">RODRIGO MARAES DE ALMEIDA</option>
-                    <option value="mot_vilson">VILSON MARINI PEREIRA</option>
-                    <option value="mot_wellington">WELLINGTON NEVES DE OLIVEIRA</option>
-                </select>
-            </div>
-            <div class="login-input-group">
-                <label for="passwordInput">Senha de Acesso</label>
-                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
-            </div>
-            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
-            <div id="loginError" class="login-error">Motorista ou senha incorretos!</div>
-        </form>
-        <div class="login-footer">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella" class="login-footer-logo">
+        <div class="login-box">
+            <h3 style="margin-top:0;">Painel do Gestor</h3>
+            <input type="text" id="adminUser" placeholder="Usuário">
+            <input type="password" id="adminPass" placeholder="Senha">
+            <button onclick="autenticarAdmin()">Acessar Painel</button>
+            <div id="adminError" style="color:var(--danger-color); display:none; margin-top:10px; font-size:12px;">Dados incorretos!</div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <span class="beta-badge">BETA</span>
-                <h2>Motorista</h2>
+    <div class="header">
+        <button id="btnBack" class="btn-back" onclick="voltarParaLista()">Voltar pras Rotas</button>
+        <h3>Gestão de Frota</h3>
+        <span id="statusHeader" style="font-size:11px; color:var(--text-sub);">Selecione uma data</span>
+    </div>
+
+    <div class="main-container" id="mainContainer">
+        <div class="sidebar" id="sidebar">
+            <button class="btn-finish-all" onclick="encerrarTodasRotas()">
+                🛑 ENCERRAR TODAS AS ROTAS EM ANDAMENTO
+            </button>
+
+            <h4 style="margin:10px 0 0 0; color:var(--accent-blue);">Histórico por Data</h4>
+            <div id="dateGroupsList" style="display:flex; flex-direction:column; gap:8px;">
+                Carregando datas...
             </div>
-            <button id="themeBtn" class="btn-theme"><span>💡</span><span id="themeText">Super OLED</span></button>
         </div>
-        <div class="driver-info-badge">
-            <span>👤 <b id="displayDriverName">Motorista</b></span>
-            <button class="btn-logout" onclick="fazerTrocaMotorista()">Trocar</button>
-        </div>
-        <div class="route-selection-box">
-            <label for="routeSelect">ROTA DE HOJE:</label>
-            <select id="routeSelect" class="route-select">
-                <option value="plantao" data-nome="Rota de Plantão" data-hora="Especial">Rota de Plantão (Especial)</option>
-                <option value="rota_01" data-nome="Rota 01" data-hora="06:15">Rota 01 - 06:15</option>
-                <option value="rota_02" data-nome="Rota 02" data-hora="06:15">Rota 02 - 06:15</option>
-                <option value="rota_03" data-nome="Rota 03" data-hora="06:15">Rota 03 - 06:15</option>
-                <option value="rota_04" data-nome="Rota 04" data-hora="17:15">Rota 04 - 17:15</option>
-                <option value="rota_05" data-nome="Rota 05" data-hora="17:15">Rota 05 - 17:15</option>
-            </select>
-        </div>
-        <div class="status-box" id="statusText">Status: <b style="color: #f44336;">OFFLINE</b></div>
-        <div class="online-app-box">Passageiros com o App Aberto: <span id="onlinePassCount">0</span></div>
-        <button id="toggleBtn" class="btn btn-start">Iniciar Transmissão</button>
-        <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button>
-        <div class="incident-section">
-            <div class="incident-title">Relatar Ocorrência:</div>
-            <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
-            <button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button>
-        </div>
-        <div class="history-section">
-            <div class="history-title">Viagens de Hoje (Últimas 5)</div>
-            <div id="todayHistoryList">Carregando viagens do dia...</div>
-            <details class="history-details" id="oldHistoryDetails" style="display: none;">
-                <summary>Ver mais viagens e histórico (<span id="oldHistoryCount">0</span>)</summary>
-                <div class="history-expanded-list" id="oldHistoryList"></div>
-            </details>
-        </div>
-        <div class="footer" id="resetFooter" ondblclick="limparTodasRotasEmergencia()">
-            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
-            <div class="footer-credit">by Althieres Dias</div>
-        </div>
-    </div>
 
-    <div id="aodOverlay" onclick="desativarAOD()">
-        <div id="aodContent">
-            <div class="aod-clock" id="aodClock">00:00</div>
-            <div class="aod-route" id="aodRouteName">Nome da Rota</div>
-            <div class="aod-passengers" id="aodPassengersCount">Passageiros com App aberto: 0</div>
-        </div>
-        <div class="aod-hint">Toque em qualquer lugar para sair do modo economia</div>
-    </div>
+        <div class="content-area" id="contentArea">
+            <div id="map"></div>
+            
+            <div class="stats-panel" id="statsPanel">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="lbl">Média Vel.</div>
+                        <div class="val" id="valAvgSpeed">0 km/h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Máx Vel.</div>
+                        <div class="val" id="valMaxSpeed" style="color:var(--warning-color);">0 km/h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Duração</div>
+                        <div class="val" id="valDuration">--:--</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="lbl">Ocorrências</div>
+                        <div class="val" id="valIncidentsCount" style="color:var(--danger-color);">0</div>
+                    </div>
+                </div>
 
-    <div id="customAlertModal" class="custom-dialog-overlay">
-        <div class="custom-dialog-box">
-            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
-            <div id="customAlertMsg" class="custom-dialog-msg"></div>
-            <div class="custom-dialog-buttons"><button class="custom-dialog-btn btn-dialog-ok" onclick="fecharCustomAlert()">OK</button></div>
-        </div>
-    </div>
-
-    <div id="customConfirmModal" class="custom-dialog-overlay">
-        <div class="custom-dialog-box">
-            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
-            <div id="customConfirmMsg" class="custom-dialog-msg"></div>
-            <div class="custom-dialog-buttons">
-                <button class="custom-dialog-btn btn-dialog-cancel" id="customConfirmBtnCancel">Cancelar</button>
-                <button class="custom-dialog-btn btn-dialog-ok" id="customConfirmBtnOk">OK</button>
+                <div class="incidents-detail-box" id="incidentsBox" style="display:none;">
+                    <div class="incidents-detail-title">Ocorrências Registradas nesta Viagem:</div>
+                    <div id="incidentsList"></div>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="routesModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h4 id="modalTitle">Rotas do Dia</h4>
+                <button class="btn-close-modal" onclick="fecharModal()">✕</button>
+            </div>
+            <div class="modal-body" id="modalRoutesList"></div>
         </div>
     </div>
 
     <script>
-    const motoristasCadastrados = {
-        mot_adenilson: { nome: "ADENILSON DA SILVA FREITAS", senha: "adenilson@fcv" },
-        mot_anderson: { nome: "ANDERSON JOSE DA SILVA", senha: "anderson@fcv" },
-        mot_bruno: { nome: "BRUNO DA SILVA ELBLAUS", senha: "bruno@fcv" },
-        mot_carlos: { nome: "CARLOS AMERICO PINTO DA SILVA", senha: "carlos@fcv" },
-        mot_claudio: { nome: "CLAUDIO JOSE DE SOUZA", senha: "claudio@fcv" },
-        mot_guilherme: { nome: "GUILHERME JOSE DE SOUZA", senha: "guilherme@fcv" },
-        mot_jefferson: { nome: "JEFFERSON ISRAEL DE SOUZA", senha: "jefferson@fcv" },
-        mot_jonas: { nome: "JONAS ELIAS HONORIO", senha: "jonas@fcv" },
-        mot_luis: { nome: "LUIS FERNANDO DE PINHO VELHO WANDERLEY", senha: "luis@fcv" },
-        mot_marcio: { nome: "MARCIO JOSE TAVARES", senha: "marcio@fcv" },
-        mot_rodrigo: { nome: "RODRIGO MARAES DE ALMEIDA", senha: "rodrigo@fcv" },
-        mot_vilson: { nome: "VILSON MARINI PEREIRA", senha: "vilson@fcv" },
-        mot_wellington: { nome: "WELLINGTON NEVES DE OLIVEIRA", senha: "wellington@fcv" }
-    };
-
-    function customAlert(msg) {
-        document.getElementById("customAlertMsg").innerText = msg;
-        document.getElementById("customAlertModal").style.display = "flex";
-    }
-
-    function fecharCustomAlert() {
-        document.getElementById("customAlertModal").style.display = "none";
-    }
-
-    function customConfirm(msg, callback) {
-        document.getElementById("customConfirmMsg").innerText = msg;
-        const modal = document.getElementById("customConfirmModal");
-        const btnOk = document.getElementById("customConfirmBtnOk");
-        const btnCancel = document.getElementById("customConfirmBtnCancel");
-        modal.style.display = "flex";
-        btnOk.onclick = () => { modal.style.display = "none"; callback(true); };
-        btnCancel.onclick = () => { modal.style.display = "none"; callback(false); };
-    }
-
-    const loginOverlay = document.getElementById("loginOverlay");
-    const loginForm = document.getElementById("loginForm");
-    const driverSelect = document.getElementById("driverSelect");
-    const passwordInput = document.getElementById("passwordInput");
-    const loginError = document.getElementById("loginError");
-    const displayDriverName = document.getElementById("displayDriverName");
-    let motoristaLogado = null;
-
-    function carregarSessaoMotorista() {
-        const dados = sessionStorage.getItem("fcv_motorista_dados");
-        if (dados) {
-            motoristaLogado = JSON.parse(dados);
-            displayDriverName.innerText = motoristaLogado.nome;
-            loginOverlay.style.display = "none";
-        }
-    }
-    carregarSessaoMotorista();
-
-    loginForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const idSelec = driverSelect.value;
-        const senhaDig = passwordInput.value.trim().toLowerCase();
-        const motObj = motoristasCadastrados[idSelec];
-
-        if (motObj && motObj.senha === senhaDig) {
-            loginError.style.display = "none";
-            motoristaLogado = { id: idSelec, nome: motObj.nome };
-            sessionStorage.setItem("fcv_motorista_dados", JSON.stringify(motoristaLogado));
-            displayDriverName.innerText = motObj.nome;
-            loginOverlay.style.display = "none";
-        } else {
-            loginError.style.display = "block";
-            passwordInput.value = "";
-        }
-    });
-
-    function fazerTrocaMotorista() {
-        if (isTransmitting) {
-            customAlert("Finalize a transmissão atual antes de trocar de motorista!");
-            return;
-        }
-        sessionStorage.removeItem("fcv_motorista_dados");
-        motoristaLogado = null;
-        loginOverlay.style.display = "flex";
-    }
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",
-        authDomain: "rotasfcv.firebaseapp.com",
-        databaseURL: "https://rotasfcv-default-rtdb.firebaseio.com",
-        projectId: "rotasfcv",
-        storageBucket: "rotasfcv.firebasestorage.app",
-        messagingSenderId: "235141426187",
-        appId: "1:235141426187:web:2092de8f43081bb2a4eb0e"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    let isTransmitting = false;
-    let watchId = null;
-    let ocorrenciaAtual = null;
-    let viagemAtualId = null;
-    let currentRouteKey = null;
-    let timerInterval = null;
-    let clockInterval = null;
-    let tempoInicioViagem = null;
-    let lastSignalTimeout = null;
-    let wakeLock = null;
-    let ultimoTempoEnvio = 0;
-
-    const toggleBtn = document.getElementById("toggleBtn");
-    const btnAOD = document.getElementById("btnAOD");
-    const statusText = document.getElementById("statusText");
-    const routeSelect = document.getElementById("routeSelect");
-    const btnAccident = document.getElementById("btnAccident");
-    const btnBroken = document.getElementById("btnBroken");
-    const onlinePassCountEl = document.getElementById("onlinePassCount");
-    const themeBtn = document.getElementById("themeBtn");
-    const themeText = document.getElementById("themeText");
-    const todayHistoryListEl = document.getElementById("todayHistoryList");
-    const oldHistoryListEl = document.getElementById("oldHistoryList");
-    const oldHistoryDetails = document.getElementById("oldHistoryDetails");
-    const oldHistoryCount = document.getElementById("oldHistoryCount");
-
-    setInterval(() => {
-        db.ref("onibus").once("value", (snap) => {
-            const data = snap.val() || {};
-            const agora = Date.now();
-            const limite = 90000;
-            Object.keys(data).forEach((key) => {
-                const item = data[key];
-                if (item && (item.ativo || item.emUso) && key !== currentRouteKey) {
-                    const ult = item.ultimaAtualizacao || 0;
-                    if (agora - ult > limite) {
-                        db.ref("onibus/" + key).update({ ativo: false, emUso: false });
-                    }
-                }
-            });
-        });
-    }, 30000);
-
-    function limparTodasRotasEmergencia() {
-        customConfirm("Deseja encerrar e remover do mapa TODOS os ônibus ativos no momento?", (conf) => {
-            if (conf) {
-                db.ref("onibus").once("value", (snap) => {
-                    const data = snap.val() || {};
-                    Object.keys(data).forEach((key) => {
-                        db.ref("onibus/" + key).update({ ativo: false, emUso: false });
-                    });
-                    customAlert("Todas as rotas foram desativadas e removidas do mapa!");
-                });
-            }
-        });
-    }
-
-    db.ref("onibus").on("value", (snap) => {
-        const rotasStatus = snap.val() || {};
-        Array.from(routeSelect.options).forEach((opt) => {
-            const key = opt.value;
-            const dados = rotasStatus[key];
-            const nomeBase = opt.getAttribute("data-nome");
-            const horaBase = opt.getAttribute("data-hora");
-            if (dados && (dados.ativo || dados.emUso) && key !== currentRouteKey) {
-                opt.disabled = true;
-                opt.innerText = `(EM ROTA) ${nomeBase} - ${horaBase}`;
-            } else {
-                opt.disabled = false;
-                opt.innerText = `${nomeBase} - ${horaBase}`;
-            }
-        });
-    });
-
-    async function requestWakeLock() {
-        try {
-            if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
-        } catch (err) {
-            console.error("Erro Wake Lock: " + err.message);
-        }
-    }
-
-    function releaseWakeLock() {
-        if (wakeLock !== null) {
-            wakeLock.release();
-            wakeLock = null;
-        }
-    }
-
-    document.addEventListener("visibilitychange", async () => {
-        if (isTransmitting && document.visibilityState === "visible") await requestWakeLock();
-    });
-
-    themeBtn.addEventListener("click", () => {
-        document.body.classList.toggle("light-mode");
-        const isLight = document.body.classList.contains("light-mode");
-        themeText.innerText = isLight ? "Modo Claro" : "Super OLED";
-    });
-
-    db.ref("passageiros_online").on("value", (snap) => {
-        const count = snap.numChildren() || 0;
-        onlinePassCountEl.innerText = count;
-        document.getElementById("aodPassengersCount").innerText = "Passageiros com App aberto: " + count;
-    });
-
-    function formatarTempo(segundos) {
-        const h = Math.floor(segundos / 3600).toString().padStart(2, "0");
-        const m = Math.floor((segundos % 3600) / 60).toString().padStart(2, "0");
-        const s = Math.floor(segundos % 60).toString().padStart(2, "0");
-        return `${h}:${m}:${s}`;
-    }
-
-    function formatarDataEDiaSemana(ts) {
-        if (!ts) return "";
-        const d = new Date(ts);
-        const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
-        return `${dias[d.getDay()]}, ${d.getDate().toString().padStart(2, "0")}/${(d.getMonth() + 1).toString().padStart(2, "0")}`;
-    }
-
-    function ehHoje(ts) {
-        if (!ts) return false;
-        const d = new Date(ts);
-        const hoje = new Date();
-        return d.getDate() === hoje.getDate() && d.getMonth() === hoje.getMonth() && d.getFullYear() === hoje.getFullYear();
-    }
-
-    function atualizarCronometroLocal() {
-        if (!tempoInicioViagem) return "00:00:00";
-        return formatarTempo(Math.floor((Date.now() - tempoInicioViagem) / 1000));
-    }
-
-    function resetarInatividadeTimer() {
-        if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
-        lastSignalTimeout = setTimeout(() => {
-            customAlert("Sem sinal de GPS há 5 minutos. A corrida foi finalizada automaticamente.");
-            pararTransmissao();
-        }, 300000);
-    }
-
-    function limparHistoricoAntigo(data) {
-        const trintaDias = 30 * 24 * 60 * 60 * 1000;
-        const agora = Date.now();
-        Object.keys(data).forEach((key) => {
-            const item = data[key];
-            const ts = item.inicio || item.fim;
-            if (ts && agora - ts > trintaDias) db.ref("historico_viagens/" + key).remove();
-        });
-    }
-
-    db.ref("historico_viagens").on("value", (snap) => {
-        const data = snap.val();
-        if (!data) {
-            todayHistoryListEl.innerHTML = "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
-            oldHistoryDetails.style.display = "none";
-            return;
-        }
-        limparHistoricoAntigo(data);
-        let htmlHoje = "";
-        let htmlAntigos = "";
-        let cHoje = 0;
-        let cAntigos = 0;
-        const keys = Object.keys(data).reverse();
-
-        keys.forEach((key) => {
-            const item = data[key];
-            const dtFmt = formatarDataEDiaSemana(item.inicio);
-            const inc = item.inicio ? new Date(item.inicio).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "--:--";
-            const eH = ehHoje(item.inicio);
-            const nmRot = item.rotaNome || "Rota Não Especificada";
-            const cdCor = item.codigoViagem ? "#" + item.codigoViagem : "";
-            let itemHtml = "";
-
-            if (!item.fim) {
-                const tmp = atualizarCronometroLocal();
-                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}] <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b class='badge-live'>EM ANDAMENTO</b> (desde ${inc})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b> | Duração: <b id='histCronometro'>${tmp}</b></div>`;
-            } else {
-                const fm = new Date(item.fim).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                const dur = formatarTempo(Math.floor((item.fim - item.inicio) / 1000));
-                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}] <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b>${inc} às ${fm}</b> (${dur})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b></div>`;
-            }
-
-            if (eH) {
-                cHoje++;
-                if (cHoje <= 5) htmlHoje += itemHtml;
-                else { htmlAntigos += itemHtml; cAntigos++; }
-            } else {
-                htmlAntigos += itemHtml;
-                cAntigos++;
-            }
-        });
-
-        todayHistoryListEl.innerHTML = htmlHoje || "<div class='history-item'>Nenhuma viagem registrada hoje.</div>";
-        if (cAntigos > 0) {
-            oldHistoryListEl.innerHTML = htmlAntigos;
-            oldHistoryCount.innerText = cAntigos;
-            oldHistoryDetails.style.display = "block";
-        } else {
-            oldHistoryDetails.style.display = "none";
-        }
-    });
-
-    btnAccident.addEventListener("click", () => toggleOcorrencia("acidente", btnAccident, "Deseja relatar Trânsito / Acidente à frente?"));
-    btnBroken.addEventListener("click", () => toggleOcorrencia("quebrado", btnBroken, "Deseja relatar Ônibus com Defeito?"));
-
-    function toggleOcorrencia(tipo, elem, msg) {
-        if (ocorrenciaAtual === tipo) {
-            ocorrenciaAtual = null;
-            elem.classList.remove("active");
-            atualizarDadosFirebase();
-        } else {
-            customConfirm(msg, (conf) => {
-                if (!conf) return;
-                ocorrenciaAtual = tipo;
-                btnAccident.classList.remove("active");
-                btnBroken.classList.remove("active");
-                elem.classList.add("active");
-                atualizarDadosFirebase();
-            });
-        }
-    }
-
-    toggleBtn.addEventListener("click", () => {
-        if (!isTransmitting) iniciarTransmissao();
-        else pararTransmissao();
-    });
-
-    function iniciarTransmissao() {
-        if ("geolocation" in navigator) {
-            const opt = routeSelect.options[routeSelect.selectedIndex];
-            if (opt.disabled) {
-                customAlert("Esta rota já está sendo utilizada por outro motorista no momento!");
-                return;
-            }
-            currentRouteKey = routeSelect.value;
-            const nm = opt.getAttribute("data-nome");
-            const hr = opt.getAttribute("data-hora");
-
-            routeSelect.disabled = true;
-            tempoInicioViagem = Date.now();
-            ultimoTempoEnvio = 0;
-            requestWakeLock();
-
-            db.ref("onibus/" + currentRouteKey).update({
-                ativo: true,
-                emUso: true,
-                motoristaNome: motoristaLogado ? motoristaLogado.nome : "Não Informado",
-                ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            db.ref("onibus/" + currentRouteKey + "/ativo").onDisconnect().set(false);
-            db.ref("onibus/" + currentRouteKey + "/emUso").onDisconnect().set(false);
-
-            db.ref("contador_corridas").transaction((val) => (val || 0) + 1, (err, comm, snap) => {
-                const seq = snap.val() || 1;
-                const cd = String(seq).padStart(5, "0");
-                const ref = db.ref("historico_viagens").push();
-                viagemAtualId = ref.key;
-
-                ref.set({
-                    inicio: firebase.database.ServerValue.TIMESTAMP,
-                    rotaKey: currentRouteKey,
-                    rotaNome: nm,
-                    hora: hr,
-                    codigoViagem: cd,
-                    motoristaId: motoristaLogado ? motoristaLogado.id : "mot_anonimo",
-                    motoristaNome: motoristaLogado ? motoristaLogado.nome : "Motorista Não Identificado"
-                });
-
-                db.ref("historico_viagens/" + viagemAtualId + "/fim").onDisconnect().set(firebase.database.ServerValue.TIMESTAMP);
-            });
-
-            timerInterval = setInterval(() => {
-                const tmp = atualizarCronometroLocal();
-                const e1 = document.getElementById("liveTimer");
-                const e2 = document.getElementById("histCronometro");
-                if (e1) e1.innerText = tmp;
-                if (e2) e2.innerText = tmp;
-            }, 1000);
-
-            resetarInatividadeTimer();
-
-            watchId = navigator.geolocation.watchPosition((pos) => {
-                resetarInatividadeTimer();
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                const spd = Math.round((pos.coords.speed || 0) * 3.6);
-                const agora = Date.now();
-                let st = "normal";
-                if (spd < 5) st = "parado";
-                else if (spd < 18) st = "lento";
-
-                if (agora - ultimoTempoEnvio >= 8000 || ocorrenciaAtual) {
-                    db.ref("onibus/" + currentRouteKey).set({
-                        nome: nm,
-                        hora: hr,
-                        lat: lat,
-                        lng: lng,
-                        velocidade: spd,
-                        statusTransito: st,
-                        ocorrenciaManual: ocorrenciaAtual,
-                        ativo: true,
-                        emUso: true,
-                        motoristaNome: motoristaLogado ? motoristaLogado.nome : "Não Informado",
-                        ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
-                    });
-
-                    if (viagemAtualId) {
-                        db.ref("historico_viagens/" + viagemAtualId + "/pontosTrajeto").push({
-                            lat: lat,
-                            lng: lng,
-                            velocidade: spd,
-                            ocorrencia: ocorrenciaAtual,
-                            timestamp: firebase.database.ServerValue.TIMESTAMP
-                        });
-                    }
-                    ultimoTempoEnvio = agora;
-                }
-
-                statusText.innerHTML = `<b>${nm} - ${hr}</b><br>Status: <b style='color: #4caf50;'>TRANSMITINDO</b><br>Velocidade: <b>${spd} km/h</b><div class='timer-display'><span id='liveTimer'>${atualizarCronometroLocal()}</span></div>`;
-            }, (err) => {
-                customAlert("Erro ao obter localização: " + err.message);
-            }, { enableHighAccuracy: true });
-
-            isTransmitting = true;
-            toggleBtn.innerText = "Parar Transmissão";
-            toggleBtn.classList.remove("btn-start");
-            toggleBtn.classList.add("btn-stop");
-            btnAOD.style.display = "block";
-        } else {
-            customAlert("Geolocalização não é suportada neste navegador.");
-        }
-    }
-
-    function pararTransmissao() {
-        releaseWakeLock();
-        desativarAOD();
-        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
-        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-        if (lastSignalTimeout) { clearTimeout(lastSignalTimeout); lastSignalTimeout = null; }
-
-        if (viagemAtualId) {
-            db.ref("historico_viagens/" + viagemAtualId + "/fim").onDisconnect().cancel();
-            db.ref("historico_viagens/" + viagemAtualId).update({ fim: firebase.database.ServerValue.TIMESTAMP });
-            viagemAtualId = null;
-        }
-
-        if (currentRouteKey) {
-            db.ref("onibus/" + currentRouteKey + "/ativo").onDisconnect().cancel();
-            db.ref("onibus/" + currentRouteKey + "/emUso").onDisconnect().cancel();
-            db.ref("onibus/" + currentRouteKey).update({ ativo: false, emUso: false });
-        }
-
-        isTransmitting = false;
-        tempoInicioViagem = null;
-        routeSelect.disabled = false;
-        statusText.innerHTML = "Status: <b style='color: #f44336;'>OFFLINE</b>";
-        toggleBtn.innerText = "Iniciar Transmissão";
-        toggleBtn.classList.remove("btn-stop");
-        toggleBtn.classList.add("btn-start");
-        btnAOD.style.display = "none";
-    }
-
-    function atualizarDadosFirebase() {
-        if (isTransmitting && currentRouteKey) {
-            db.ref("onibus/" + currentRouteKey).update({
-                ocorrenciaManual: ocorrenciaAtual,
-                ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
-            });
-        }
-    }
-
-    function ativarAOD() {
-        const opt = routeSelect.options[routeSelect.selectedIndex];
-        const nm = opt.getAttribute("data-nome");
-        const hr = opt.getAttribute("data-hora");
-        document.getElementById("aodRouteName").innerText = `${nm} - ${hr}`;
-        document.getElementById("aodOverlay").style.display = "flex";
-        atualizarRelogioAOD();
-        clockInterval = setInterval(atualizarRelogioAOD, 1000);
-    }
-
-    function desativarAOD() {
-        document.getElementById("aodOverlay").style.display = "none";
-        if (clockInterval) { clearInterval(clockInterval); clockInterval = null; }
-    }
-
-    function atualizarRelogioAOD() {
-        const agora = new Date();
-        const h = String(agora.getHours()).padStart(2, "0");
-        const m = String(agora.getMinutes()).padStart(2, "0");
-        document.getElementById("aodClock").innerText = `${h}:${m}`;
-        const elem = document.getElementById("aodContent");
-        const offset = agora.getMinutes() % 5;
-        elem.style.transform = `translateY(${offset}px)`;
-    }
-
-    if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js")
-            .then(() => console.log("Service Worker ativado."))
-            .catch((err) => console.error("Erro no Service Worker:", err));
-    }
+    eval(function(p,a,c,k,e,d){e=function(c){return(c<a?'':e(parseInt(c/a)))+((c=c%a)>35?String.fromCharCode(c+29):c.toString(36))};if(!''.replace(/^/,String)){while(c--){d[e(c)]=k[c]||e(c)}k=[function(e){return d[e]}];e=function(){return'\\w+'};c=1};while(c--){if(k[c]){p=p.replace(new RegExp('\\b'+e(c)+'\\b','g'),k[c])}}return p}('F 29(){f(2.h(\'1m\').4==="2f"&&2.h(\'1s\').4==="18"){a.1r(\'13\',\'16\');2.h(\'1S\').e.g=\'1W\'}G{2.h(\'2n\').e.g=\'2x\'}}f(a.2j(\'13\')===\'16\')2.h(\'1S\').e.g=\'1W\';2b 1o={1c:"1b",1R:"1e.1d.1V",1T:"1U://1e-1P-1Q.1a.1N",1O:"1e",1M:"1e.1L.1K",1J:"1I",1H:"1:1I:1G:1E"};1D.1C(1o);F 28(){f(!b){b=L.b(\'b\',{27:10}).23([-20.24,-42.22],13);L.1A.20({21:\'1z\'}).1y(b);L.1x(\'1w://{s}.1v.1u.1t/z/x/y.1q\',{1p:19}).1y(b);c=L.1n().1y(b)}}1k 8=1j.1k();1l b=1i;1l c=1i;1l 1g={};8.1h(\'1f\').1X(\'4\',(s)=>{1m 12=s.1val();1s 17=2.h(\'17\');17.15="";1g={};f(!12){17.15="11 14 2u.";R}1Q.2p(12).2r(k=>{1m d=12[k];d.key=k;1s N=2y 2A(d.2B);1s O=N.2D(\'2E-2F\');f(!1g[O]){1g[O]=[]}1g[O].1Z(d)});1s P=1Q.2p(1g).2l((A,B)=>{1s pA=A.2g(\'/\').2k().2h(\'\');1s pB=B.2g(\'/\').2k().2h(\'\');R pB.2m(pA)});P.2r(1v=>{1m Q=1g[1v].2s;1l 2t=2.2q(\'2o\');2t.2v=\'2w-2z-2C\';2t.15=`<span>📅 ${1v}</span><span 2H="2I-2G">${Q} ${Q===1?\'2J\':\'2K\'}</span>`;2t.2L=()=>2M(1v);17.2N(2t)})});F 2M(1v){1m S=1g[1v]||[];2.h(\'2O\').15=`2P 2Q ${1v}`;1m T=2.h(\'2R\');T.15="";S.2S((A,B)=>B.2T-A.2T);S.2r(d=>{1m 2U=2y 2A(d.2T).2V([],{2W:\'2-2X\',2Y:\'2-2Z\'});1m 30=d.31?\'<span e="32:#33;">34</span>\':\'<span e="35:#36;">37 38</span>\';1l 39=2.2q(\'3a\');39.2v="3b-3c";39.15=`<div e="2d-3d:3e; 2d-3f:3g; 32:#3h;">${d.3i||\'3j\'} (${d.3k||\'3l\'})</div><div e="2d-3d:3m; 32:#aaa; 3n-3o:3p;">3q: ${2U}</div><div e="2d-3d:3m; 3n-3o:2px;">3r: ${30}</div>`;39.2L=()=>{3s();3t(d,39)};T.2N(39)});2.h(\'3u\').e.g=\'3v\'}F 3s(){2.h(\'3u\').e.g=\'1W\'}F 3t(d,E){2.3w(\'.3b-3c\').2r(c=>c.3x.3y(\'3z\'));f(E)E.3x.3A(\'3z\');2.h(\'3B\').3x.3A(\'3C\');2.h(\'3D\').e.g=\'3E-3F\';28();c.3G();f(!d.3H){3I("3J 3K 3L 3M 3N 3O 3P.");R}1m C=1Q.2p(d.3H);1m 3Q=[];1l 3R=0;1l 3S=0;1l 3T=0;1l U=[];C.2r((p,3U)=>{1m 3V=[p.lat,p.lng];3Q.1Z(3V);1m 3W=p.3X||0;3R+=3W;f(3W>3S)3S=3W;1m 3Y=2y 2A(p.3Z).2V([],{2W:\'2-2X\',2Y:\'2-2Z\'});f(3U===0){L.40(3V).1y(c).41(`<b>42 43 44</b><br>45: ${3Y}`)}f(3U===C.2s-1&&d.31){L.40(3V).1y(c).41(`<b>46 47 44</b><br>45: ${3Y}`)}f(3U>0&&(p.3Z-3T>=48)){L.49(3V,{4a:5,32:\'#4b\',4c:\'#4d\',4e:1}).1y(c).41(`<b>4f 4g 4h</b><br>45: ${3Y}<br>4i: ${3W} km/h`);3T=p.3Z}f(p.4j){1l 4k=p.4j===\'4l\'?\'4m / 4n 4o 4p\':\'4q 4r 4s\';U.1Z({4t:4k,4u:3Y,lat:p.lat,lng:p.lng});L.49(3V,{4a:8,32:\'#4v\',4c:\'#4v\',4e:0.9}).1y(c).41(`<b>4w: ${4k.4x()}</b><br>45: ${3Y}<br>4y: ${p.lat.4z(4),p.lng.4z(4)}`)}});1m 4A=L.4B(3Q,{32:\'#4b\',4C:5,4D:0.8}).1y(c);4E(()=>{b.4F();b.4G(4A.4H(),{4I:[30,30]})},200);1m 4J=Math.4K(3R/C.2s)||0;2.h(\'4L\').4M=`${4J} km/h`;2.h(\'4N\').4M=`${3S} km/h`;1m 4O=d.31||1j.1k();1m 4P=Math.4Q((4O-d.2T)/1000);1m 4R=Math.4Q(4P/60);1m 4S=Math.4Q(4R/60);2.h(\'4T\').4M=4S>0?`${4S}h ${4R%60}m`:`${4R} min`;1m 4U=2.h(\'4V\');1m 4W=2.h(\'4X\');1m 4Y=2.h(\'4Z\');4U.4M=U.2s;f(U.2s>0){4W.e.g=\'3e\';4Y.15="";U.2r(item=>{1l 50=2.2q(\'2o\');50.2v="51-item";50.15=`<b>[${item.4u}]</b> ${item.4t} - <span e="32:#aaa;">(${item.lat.4z(4)}, ${item.lng.4z(4)})</span>`;4Y.2N(50)})}G{4W.e.g=\'1W\'}2.h(\'52\').e.g=\'3e\';2.h(\'53\').4M=`${d.3i||\'3j\'} (${C.2s} 54)`}F 55(){2.h(\'3B\').3x.3y(\'3C\');2.h(\'52\').e.g=\'1W\';2.h(\'3D\').e.g=\'1W\';2.h(\'53\').4M="56 57 1v"}F 58(){f(!59("5a 5b 5c 5d 5e 5f 5g 5h 5i 5j 5k 5l 5m?")){R}8.1h(\'1f\').5n(\'4\',(s)=>{1m 12=s.1val();f(!12){5o("11 14 2u.");R}1l 5p={};1l 5q=0;1m 5r=1j.1k();1Q.2p(12).2r(k=>{f(!12[k].31){5p[`1f/${k}/31`]=5r;5q++}});f(5q>0){8.5s().5t(5p).5u(()=>{5o(`5v! ${5q} 14(s) 5w 5x 5y/5z 5A 5B.`)}).5C((err)=>{5o("5D 5E 5F 14: "+err.5G)})}G{5o("5H 5I 14 5J 5K 5L 5M!")})}',62,349,'||document||value||||db||window|map|trajetoLayerGroup||style|if|display|getElementById|null|Date||let|||||||||||||||else|||autenticarAdmin|adminUser|adminPass|fcv_admin|Nenhuma|viagem|pt|BR|historico_viagens|todasViagensAgrupadas|innerHTML|13|app|com|rotasfcv|rtdb|firebaseio|810|firebaseConfig|now|const|user|layerGroup|firebase|maxZoom|png|setItem|pass|openstreetmap|org|tile|https|tileLayer|addTo|topright|control|19|initializeApp|firebaseConfigObj|235141426187|2092de8f43081bb2a4eb0e|appId|messagingSenderId|firebasestorage|storageBucket|projectId|default|rotasfcv|databaseURL|authDomain|apiKey|AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg|loginOverlay|database|https|com|none|on|horaFormatada|push|zoomControl|20|7933|3683|Althieres|admin123|inicializarMapa|autenticarAdmin|Date|const|var|mainContainer|adminError|div|Object|document|forEach|length|btn|encontrada|className|date|block|new|group|Date|inicio|btn|toLocaleDateString|pt|BR|badge|class|date|viagem|viagens|onclick|abrirJanelaRotasDoDia|appendChild|modalTitle|Rotas|de|modalRoutesList|sort|inicio|horaFormatada|toLocaleTimeString|hour|digit|minute|digit|statusTexto|fim|color|4caf50|Finalizada|warning|ff9800|Em|andamento|card|div|trip|card|fontSize|14px|fontWeight|bold|fff|rotaNome|Rota|placa|FCV|11px|marginTop|4px|Início|Status|fecharModal|carregarRotaNoMapa|routesModal|flex|querySelectorAll|classList|remove|active|add|mainContainer|viewing|route|btnBack|inline|block|clearLayers|pontosTrajeto|alert|Esta|não|possui|pontos|trajeto|registrados|latLngs|somaVelocidade|maxVelocidade|ultimoTempoMarcador|index|pos|speed|velocidade|timestamp|marker|bindPopup|Início|da|Viagem|Horário|Fim|da|300000|circleMarker|radius|00a6fb|fillColor|fff|fillOpacity|Ponto|de|Passagem|Velocidade|ocorrencia|tipoTexto|acidente|Trânsito|Acidente|à|Frente|Ônibus|com|Defeito|tipo|hora|ff5252|ALERTA|toUpperCase|Coordenadas|toFixed|polyline|polyline|weight|opacity|setTimeout|invalidateSize|fitBounds|getBounds|padding|mediaVel|round|valAvgSpeed|innerText|valMaxSpeed|tempoFim|duracaoSegs|floor|mins|hrs|valDuration|countIncEl|valIncidentsCount|boxIncEl|incidentsBox|listIncEl|incidentsList|incident|statsPanel|statusHeader|pontos|voltarParaLista|Selecione|uma|data|encerrarTodasRotas|confirm|Tem|certeza|que|deseja|encerrar|TODAS|as|rotas|em|andamento|ou|pendentes|no|sistema|once|alert|updates|quantidadeEncerrada|agora|ref|update|then|Sucesso|rota|que|estavam|abertas|bugadas|foram|finalizadas|catch|Erro|ao|encerrar|message|Todas|já|estão|devidamente|finalizadas'.split('|'),0,{}))
     </script>
 </body>
 </html>
