@@ -34,14 +34,21 @@
         .btn-theme { background: none; border: 1px solid var(--border-color); color: var(--text-color); padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 5px; }
         .driver-info-badge { font-size: 12px; color: var(--accent-color); background: var(--box-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
         .btn-logout { background: none; border: none; color: #ff5252; cursor: pointer; font-weight: bold; font-size: 11px; }
+        
         .route-selection-box { background-color: var(--box-bg); padding: 12px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); text-align: left; }
         .route-selection-box label { font-size: 12px; font-weight: bold; color: var(--accent-color); display: block; margin-bottom: 6px; }
-        .route-select { width: 100%; padding: 10px; border-radius: 8px; background: var(--container-bg); color: var(--text-color); border: 1px solid var(--border-color); font-size: 14px; font-weight: bold; outline: none; }
+        .route-select { width: 100%; padding: 10px; border-radius: 8px; background: var(--container-bg); color: var(--text-color); border: 1px solid var(--border-color); font-size: 14px; font-weight: bold; outline: none; margin-bottom: 10px; }
+        
+        .km-input-field { width: 100%; padding: 10px; border-radius: 8px; background: var(--container-bg); color: #ffffff; border: 1px solid var(--border-color); font-size: 14px; font-weight: bold; box-sizing: border-box; outline: none; }
+        .km-input-field:focus { border-color: var(--accent-color); }
+        .km-last-info { font-size: 11px; color: #888; margin-top: 4px; display: block; }
+
         .status-box { background-color: var(--box-bg); padding: 12px; border-radius: 10px; margin-bottom: 15px; font-size: 14px; line-height: 1.5; border: 1px solid var(--border-color); }
         .timer-display { font-size: 18px; font-weight: bold; color: #ff9800; margin-top: 5px; }
         .online-app-box { background-color: #051923; border: 1px solid #003554; color: #00a6fb; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: bold; }
         .btn { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; transition: all 0.2s ease; }
         .btn-start { background-color: #2e7d32; color: white; }
+        .btn-start:disabled { background-color: #333333; color: #777777; cursor: not-allowed; border: 1px solid #444444; }
         .btn-stop { background-color: #c62828; color: white; }
         .btn-aod { background-color: var(--box-bg); color: var(--accent-color); border: 1px solid var(--accent-color); display: none; }
         .incident-section { margin-top: 10px; }
@@ -130,7 +137,16 @@
             <span>👤 <b id="displayDriverName">Motorista</b></span>
             <button class="btn-logout" onclick="fazerTrocaMotorista()">Trocar</button>
         </div>
+        
         <div class="route-selection-box">
+            <label for="plateSelect">PLACA DO VEÍCULO:</label>
+            <select id="plateSelect" class="route-select" onchange="carregarUltimaKmPlaca()">
+                <option value="" disabled selected>Selecione a placa do ônibus...</option>
+                <option value="GSH-5A89">GSH-5A89</option>
+                <option value="GFH-8D02">GFH-8D02</option>
+                <option value="GFH-8D01">GFH-8D01</option>
+            </select>
+
             <label for="routeSelect">ROTA DE HOJE:</label>
             <select id="routeSelect" class="route-select">
                 <option value="plantao" data-nome="Rota de Plantão" data-hora="Especial">Rota de Plantão (Especial)</option>
@@ -140,10 +156,15 @@
                 <option value="rota_04" data-nome="Rota 04" data-hora="17:15">Rota 04 - 17:15</option>
                 <option value="rota_05" data-nome="Rota 05" data-hora="17:15">Rota 05 - 17:15</option>
             </select>
+
+            <label for="kmInicialInput">KM INICIAL DO VEÍCULO:</label>
+            <input type="number" id="kmInicialInput" class="km-input-field" placeholder="Ex: 145200" oninput="validarCamposInicio()">
+            <span class="km-last-info" id="lastKmText">Última KM registrada: --</span>
         </div>
+
         <div class="status-box" id="statusText">Status: <b style="color: #f44336;">OFFLINE</b></div>
         <div class="online-app-box">Passageiros com o App Aberto: <span id="onlinePassCount">0</span></div>
-        <button id="toggleBtn" class="btn btn-start">Iniciar Transmissão</button>
+        <button id="toggleBtn" class="btn btn-start" disabled>▶ Iniciar Transmissão</button>
         <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button>
         <div class="incident-section">
             <div class="incident-title">Relatar Ocorrência:</div>
@@ -188,6 +209,21 @@
             <div class="custom-dialog-buttons">
                 <button class="custom-dialog-btn btn-dialog-cancel" id="customConfirmBtnCancel">Cancelar</button>
                 <button class="custom-dialog-btn btn-dialog-ok" id="customConfirmBtnOk">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FINALIZAR QUILOMETRAGEM -->
+    <div id="kmFinalModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Finalizar Corrida - KM Final</div>
+            <div class="custom-dialog-msg">
+                Informe a <b>Quilometragem Final</b> do veículo para encerrar a rota:
+                <input type="number" id="kmFinalInput" class="km-input-field" style="margin-top: 10px;" placeholder="Ex: 145250">
+            </div>
+            <div class="custom-dialog-buttons">
+                <button class="custom-dialog-btn btn-dialog-cancel" onclick="fecharModalKmFinal()">Voltar</button>
+                <button class="custom-dialog-btn btn-dialog-ok" onclick="confirmarKmFinalEParar()">Encerrar</button>
             </div>
         </div>
     </div>
@@ -303,6 +339,9 @@
     const btnAOD = document.getElementById("btnAOD");
     const statusText = document.getElementById("statusText");
     const routeSelect = document.getElementById("routeSelect");
+    const plateSelect = document.getElementById("plateSelect");
+    const kmInicialInput = document.getElementById("kmInicialInput");
+    const lastKmText = document.getElementById("lastKmText");
     const btnAccident = document.getElementById("btnAccident");
     const btnBroken = document.getElementById("btnBroken");
     const onlinePassCountEl = document.getElementById("onlinePassCount");
@@ -312,6 +351,34 @@
     const oldHistoryListEl = document.getElementById("oldHistoryList");
     const oldHistoryDetails = document.getElementById("oldHistoryDetails");
     const oldHistoryCount = document.getElementById("oldHistoryCount");
+
+    function carregarUltimaKmPlaca() {
+        const placa = plateSelect.value;
+        if (!placa) return;
+
+        db.ref("veiculos_km/" + placa).once("value", (snap) => {
+            const data = snap.val();
+            if (data && data.ultimaKm) {
+                lastKmText.innerText = "Última KM registrada: " + data.ultimaKm + " km";
+                kmInicialInput.value = data.ultimaKm;
+            } else {
+                lastKmText.innerText = "Última KM registrada: Sem histórico";
+                kmInicialInput.value = "";
+            }
+            validarCamposInicio();
+        });
+    }
+
+    function validarCamposInicio() {
+        const placa = plateSelect.value;
+        const kmInicial = kmInicialInput.value.trim();
+
+        if (placa && kmInicial && parseInt(kmInicial) > 0) {
+            toggleBtn.disabled = false;
+        } else {
+            toggleBtn.disabled = true;
+        }
+    }
 
     setInterval(() => {
         db.ref("onibus").once("value", (snap) => {
@@ -422,7 +489,7 @@
         if (lastSignalTimeout) clearTimeout(lastSignalTimeout);
         lastSignalTimeout = setTimeout(() => {
             customAlert("Sem sinal de GPS há 5 minutos. A corrida foi finalizada automaticamente.");
-            pararTransmissao();
+            abrirModalKmFinal();
         }, 300000);
     }
 
@@ -457,15 +524,18 @@
             const eH = ehHoje(item.inicio);
             const nmRot = item.rotaNome || "Rota Não Especificada";
             const cdCor = item.codigoViagem ? "#" + item.codigoViagem : "";
+            const plc = item.placa ? ` [${item.placa}]` : "";
+            const kmInf = item.kmInicial ? ` | KM: ${item.kmInicial} - ${item.kmFinal || 'em andamento'}` : "";
+
             let itemHtml = "";
 
             if (!item.fim) {
                 const tmp = atualizarCronometroLocal();
-                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}] <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b class='badge-live'>EM ANDAMENTO</b> (desde ${inc})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b> | Duração: <b id='histCronometro'>${tmp}</b></div>`;
+                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}]${plc} <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b class='badge-live'>EM ANDAMENTO</b> (desde ${inc})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b>${kmInf} | Duração: <b id='histCronometro'>${tmp}</b></div>`;
             } else {
                 const fm = new Date(item.fim).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
                 const dur = formatarTempo(Math.floor((item.fim - item.inicio) / 1000));
-                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}] <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b>${inc} às ${fm}</b> (${dur})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b></div>`;
+                itemHtml = `<div class='history-item'><b>${dtFmt}</b> [${nmRot}]${plc} <span style='color:var(--accent-color); font-weight:bold;'>${cdCor}</span> - <b>${inc} às ${fm}</b> (${dur})<br>👤 Motorista: <b>${item.motoristaNome || "N/I"}</b>${kmInf}</div>`;
             }
 
             if (eH) {
@@ -510,21 +580,37 @@
 
     toggleBtn.addEventListener("click", () => {
         if (!isTransmitting) iniciarTransmissao();
-        else pararTransmissao();
+        else abrirModalKmFinal();
     });
 
     function iniciarTransmissao() {
         if ("geolocation" in navigator) {
             const opt = routeSelect.options[routeSelect.selectedIndex];
+            const placa = plateSelect.value;
+            const kmInicial = parseInt(kmInicialInput.value);
+
+            if (!placa) {
+                customAlert("Selecione a placa do veículo antes de iniciar!");
+                return;
+            }
+            if (!kmInicial || kmInicial <= 0) {
+                customAlert("Informe uma quilometragem inicial válida!");
+                return;
+            }
+
             if (opt.disabled) {
                 customAlert("Esta rota já está sendo utilizada por outro motorista no momento!");
                 return;
             }
+
             currentRouteKey = routeSelect.value;
             const nm = opt.getAttribute("data-nome");
             const hr = opt.getAttribute("data-hora");
 
             routeSelect.disabled = true;
+            plateSelect.disabled = true;
+            kmInicialInput.disabled = true;
+
             tempoInicioViagem = Date.now();
             ultimoTempoEnvio = 0;
             requestWakeLock();
@@ -532,6 +618,8 @@
             db.ref("onibus/" + currentRouteKey).update({
                 ativo: true,
                 emUso: true,
+                placa: placa,
+                kmInicial: kmInicial,
                 motoristaNome: motoristaLogado ? motoristaLogado.nome : "Não Informado",
                 ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP
             });
@@ -550,6 +638,8 @@
                     rotaKey: currentRouteKey,
                     rotaNome: nm,
                     hora: hr,
+                    placa: placa,
+                    kmInicial: kmInicial,
                     codigoViagem: cd,
                     motoristaId: motoristaLogado ? motoristaLogado.id : "mot_anonimo",
                     motoristaNome: motoristaLogado ? motoristaLogado.nome : "Motorista Não Identificado"
@@ -582,6 +672,8 @@
                     db.ref("onibus/" + currentRouteKey).set({
                         nome: nm,
                         hora: hr,
+                        placa: placa,
+                        kmInicial: kmInicial,
                         lat: lat,
                         lng: lng,
                         velocidade: spd,
@@ -605,19 +697,59 @@
                     ultimoTempoEnvio = agora;
                 }
 
-                statusText.innerHTML = `<b>${nm} - ${hr}</b><br>Status: <b style='color: #4caf50;'>TRANSMITINDO</b><br>Velocidade: <b>${spd} km/h</b><div class='timer-display'><span id='liveTimer'>${atualizarCronometroLocal()}</span></div>`;
+                statusText.innerHTML = `<b>${nm} - ${hr} (${placa})</b><br>Status: <b style='color: #4caf50;'>TRANSMITINDO</b><br>Velocidade: <b>${spd} km/h</b><div class='timer-display'><span id='liveTimer'>${atualizarCronometroLocal()}</span></div>`;
             }, (err) => {
                 customAlert("Erro ao obter localização: " + err.message);
             }, { enableHighAccuracy: true });
 
             isTransmitting = true;
-            toggleBtn.innerText = "Parar Transmissão";
+            toggleBtn.innerText = "⏹ Parar Transmissão";
             toggleBtn.classList.remove("btn-start");
             toggleBtn.classList.add("btn-stop");
             btnAOD.style.display = "block";
         } else {
             customAlert("Geolocalização não é suportada neste navegador.");
         }
+    }
+
+    function abrirModalKmFinal() {
+        const kmInicial = parseInt(kmInicialInput.value) || 0;
+        document.getElementById("kmFinalInput").value = kmInicial;
+        document.getElementById("kmFinalModal").style.display = "flex";
+    }
+
+    function fecharModalKmFinal() {
+        document.getElementById("kmFinalModal").style.display = "none";
+    }
+
+    function confirmarKmFinalEParar() {
+        const kmInicial = parseInt(kmInicialInput.value) || 0;
+        const kmFinal = parseInt(document.getElementById("kmFinalInput").value);
+        const placa = plateSelect.value;
+
+        if (!kmFinal || kmFinal < kmInicial) {
+            customAlert("A KM Final não pode ser menor do que a KM Inicial (" + kmInicial + " km)!");
+            return;
+        }
+
+        fecharModalKmFinal();
+
+        if (placa) {
+            db.ref("veiculos_km/" + placa).set({
+                ultimaKm: kmFinal,
+                ultimaAtualizacao: firebase.database.ServerValue.TIMESTAMP,
+                ultimoMotorista: motoristaLogado ? motoristaLogado.nome : "Desconhecido"
+            });
+        }
+
+        if (viagemAtualId) {
+            db.ref("historico_viagens/" + viagemAtualId).update({
+                kmFinal: kmFinal,
+                kmPercorrida: (kmFinal - kmInicial)
+            });
+        }
+
+        pararTransmissao();
     }
 
     function pararTransmissao() {
@@ -641,12 +773,18 @@
 
         isTransmitting = false;
         tempoInicioViagem = null;
+
         routeSelect.disabled = false;
+        plateSelect.disabled = false;
+        kmInicialInput.disabled = false;
+
         statusText.innerHTML = "Status: <b style='color: #f44336;'>OFFLINE</b>";
-        toggleBtn.innerText = "Iniciar Transmissão";
+        toggleBtn.innerText = "▶ Iniciar Transmissão";
         toggleBtn.classList.remove("btn-stop");
         toggleBtn.classList.add("btn-start");
         btnAOD.style.display = "none";
+
+        carregarUltimaKmPlaca();
     }
 
     function atualizarDadosFirebase() {
