@@ -1,10 +1,226 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"><title>Rotas FCV - Motorista</title><link rel="manifest" href="manifest-motorista.json"><meta name="theme-color" content="#0077b6"><style>:root{--bg-color:#000000;--container-bg:#0d0d0d;--text-color:#ffffff;--box-bg:#161616;--border-color:#262626;--accent-color:#00a6fb;--fcv-blue:#005691;--fcv-blue-dark:#003a63}body.light-mode{--bg-color:#f4f6f9;--container-bg:#ffffff;--text-color:#333333;--box-bg:#eef2f5;--border-color:#cccccc;--accent-color:#0077b6}body{font-family:Arial,sans-serif;background-color:var(--bg-color);color:var(--text-color);margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;transition:background .3s ease,color .3s ease;touch-action:manipulation;-webkit-user-select:none;user-select:none}.beta-badge{background-color:#ff9800;color:#000;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;display:inline-block;box-shadow:0 2px 6px rgba(255,152,0,.4)}#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#003a63 0%,#0077b6 100%);display:flex;flex-direction:column;justify-content:space-between;align-items:center;z-index:9999;padding:30px 20px;box-sizing:border-box}.login-header{margin-top:30px;text-align:center;position:relative}.login-logo{max-width:160px;height:auto;margin-bottom:10px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))}.login-title{color:#fff;font-size:20px;font-weight:700;margin:0;text-shadow:0 2px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;gap:8px}.login-card{background:rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);padding:25px 20px;border-radius:18px;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3);box-sizing:border-box}.login-input-group{margin-bottom:15px;text-align:left}.login-input-group label{display:block;color:#fff;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}.login-input,.login-select{width:100%;padding:12px 15px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.35);color:#fff;font-size:15px;box-sizing:border-box;outline:none;transition:border-color .3s ease}.login-select option{background-color:#003a63;color:#fff}.login-input::placeholder{color:rgba(255,255,255,.5)}.login-input:focus,.login-select:focus{border-color:#00a6fb;background:rgba(0,0,0,.5)}.btn-login{width:100%;padding:14px;background:#00a6fb;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;box-shadow:0 4px 15px rgba(0,166,251,.4);transition:transform .1s ease,background .2s ease}.btn-login:active{transform:scale(.98);background:#0084ca}.login-error{color:#ff5252;font-size:13px;font-weight:700;margin-top:12px;text-align:center;display:none;background:rgba(255,0,0,.15);padding:8px;border-radius:6px;border:1px solid rgba(255,0,0,.3)}.login-footer{margin-bottom:10px;text-align:center}.login-footer-logo{max-width:130px;height:auto;opacity:.9;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}.container{width:100%;max-width:400px;background-color:var(--container-bg);padding:20px;border-radius:15px;border:1px solid var(--border-color);box-shadow:0 4px 15px rgba(0,0,0,.8);box-sizing:border-box;text-align:center;position:relative}.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.top-bar-left{display:flex;align-items:center;gap:8px}h2{margin:0;color:#4caf50;font-size:18px}.btn-theme{background:none;border:1px solid var(--border-color);color:var(--text-color);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px}.driver-info-badge{font-size:12px;color:var(--accent-color);background:var(--box-bg);border:1px solid var(--border-color);padding:6px 12px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}.btn-logout{background:none;border:none;color:#ff5252;cursor:pointer;font-weight:700;font-size:11px}.route-selection-box{background-color:var(--box-bg);padding:12px;border-radius:10px;margin-bottom:15px;border:1px solid var(--border-color);text-align:left}.route-selection-box label{font-size:12px;font-weight:700;color:var(--accent-color);display:block;margin-bottom:6px}.route-select{width:100%;padding:10px;border-radius:8px;background:var(--container-bg);color:var(--text-color);border:1px solid var(--border-color);font-size:14px;font-weight:700;outline:none;margin-bottom:10px}.km-input-field{width:100%;padding:10px;border-radius:8px;background:var(--container-bg);color:#fff;border:1px solid var(--border-color);font-size:14px;font-weight:700;box-sizing:border-box;outline:none}.km-input-field:focus{border-color:var(--accent-color)}.km-last-info{font-size:11px;color:#888;margin-top:4px;display:block}.status-box{background-color:var(--box-bg);padding:12px;border-radius:10px;margin-bottom:15px;font-size:14px;line-height:1.5;border:1px solid var(--border-color)}.timer-display{font-size:18px;font-weight:700;color:#ff9800;margin-top:5px}.online-app-box{background-color:#051923;border:1px solid #003554;color:#00a6fb;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;font-weight:700}.btn{width:100%;padding:15px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;transition:all .2s ease}.btn-start{background-color:#2e7d32;color:#fff}.btn-start:disabled{background-color:#333;color:#777;cursor:not-allowed;border:1px solid #444}.btn-stop{background-color:#c62828;color:#fff}.btn-aod{background-color:var(--box-bg);color:var(--accent-color);border:1px solid var(--accent-color);display:none}.incident-section{margin-top:10px}.incident-title{font-size:13px;opacity:.8;margin-bottom:8px;text-align:left}.btn-incident{background-color:var(--box-bg);color:var(--text-color);padding:10px;font-size:13px;border:1px solid var(--border-color)}.btn-incident.active{background-color:#ff9800;color:#000}.history-section{margin-top:25px;text-align:left;background:var(--box-bg);padding:12px;border-radius:10px;border:1px solid var(--border-color)}.history-title{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent-color)}.history-item{font-size:11px;padding:6px 0;border-bottom:1px solid var(--border-color);line-height:1.4}.history-item:last-child{border-bottom:none}.badge-live{color:#4caf50;font-weight:700;animation:blink 1s infinite alternate}@keyframes blink{from{opacity:1}to{opacity:.4}}details.history-details{margin-top:10px;background-color:rgba(255,255,255,.03);border:1px solid var(--border-color);border-radius:8px;padding:6px 10px;font-size:12px}details.history-details summary{font-weight:700;cursor:pointer;color:var(--text-color);opacity:.85;outline:none;padding:4px 0;user-select:none}details.history-details summary:hover{opacity:1;color:var(--accent-color)}.history-expanded-list{max-height:180px;overflow-y:auto;margin-top:8px;padding-top:5px;border-top:1px solid var(--border-color)}.footer{margin-top:25px;padding-top:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border-top:1px solid var(--border-color);cursor:pointer}.footer-logo{max-width:100px;height:auto;opacity:.85;transition:opacity .3s ease}.footer-logo:hover{opacity:1}.footer-credit{font-size:8px;color:var(--text-color);opacity:.4;margin-top:3px;text-transform:none;text-align:center;letter-spacing:.3px}#aodOverlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000;color:#fff;z-index:999999;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;box-sizing:border-box;user-select:none}.aod-clock{font-size:60px;font-weight:300;letter-spacing:2px;color:#fff}.aod-route{font-size:18px;color:var(--accent-color);margin:15px 0 5px 0;font-weight:600}.aod-passengers{font-size:15px;color:#888}.aod-hint{position:absolute;bottom:30px;font-size:11px;color:#444}.custom-dialog-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:9999999}.custom-dialog-box{background-color:var(--container-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;width:85%;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.5)}.custom-dialog-title{font-size:16px;font-weight:700;color:var(--accent-color);margin-bottom:10px}.custom-dialog-msg{font-size:14px;color:var(--text-color);margin-bottom:20px;line-height:1.4}.custom-dialog-buttons{display:flex;gap:10px;justify-content:center}.custom-dialog-btn{flex:1;padding:10px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:14px}.btn-dialog-ok{background-color:var(--accent-color);color:#fff}.btn-dialog-cancel{background-color:var(--box-bg);color:var(--text-color);border:1px solid var(--border-color)}</style><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script><script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script></head><body>
-    <div id="loginOverlay"><div class="login-header"><img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="login-logo"><div class="login-title"><span class="beta-badge">BETA</span> Motorista</div></div><form class="login-card" id="loginForm" onsubmit="return false;"><div class="login-input-group"><label for="driverSelect">Selecione seu Nome</label><select id="driverSelect" class="login-select" required><option value="" disabled selected>Escolha o motorista...</option><option value="mot_adenilson">ADENILSON DA SILVA FREITAS</option><option value="mot_anderson">ANDERSON JOSE DA SILVA</option><option value="mot_bruno">BRUNO DA SILVA ELBLAUS</option><option value="mot_carlos">CARLOS AMERICO PINTO DA SILVA</option><option value="mot_claudio">CLAUDIO JOSE DE SOUZA</option><option value="mot_guilherme">GUILHERME JOSE DE SOUZA</option><option value="mot_jefferson">JEFFERSON ISRAEL DE SOUZA</option><option value="mot_jonas">JONAS ELIAS HONORIO</option><option value="mot_luis">LUIS FERNANDO DE PINHO VELHO WANDERLEY</option><option value="mot_marcio">MARCIO JOSE TAVARES</option><option value="mot_rodrigo">RODRIGO MARAES DE ALMEIDA</option><option value="mot_vilson">VILSON MARINI PEREIRA</option><option value="mot_wellington">WELLINGTON NEVES DE OLIVEIRA</option></select></div><div class="login-input-group"><label for="passwordInput">Senha de Acesso</label><input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password"></div><button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button><div id="loginError" class="login-error">Motorista ou senha incorretos!</div></form><div class="login-footer"><img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella" class="login-footer-logo"></div></div>
-    <div class="container"><div class="top-bar"><div class="top-bar-left"><span class="beta-badge">BETA</span><h2>Motorista</h2></div><button id="themeBtn" class="btn-theme"><span>💡</span><span id="themeText">Super OLED</span></button></div><div class="driver-info-badge"><span>👤 <b id="displayDriverName">Motorista</b></span><button class="btn-logout" onclick="fazerTrocaMotorista()">Trocar</button></div><div class="route-selection-box"><label for="plateSelect">PLACA DO VEÍCULO:</label><select id="plateSelect" class="route-select" onchange="carregarUltimaKmPlaca()"><option value="" disabled selected>Selecione a placa do ônibus...</option><option value="GSH-5A89">GSH-5A89</option><option value="GFH-8D02">GFH-8D02</option><option value="GFH-8D01">GFH-8D01</option></select><label for="routeSelect">ROTA DE HOJE:</label><select id="routeSelect" class="route-select"><option value="plantao" data-nome="Rota de Plantão" data-hora="Especial">Rota de Plantão (Especial)</option><option value="rota_01" data-nome="Rota 01" data-hora="06:15">Rota 01 - 06:15</option><option value="rota_02" data-nome="Rota 02" data-hora="06:15">Rota 02 - 06:15</option><option value="rota_03" data-nome="Rota 03" data-hora="06:15">Rota 03 - 06:15</option><option value="rota_04" data-nome="Rota 04" data-hora="17:15">Rota 04 - 17:15</option><option value="rota_05" data-nome="Rota 05" data-hora="17:15">Rota 05 - 17:15</option></select><label for="kmInicialInput">KM INICIAL DO VEÍCULO:</label><input type="number" id="kmInicialInput" class="km-input-field" placeholder="Ex: 145200" oninput="validarCamposInicio()"><span class="km-last-info" id="lastKmText">Última KM registrada: --</span></div><div class="status-box" id="statusText">Status: <b style="color: #f44336;">OFFLINE</b></div><div class="online-app-box">Passageiros com o App Aberto: <span id="onlinePassCount">0</span></div><button id="toggleBtn" class="btn btn-start" disabled>▶ Iniciar Transmissão</button><button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button><div class="incident-section"><div class="incident-title">Relatar Ocorrência:</div><button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button><button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button></div><div class="history-section"><div class="history-title">Viagens de Hoje (Últimas 5)</div><div id="todayHistoryList">Carregando viagens do dia...</div><details class="history-details" id="oldHistoryDetails" style="display: none;"><summary>Ver mais viagens e histórico (<span id="oldHistoryCount">0</span>)</summary><div class="history-expanded-list" id="oldHistoryList"></div></details></div><div class="footer" id="resetFooter" ondblclick="limparTodasRotasEmergencia()"><img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo"><div class="footer-credit">by Althieres Dias</div></div></div>
-    <div id="aodOverlay" onclick="desativarAOD()"><div id="aodContent"><div class="aod-clock" id="aodClock">00:00</div><div class="aod-route" id="aodRouteName">Nome da Rota</div><div class="aod-passengers" id="aodPassengersCount">Passageiros com App aberto: 0</div></div><div class="aod-hint">Toque em qualquer lugar para sair do modo economia</div></div>
-    <div id="customAlertModal" class="custom-dialog-overlay"><div class="custom-dialog-box"><div class="custom-dialog-title">Rotas FCV - Motorista diz</div><div id="customAlertMsg" class="custom-dialog-msg"></div><div class="custom-dialog-buttons"><button class="custom-dialog-btn btn-dialog-ok" onclick="fecharCustomAlert()">OK</button></div></div></div>
-    <div id="customConfirmModal" class="custom-dialog-overlay"><div class="custom-dialog-box"><div class="custom-dialog-title">Rotas FCV - Motorista diz</div><div id="customConfirmMsg" class="custom-dialog-msg"></div><div class="custom-dialog-buttons"><button class="custom-dialog-btn btn-dialog-cancel" id="customConfirmBtnCancel">Cancelar</button><button class="custom-dialog-btn btn-dialog-ok" id="customConfirmBtnOk">OK</button></div></div></div>
-    <div id="kmFinalModal" class="custom-dialog-overlay"><div class="custom-dialog-box"><div class="custom-dialog-title">Finalizar Corrida - KM Final</div><div class="custom-dialog-msg">Informe a <b>Quilometragem Final</b> do veículo para encerrar a rota:<input type="number" id="kmFinalInput" class="km-input-field" style="margin-top: 10px;" placeholder="Ex: 145250"></div><div class="custom-dialog-buttons"><button class="custom-dialog-btn btn-dialog-cancel" onclick="fecharModalKmFinal()">Voltar</button><button class="custom-dialog-btn btn-dialog-ok" onclick="confirmarKmFinalEParar()">Encerrar</button></div></div></div>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Rotas FCV - Motorista</title>
+    <link rel="manifest" href="manifest-motorista.json">
+    <meta name="theme-color" content="#0077b6">
+    <style>
+        :root{--bg-color:#000000;--container-bg:#0d0d0d;--text-color:#ffffff;--box-bg:#161616;--border-color:#262626;--accent-color:#00a6fb;--fcv-blue:#005691;--fcv-blue-dark:#003a63}
+        body.light-mode{--bg-color:#f4f6f9;--container-bg:#ffffff;--text-color:#333333;--box-bg:#eef2f5;--border-color:#cccccc;--accent-color:#0077b6}
+        body{font-family:Arial,sans-serif;background-color:var(--bg-color);color:var(--text-color);margin:0;padding:20px;display:flex;flex-direction:column;align-items:center;transition:background .3s ease,color .3s ease;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+        .beta-badge{background-color:#ff9800;color:#000;font-size:10px;font-weight:900;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.8px;display:inline-block;box-shadow:0 2px 6px rgba(255,152,0,.4)}
+        #loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#003a63 0%,#0077b6 100%);display:flex;flex-direction:column;justify-content:space-between;align-items:center;z-index:9999;padding:30px 20px;box-sizing:border-box}
+        .login-header{margin-top:30px;text-align:center;position:relative}
+        .login-title{color:#fff;font-size:20px;font-weight:700;margin:0;text-shadow:0 2px 4px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;gap:8px}
+        .login-card{background:rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);padding:25px 20px;border-radius:18px;width:100%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.3);box-sizing:border-box}
+        .login-input-group{margin-bottom:15px;text-align:left}
+        .login-input-group label{display:block;color:#fff;font-size:12px;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+        .login-input,.login-select{width:100%;padding:12px 15px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.35);color:#fff;font-size:15px;box-sizing:border-box;outline:none;transition:border-color .3s ease}
+        .login-select option{background-color:#003a63;color:#fff}
+        .login-input::placeholder{color:rgba(255,255,255,.5)}
+        .login-input:focus,.login-select:focus{border-color:#00a6fb;background:rgba(0,0,0,.5)}
+        .btn-login{width:100%;padding:14px;background:#00a6fb;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;box-shadow:0 4px 15px rgba(0,166,251,.4);transition:transform .1s ease,background .2s ease}
+        .btn-login:active{transform:scale(.98);background:#0084ca}
+        .login-error{color:#ff5252;font-size:13px;font-weight:700;margin-top:12px;text-align:center;display:none;background:rgba(255,0,0,.15);padding:8px;border-radius:6px;border:1px solid rgba(255,0,0,.3)}
+        .login-footer{margin-bottom:10px;text-align:center}
+        .login-footer-logo{max-width:130px;height:auto;opacity:.9;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
+        .login-footer-credit{color:rgba(255,255,255,0.4);font-size:10px;margin-top:5px;letter-spacing:0.5px}
+        .container{width:100%;max-width:400px;background-color:var(--container-bg);padding:20px;border-radius:15px;border:1px solid var(--border-color);box-shadow:0 4px 15px rgba(0,0,0,.8);box-sizing:border-box;text-align:center;position:relative}
+        .top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+        .top-bar-left{display:flex;align-items:center;gap:8px}
+        h2{margin:0;color:#4caf50;font-size:18px}
+        .btn-theme{background:none;border:1px solid var(--border-color);color:var(--text-color);padding:5px 10px;border-radius:20px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px}
+        .driver-info-badge{font-size:12px;color:var(--accent-color);background:var(--box-bg);border:1px solid var(--border-color);padding:6px 12px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+        .btn-logout{background:none;border:none;color:#ff5252;cursor:pointer;font-weight:700;font-size:11px}
+        .route-selection-box{background-color:var(--box-bg);padding:12px;border-radius:10px;margin-bottom:15px;border:1px solid var(--border-color);text-align:left}
+        .route-selection-box label{font-size:12px;font-weight:700;color:var(--accent-color);display:block;margin-bottom:6px}
+        .route-select{width:100%;padding:10px;border-radius:8px;background:var(--container-bg);color:var(--text-color);border:1px solid var(--border-color);font-size:14px;font-weight:700;outline:none;margin-bottom:10px}
+        .km-input-field{width:100%;padding:10px;border-radius:8px;background:var(--container-bg);color:#fff;border:1px solid var(--border-color);font-size:14px;font-weight:700;box-sizing:border-box;outline:none}
+        .km-input-field:focus{border-color:var(--accent-color)}
+        .km-last-info{font-size:11px;color:#888;margin:0}
+        .btn-suggestion{display:none;background:var(--accent-color);color:#fff;border:none;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer}
+        .status-box{background-color:var(--box-bg);padding:12px;border-radius:10px;margin-bottom:15px;font-size:14px;line-height:1.5;border:1px solid var(--border-color)}
+        .timer-display{font-size:18px;font-weight:700;color:#ff9800;margin-top:5px}
+        .online-app-box{background-color:#051923;border:1px solid #003554;color:#00a6fb;padding:10px;border-radius:8px;margin-bottom:15px;font-size:13px;font-weight:700}
+        .btn{width:100%;padding:15px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;transition:all .2s ease}
+        .btn-start{background-color:#2e7d32;color:#fff}
+        .btn-start:disabled{background-color:#333;color:#777;cursor:not-allowed;border:1px solid #444}
+        .btn-stop{background-color:#c62828;color:#fff}
+        .btn-aod{background-color:var(--box-bg);color:var(--accent-color);border:1px solid var(--accent-color);display:none}
+        .incident-section{margin-top:10px}
+        .incident-title{font-size:13px;opacity:.8;margin-bottom:8px;text-align:left}
+        .btn-incident{background-color:var(--box-bg);color:var(--text-color);padding:10px;font-size:13px;border:1px solid var(--border-color)}
+        .btn-incident.active{background-color:#ff9800;color:#000}
+        .history-section{margin-top:25px;text-align:left;background:var(--box-bg);padding:12px;border-radius:10px;border:1px solid var(--border-color)}
+        .history-title{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--accent-color)}
+        .history-item{font-size:11px;padding:6px 0;border-bottom:1px solid var(--border-color);line-height:1.4}
+        .history-item:last-child{border-bottom:none}
+        .badge-live{color:#4caf50;font-weight:700;animation:blink 1s infinite alternate}
+        @keyframes blink{from{opacity:1}to{opacity:.4}}
+        details.history-details{margin-top:10px;background-color:rgba(255,255,255,.03);border:1px solid var(--border-color);border-radius:8px;padding:6px 10px;font-size:12px}
+        details.history-details summary{font-weight:700;cursor:pointer;color:var(--text-color);opacity:.85;outline:none;padding:4px 0;user-select:none}
+        details.history-details summary:hover{opacity:1;color:var(--accent-color)}
+        .history-expanded-list{max-height:180px;overflow-y:auto;margin-top:8px;padding-top:5px;border-top:1px solid var(--border-color)}
+        .footer{margin-top:25px;padding-top:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;border-top:1px solid var(--border-color);cursor:pointer}
+        .footer-logo{max-width:100px;height:auto;opacity:.85;transition:opacity .3s ease}
+        .footer-logo:hover{opacity:1}
+        .footer-credit{font-size:8px;color:var(--text-color);opacity:.4;margin-top:3px;text-transform:none;text-align:center;letter-spacing:.3px}
+        #aodOverlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:#000;color:#fff;z-index:999999;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:20px;box-sizing:border-box;user-select:none}
+        .aod-clock{font-size:60px;font-weight:300;letter-spacing:2px;color:#fff}
+        .aod-route{font-size:18px;color:var(--accent-color);margin:15px 0 5px 0;font-weight:600}
+        .aod-passengers{font-size:15px;color:#888}
+        .aod-hint{position:absolute;bottom:30px;font-size:11px;color:#444}
+        .custom-dialog-overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);display:none;justify-content:center;align-items:center;z-index:9999999}
+        .custom-dialog-box{background-color:var(--container-bg);border:1px solid var(--border-color);border-radius:12px;padding:20px;width:85%;max-width:320px;text-align:center;box-shadow:0 10px 25px rgba(0,0,0,.5)}
+        .custom-dialog-title{font-size:16px;font-weight:700;color:var(--accent-color);margin-bottom:10px}
+        .custom-dialog-msg{font-size:14px;color:var(--text-color);margin-bottom:20px;line-height:1.4}
+        .custom-dialog-buttons{display:flex;gap:10px;justify-content:center}
+        .custom-dialog-btn{flex:1;padding:10px;border-radius:6px;border:none;font-weight:700;cursor:pointer;font-size:14px}
+        .btn-dialog-ok{background-color:var(--accent-color);color:#fff}
+        .btn-dialog-cancel{background-color:var(--box-bg);color:var(--text-color);border:1px solid var(--border-color)}
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div id="loginOverlay">
+        <div class="login-header">
+            <div class="login-title"><span class="beta-badge">BETA</span> Motorista</div>
+        </div>
+        <form class="login-card" id="loginForm" onsubmit="return false;">
+            <div class="login-input-group">
+                <label for="driverSelect">Selecione seu Nome</label>
+                <select id="driverSelect" class="login-select" required>
+                    <option value="" disabled selected>Escolha o motorista...</option>
+                    <option value="mot_adenilson">ADENILSON DA SILVA FREITAS</option>
+                    <option value="mot_anderson">ANDERSON JOSE DA SILVA</option>
+                    <option value="mot_bruno">BRUNO DA SILVA ELBLAUS</option>
+                    <option value="mot_carlos">CARLOS AMERICO PINTO DA SILVA</option>
+                    <option value="mot_claudio">CLAUDIO JOSE DE SOUZA</option>
+                    <option value="mot_guilherme">GUILHERME JOSE DE SOUZA</option>
+                    <option value="mot_jefferson">JEFFERSON ISRAEL DE SOUZA</option>
+                    <option value="mot_jonas">JONAS ELIAS HONORIO</option>
+                    <option value="mot_luis">LUIS FERNANDO DE PINHO VELHO WANDERLEY</option>
+                    <option value="mot_marcio">MARCIO JOSE TAVARES</option>
+                    <option value="mot_rodrigo">RODRIGO MARAES DE ALMEIDA</option>
+                    <option value="mot_vilson">VILSON MARINI PEREIRA</option>
+                    <option value="mot_wellington">WELLINGTON NEVES DE OLIVEIRA</option>
+                </select>
+            </div>
+            <div class="login-input-group">
+                <label for="passwordInput">Senha de Acesso</label>
+                <input type="password" id="passwordInput" class="login-input" placeholder="Digite sua senha" required autocomplete="current-password">
+            </div>
+            <button type="submit" id="loginBtn" class="btn-login">Entrar no Sistema</button>
+            <div id="loginError" class="login-error">Motorista ou senha incorretos!</div>
+        </form>
+        <div class="login-footer">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Fundação Cristiano Varella" class="login-footer-logo">
+            <div class="login-footer-credit">By Althieres Dias</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="top-bar">
+            <div class="top-bar-left">
+                <span class="beta-badge">BETA</span>
+                <h2>Motorista</h2>
+            </div>
+            <button id="themeBtn" class="btn-theme"><span>💡</span><span id="themeText">Super OLED</span></button>
+        </div>
+        <div class="driver-info-badge">
+            <span>👤 <b id="displayDriverName">Motorista</b></span>
+            <button class="btn-logout" onclick="fazerTrocaMotorista()">Trocar</button>
+        </div>
+        <div class="route-selection-box">
+            <label for="plateSelect">PLACA DO VEÍCULO:</label>
+            <select id="plateSelect" class="route-select" onchange="carregarUltimaKmPlaca()">
+                <option value="" disabled selected>Selecione a placa do ônibus...</option>
+                <option value="GSH-5A89">GSH-5A89</option>
+                <option value="GFH-8D02">GFH-8D02</option>
+                <option value="GFH-8D01">GFH-8D01</option>
+            </select>
+            <label for="routeSelect">ROTA DE HOJE:</label>
+            <select id="routeSelect" class="route-select">
+                <option value="plantao" data-nome="Rota de Plantão" data-hora="Especial">Rota de Plantão (Especial)</option>
+                <option value="rota_01" data-nome="Rota 01" data-hora="06:15">Rota 01 - 06:15</option>
+                <option value="rota_02" data-nome="Rota 02" data-hora="06:15">Rota 02 - 06:15</option>
+                <option value="rota_03" data-nome="Rota 03" data-hora="06:15">Rota 03 - 06:15</option>
+                <option value="rota_04" data-nome="Rota 04" data-hora="17:15">Rota 04 - 17:15</option>
+                <option value="rota_05" data-nome="Rota 05" data-hora="17:15">Rota 05 - 17:15</option>
+            </select>
+            <label for="kmInicialInput">KM INICIAL DO VEÍCULO:</label>
+            <input type="number" id="kmInicialInput" class="km-input-field" placeholder="Ex: 145200" oninput="validarCamposInicio()">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                <span class="km-last-info" id="lastKmText">Última KM: --</span>
+                <button id="btnUsarSugerida" class="btn-suggestion" onclick="usarKmSugerida()">Aceitar Sugestão</button>
+            </div>
+        </div>
+        <div class="status-box" id="statusText">Status: <b style="color: #f44336;">OFFLINE</b></div>
+        <div class="online-app-box">Passageiros com o App Aberto: <span id="onlinePassCount">0</span></div>
+        <button id="toggleBtn" class="btn btn-start" disabled>▶ Iniciar Transmissão</button>
+        <button id="btnAOD" class="btn btn-aod" onclick="ativarAOD()">Modo Economia (AOD)</button>
+        <div class="incident-section">
+            <div class="incident-title">Relatar Ocorrência:</div>
+            <button class="btn btn-incident" id="btnAccident">⚠️ Trânsito / Acidente à Frente</button>
+            <button class="btn btn-incident" id="btnBroken">🔧 Ônibus com Defeito</button>
+        </div>
+        <div class="history-section">
+            <div class="history-title">Viagens de Hoje (Últimas 5)</div>
+            <div id="todayHistoryList">Carregando viagens do dia...</div>
+            <details class="history-details" id="oldHistoryDetails" style="display: none;">
+                <summary>Ver mais viagens e histórico (<span id="oldHistoryCount">0</span>)</summary>
+                <div class="history-expanded-list" id="oldHistoryList"></div>
+            </details>
+        </div>
+        <div class="footer" id="resetFooter" ondblclick="limparTodasRotasEmergencia()">
+            <img src="https://raw.githubusercontent.com/althierestm/OnibusFCV/main/logo.png.webp" alt="Logo FCV" class="footer-logo">
+            <div class="footer-credit">by Althieres Dias</div>
+        </div>
+    </div>
+
+    <div id="aodOverlay" onclick="desativarAOD()">
+        <div id="aodContent">
+            <div class="aod-clock" id="aodClock">00:00</div>
+            <div class="aod-route" id="aodRouteName">Nome da Rota</div>
+            <div class="aod-passengers" id="aodPassengersCount">Passageiros com App aberto: 0</div>
+        </div>
+        <div class="aod-hint">Toque em qualquer lugar para sair do modo economia</div>
+    </div>
+
+    <div id="customAlertModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
+            <div id="customAlertMsg" class="custom-dialog-msg"></div>
+            <div class="custom-dialog-buttons"><button class="custom-dialog-btn btn-dialog-ok" onclick="fecharCustomAlert()">OK</button></div>
+        </div>
+    </div>
+
+    <div id="customConfirmModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Rotas FCV - Motorista diz</div>
+            <div id="customConfirmMsg" class="custom-dialog-msg"></div>
+            <div class="custom-dialog-buttons">
+                <button class="custom-dialog-btn btn-dialog-cancel" id="customConfirmBtnCancel">Cancelar</button>
+                <button class="custom-dialog-btn btn-dialog-ok" id="customConfirmBtnOk">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="kmFinalModal" class="custom-dialog-overlay">
+        <div class="custom-dialog-box">
+            <div class="custom-dialog-title">Finalizar Corrida - KM Final</div>
+            <div class="custom-dialog-msg">Informe a <b>Quilometragem Final</b> do veículo para encerrar a rota:<input type="number" id="kmFinalInput" class="km-input-field" style="margin-top: 10px;" placeholder="Ex: 145250"></div>
+            <div class="custom-dialog-buttons">
+                <button class="custom-dialog-btn btn-dialog-cancel" onclick="fecharModalKmFinal()">Voltar</button>
+                <button class="custom-dialog-btn btn-dialog-ok" onclick="confirmarKmFinalEParar()">Encerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     document.addEventListener('contextmenu',e=>e.preventDefault());
     document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&(e.key==='I'||e.key==='J'))||(e.ctrlKey&&e.key==='U'))e.preventDefault();});
@@ -18,9 +234,10 @@
     loginForm.addEventListener("submit",a=>{a.preventDefault();const b=driverSelect.value,c=passwordInput.value.trim().toLowerCase(),d=motoristasCadastrados[b],h=c.split("").map(x=>(x.charCodeAt(0)+13).toString(16)).join("");d&&d.hash===h?(loginError.style.display="none",motoristaLogado={id:b,nome:d.nome},sessionStorage.setItem("fcv_motorista_dados",JSON.stringify(motoristaLogado)),displayDriverName.innerText=d.nome,loginOverlay.style.display="none"):(loginError.style.display="block",passwordInput.value="")});
     function fazerTrocaMotorista(){if(isTransmitting)return customAlert("Finalize a transmissão atual antes de trocar de motorista!");sessionStorage.removeItem("fcv_motorista_dados");motoristaLogado=null;loginOverlay.style.display="flex"}
     const firebaseConfig={apiKey:"AIzaSyCDmRsBA8z08E3mbf4EUHIO8Rb02pV5Bcg",authDomain:"rotasfcv.firebaseapp.com",databaseURL:"https://rotasfcv-default-rtdb.firebaseio.com",projectId:"rotasfcv",storageBucket:"rotasfcv.firebasestorage.app",messagingSenderId:"235141426187",appId:"1:235141426187:web:2092de8f43081bb2a4eb0e"};firebase.initializeApp(firebaseConfig);const db=firebase.database();
-    let isTransmitting=!1,watchId=null,ocorrenciaAtual=null,viagemAtualId=null,currentRouteKey=null,timerInterval=null,clockInterval=null,tempoInicioViagem=null,lastSignalTimeout=null,wakeLock=null,ultimoTempoEnvio=0;
-    const toggleBtn=document.getElementById("toggleBtn"),btnAOD=document.getElementById("btnAOD"),statusText=document.getElementById("statusText"),routeSelect=document.getElementById("routeSelect"),plateSelect=document.getElementById("plateSelect"),kmInicialInput=document.getElementById("kmInicialInput"),lastKmText=document.getElementById("lastKmText"),btnAccident=document.getElementById("btnAccident"),btnBroken=document.getElementById("btnBroken"),onlinePassCountEl=document.getElementById("onlinePassCount"),themeBtn=document.getElementById("themeBtn"),themeText=document.getElementById("themeText"),todayHistoryListEl=document.getElementById("todayHistoryList"),oldHistoryListEl=document.getElementById("oldHistoryList"),oldHistoryDetails=document.getElementById("oldHistoryDetails"),oldHistoryCount=document.getElementById("oldHistoryCount");
-    function carregarUltimaKmPlaca(){const a=plateSelect.value;a&&db.ref("veiculos_km/"+a).once("value",b=>{const c=b.val();c&&c.ultimaKm?(lastKmText.innerText="Última KM registrada: "+c.ultimaKm+" km",kmInicialInput.value=c.ultimaKm):(lastKmText.innerText="Última KM registrada: Sem histórico",kmInicialInput.value=""),validarCamposInicio()})}
+    let isTransmitting=!1,watchId=null,ocorrenciaAtual=null,viagemAtualId=null,currentRouteKey=null,timerInterval=null,clockInterval=null,tempoInicioViagem=null,lastSignalTimeout=null,wakeLock=null,ultimoTempoEnvio=0,kmSugeridaGlobal=0;
+    const toggleBtn=document.getElementById("toggleBtn"),btnAOD=document.getElementById("btnAOD"),statusText=document.getElementById("statusText"),routeSelect=document.getElementById("routeSelect"),plateSelect=document.getElementById("plateSelect"),kmInicialInput=document.getElementById("kmInicialInput"),lastKmText=document.getElementById("lastKmText"),btnUsarSugerida=document.getElementById("btnUsarSugerida"),btnAccident=document.getElementById("btnAccident"),btnBroken=document.getElementById("btnBroken"),onlinePassCountEl=document.getElementById("onlinePassCount"),themeBtn=document.getElementById("themeBtn"),themeText=document.getElementById("themeText"),todayHistoryListEl=document.getElementById("todayHistoryList"),oldHistoryListEl=document.getElementById("oldHistoryList"),oldHistoryDetails=document.getElementById("oldHistoryDetails"),oldHistoryCount=document.getElementById("oldHistoryCount");
+    function carregarUltimaKmPlaca(){const a=plateSelect.value;a&&db.ref("veiculos_km/"+a).once("value",b=>{const c=b.val();c&&c.ultimaKm?(kmSugeridaGlobal=c.ultimaKm,lastKmText.innerText="Última KM: "+c.ultimaKm+" km",btnUsarSugerida.style.display="inline-block",kmInicialInput.value=""):(kmSugeridaGlobal=0,lastKmText.innerText="Última KM: Sem histórico",btnUsarSugerida.style.display="none",kmInicialInput.value="");validarCamposInicio()})}
+    function usarKmSugerida(){kmSugeridaGlobal>0&&(kmInicialInput.value=kmSugeridaGlobal,validarCamposInicio())}
     function validarCamposInicio(){const a=plateSelect.value,b=kmInicialInput.value.trim();a&&b&&parseInt(b)>0?toggleBtn.disabled=!1:toggleBtn.disabled=!0}
     setInterval(()=>{db.ref("onibus").once("value",a=>{const b=a.val()||{},c=Date.now(),d=9e4;Object.keys(b).forEach(e=>{const f=b[e];if(f&&(f.ativo||f.emUso)&&e!==currentRouteKey){const g=f.ultimaAtualizacao||0;c-g>d&&db.ref("onibus/"+e).update({ativo:!1,emUso:!1})}})})},3e4);
     function limparTodasRotasEmergencia(){customConfirm("Deseja encerrar e remover do mapa TODOS os ônibus ativos no momento?",a=>{a&&db.ref("onibus").once("value",b=>{const c=b.val()||{};Object.keys(c).forEach(d=>{db.ref("onibus/"+d).update({ativo:!1,emUso:!1})});customAlert("Todas as rotas foram desativadas e removidas do mapa!")})})}
@@ -44,11 +261,13 @@
     function iniciarTransmissao(){if("geolocation"in navigator){const a=routeSelect.options[routeSelect.selectedIndex],b=plateSelect.value,c=parseInt(kmInicialInput.value);if(!b)return customAlert("Selecione a placa do veículo antes de iniciar!");if(!c||0>=c)return customAlert("Informe uma quilometragem inicial válida!");if(a.disabled)return customAlert("Esta rota já está sendo utilizada por outro motorista no momento!");currentRouteKey=routeSelect.value;const d=a.getAttribute("data-nome"),e=a.getAttribute("data-hora");routeSelect.disabled=!0;plateSelect.disabled=!0;kmInicialInput.disabled=!0;tempoInicioViagem=Date.now();ultimoTempoEnvio=0;requestWakeLock();db.ref("onibus/"+currentRouteKey).update({ativo:!0,emUso:!0,placa:b,kmInicial:c,motoristaNome:motoristaLogado?motoristaLogado.nome:"Não Informado",ultimaAtualizacao:firebase.database.ServerValue.TIMESTAMP});db.ref("onibus/"+currentRouteKey+"/ativo").onDisconnect().set(!1);db.ref("onibus/"+currentRouteKey+"/emUso").onDisconnect().set(!1);db.ref("contador_corridas").transaction(f=>(f||0)+1,(f,g,h)=>{const i=h.val()||1,j=String(i).padStart(5,"0"),k=db.ref("historico_viagens").push();viagemAtualId=k.key;k.set({inicio:firebase.database.ServerValue.TIMESTAMP,rotaKey:currentRouteKey,rotaNome:d,hora:e,placa:b,kmInicial:c,codigoViagem:j,motoristaId:motoristaLogado?motoristaLogado.id:"mot_anonimo",motoristaNome:motoristaLogado?motoristaLogado.nome:"Motorista Não Identificado"});db.ref("historico_viagens/"+viagemAtualId+"/fim").onDisconnect().set(firebase.database.ServerValue.TIMESTAMP)});timerInterval=setInterval(()=>{const f=atualizarCronometroLocal(),g=document.getElementById("liveTimer"),h=document.getElementById("histCronometro");g&&(g.innerText=f);h&&(h.innerText=f)},1e3);resetarInatividadeTimer();watchId=navigator.geolocation.watchPosition(f=>{resetarInatividadeTimer();const g=f.coords.latitude,h=f.coords.longitude,i=Math.round(3.6*(f.coords.speed||0)),j=Date.now();let k="normal";5>i?k="parado":18>i&&(k="lento");(j-ultimoTempoEnvio>=8e3||ocorrenciaAtual)&&(db.ref("onibus/"+currentRouteKey).set({nome:d,hora:e,placa:b,kmInicial:c,lat:g,lng:h,velocidade:i,statusTransito:k,ocorrenciaManual:ocorrenciaAtual,ativo:!0,emUso:!0,motoristaNome:motoristaLogado?motoristaLogado.nome:"Não Informado",ultimaAtualizacao:firebase.database.ServerValue.TIMESTAMP}),viagemAtualId&&db.ref("historico_viagens/"+viagemAtualId+"/pontosTrajeto").push({lat:g,lng:h,velocidade:i,ocorrencia:ocorrenciaAtual,timestamp:firebase.database.ServerValue.TIMESTAMP}),ultimoTempoEnvio=j);statusText.innerHTML=`<b>${d} - ${e} (${b})</b><br>Status: <b style='color: #4caf50;'>TRANSMITINDO</b><br>Velocidade: <b>${i} km/h</b><div class='timer-display'><span id='liveTimer'>${atualizarCronometroLocal()}</span></div>`},f=>{customAlert("Erro ao obter localização: "+f.message)},{enableHighAccuracy:!0});isTransmitting=!0;toggleBtn.innerText="⏹ Parar Transmissão";toggleBtn.classList.remove("btn-start");toggleBtn.classList.add("btn-stop");btnAOD.style.display="block"}else customAlert("Geolocalização não é suportada neste navegador.")}
     function abrirModalKmFinal(){const a=parseInt(kmInicialInput.value)||0;document.getElementById("kmFinalInput").value=a;document.getElementById("kmFinalModal").style.display="flex"}
     function fecharModalKmFinal(){document.getElementById("kmFinalModal").style.display="none"}
-    function confirmarKmFinalEParar(){const a=parseInt(kmInicialInput.value)||0,b=parseInt(document.getElementById("kmFinalInput").value),c=plateSelect.value;if(!b||a>b)return customAlert("A KM Final não pode ser menor do que a KM Inicial ("+a+" km)!");fecharModalKmFinal();c&&db.ref("veiculos_km/"+c).set({ultimaKm:b,ultimaAtualizacao:firebase.database.ServerValue.TIMESTAMP,ultimoMotorista:motoristaLogado?motoristaLogado.nome:"Desconhecido"});viagemAtualId&&db.ref("historico_viagens/"+viagemAtualId).update({kmFinal:b,kmPercorrida:b-a});pararTransmissao()}
+    function confirmarKmFinalEParar(){const a=parseInt(kmInicialInput.value)||0,b=parseInt(document.getElementById("kmFinalInput").value),c=plateSelect.value;if(!b||a>b)return customAlert("A KM Final ("+(b||0)+") não pode ser menor que a KM Inicial ("+a+"). Confira o painel!");fecharModalKmFinal();c&&db.ref("veiculos_km/"+c).set({ultimaKm:b,ultimaAtualizacao:firebase.database.ServerValue.TIMESTAMP,ultimoMotorista:motoristaLogado?motoristaLogado.nome:"Desconhecido"});viagemAtualId&&db.ref("historico_viagens/"+viagemAtualId).update({kmFinal:b,kmPercorrida:b-a});pararTransmissao()}
     function pararTransmissao(){releaseWakeLock();desativarAOD();null!==watchId&&(navigator.geolocation.clearWatch(watchId),watchId=null);timerInterval&&(clearInterval(timerInterval),timerInterval=null);lastSignalTimeout&&(clearTimeout(lastSignalTimeout),lastSignalTimeout=null);viagemAtualId&&(db.ref("historico_viagens/"+viagemAtualId+"/fim").onDisconnect().cancel(),db.ref("historico_viagens/"+viagemAtualId).update({fim:firebase.database.ServerValue.TIMESTAMP}),viagemAtualId=null);currentRouteKey&&(db.ref("onibus/"+currentRouteKey+"/ativo").onDisconnect().cancel(),db.ref("onibus/"+currentRouteKey+"/emUso").onDisconnect().cancel(),db.ref("onibus/"+currentRouteKey).update({ativo:!1,emUso:!1}));isTransmitting=!1;tempoInicioViagem=null;routeSelect.disabled=!1;plateSelect.disabled=!1;kmInicialInput.disabled=!1;statusText.innerHTML="Status: <b style='color: #f44336;'>OFFLINE</b>";toggleBtn.innerText="▶ Iniciar Transmissão";toggleBtn.classList.remove("btn-stop");toggleBtn.classList.add("btn-start");btnAOD.style.display="none";carregarUltimaKmPlaca()}
     function atualizarDadosFirebase(){isTransmitting&&currentRouteKey&&db.ref("onibus/"+currentRouteKey).update({ocorrenciaManual:ocorrenciaAtual,ultimaAtualizacao:firebase.database.ServerValue.TIMESTAMP})}
     function ativarAOD(){const a=routeSelect.options[routeSelect.selectedIndex],b=a.getAttribute("data-nome"),c=a.getAttribute("data-hora");document.getElementById("aodRouteName").innerText=`${b} - ${c}`;document.getElementById("aodOverlay").style.display="flex";atualizarRelogioAOD();clockInterval=setInterval(atualizarRelogioAOD,1e3)}
     function desativarAOD(){document.getElementById("aodOverlay").style.display="none";clockInterval&&(clearInterval(clockInterval),clockInterval=null)}
     function atualizarRelogioAOD(){const a=new Date,b=String(a.getHours()).padStart(2,"0"),c=String(a.getMinutes()).padStart(2,"0");document.getElementById("aodClock").innerText=`${b}:${c}`;const d=document.getElementById("aodContent"),e=a.getMinutes()%5;d.style.transform=`translateY(${e}px)`}
     "serviceWorker"in navigator&&navigator.serviceWorker.register("sw.js").then(()=>console.log("Service Worker ativado.")).catch(a=>console.error("Erro no Service Worker:",a));
-    </script></body></html>
+    </script>
+</body>
+</html>
